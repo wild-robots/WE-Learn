@@ -8,11 +8,12 @@ import { ChevronRight, Sparkles, ChevronRight as ChevronRightIcon } from 'lucide
 
 interface Props {
   onSelectCohort: (cohort: Cohort) => void;
+  onOpenArchitect: () => void;
 }
 
 type TabType = 'open' | 'existing' | 'topics' | 'personal';
 
-const LandingPage: React.FC<Props> = ({ onSelectCohort }) => {
+const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect }) => {
   const { t, isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>('open');
 
@@ -90,7 +91,7 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort }) => {
   ];
 
   const renderContent = () => {
-    switch(activeTab) {
+    switch (activeTab) {
       case 'open':
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -134,11 +135,11 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort }) => {
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <Hero />
+      <Hero onOpenArchitect={onOpenArchitect} />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 pb-32">
         <div className="flex flex-col gap-8 items-start relative">
-          
+
           {/* Main Feed Content */}
           <div className="w-full transition-all duration-500 ease-in-out">
             {/* High-Fidelity Tab Bar */}
@@ -147,9 +148,8 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort }) => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 text-sm font-bold transition-all rounded-xl relative whitespace-nowrap ${
-                    activeTab === tab.id ? 'text-white bg-white/5 shadow-lg' : 'text-white/40 hover:text-white/60'
-                  }`}
+                  className={`px-6 py-3 text-sm font-bold transition-all rounded-xl relative whitespace-nowrap ${activeTab === tab.id ? 'text-white bg-white/5 shadow-lg' : 'text-white/40 hover:text-white/60'
+                    }`}
                 >
                   {tab.label}
                   {activeTab === tab.id && (
@@ -164,8 +164,8 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort }) => {
 
             <div className="mt-16 text-center">
               <button className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl glass text-white text-sm font-bold hover:bg-white/10 transition-all border border-white/5 shadow-xl">
-                  Explore More Cohorts
-                  <ChevronRightIcon className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                Explore More Cohorts
+                <ChevronRightIcon className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
             </div>
           </div>
@@ -176,37 +176,37 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort }) => {
       <section className="py-32 px-4 relative overflow-hidden bg-[#050505]">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-full bg-blue-600/5 blur-[120px] rounded-full -z-10"></div>
         <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-                {t('cta_title')}
-            </h2>
-            <p className="text-xl text-white/60 mb-12">
-                {t('cta_subtitle')}
-            </p>
-            <button className="px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold rounded-2xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-lg group">
-                <span className="flex items-center gap-3">
-                    {t('cta_btn')}
-                    <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${isRTL ? 'rotate-180' : ''}`} />
-                </span>
-            </button>
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+            {t('cta_title')}
+          </h2>
+          <p className="text-xl text-white/60 mb-12">
+            {t('cta_subtitle')}
+          </p>
+          <button className="px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold rounded-2xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-lg group">
+            <span className="flex items-center gap-3">
+              {t('cta_btn')}
+              <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${isRTL ? 'rotate-180' : ''}`} />
+            </span>
+          </button>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-white/5 bg-[#050505]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">N</span>
-                </div>
-                <span className="text-sm font-bold text-white/40">Nexus Learn © 2025</span>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">W</span>
             </div>
-            
-            <div className="flex gap-8 text-xs font-medium text-white/40">
-                <a href="#" className="hover:text-white transition-colors">About</a>
-                <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                <a href="#" className="hover:text-white transition-colors">Terms</a>
-                <a href="#" className="hover:text-white transition-colors">Help</a>
-            </div>
+            <span className="text-sm font-bold text-white/40">WE Learn © 2025</span>
+          </div>
+
+          <div className="flex gap-8 text-xs font-medium text-white/40">
+            <a href="#" className="hover:text-white transition-colors">About</a>
+            <a href="#" className="hover:text-white transition-colors">Privacy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms</a>
+            <a href="#" className="hover:text-white transition-colors">Help</a>
+          </div>
         </div>
       </footer>
     </div>

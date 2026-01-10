@@ -4,6 +4,7 @@ import { LanguageProvider } from './LanguageContext';
 import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
 import CohortDetail from './components/CohortDetail';
+import CourseArchitect from './components/CourseArchitect';
 import TranslationOverlay from './components/TranslationOverlay';
 import { View, Cohort } from './types';
 
@@ -27,12 +28,21 @@ function App() {
     <LanguageProvider>
       <div className="min-h-screen bg-[#050505] selection:bg-blue-600/30 selection:text-white">
         <Navbar onLogoClick={handleBack} />
-        
+
         <main className="transition-all duration-500">
-          {view === 'landing' ? (
-            <LandingPage onSelectCohort={handleSelectCohort} />
-          ) : (
-            selectedCohort && <CohortDetail cohort={selectedCohort} onBack={handleBack} />
+          {view === 'landing' && (
+            <LandingPage
+              onSelectCohort={handleSelectCohort}
+              onOpenArchitect={() => setView('course-architect')}
+            />
+          )}
+
+          {view === 'cohort-detail' && selectedCohort && (
+            <CohortDetail cohort={selectedCohort} onBack={handleBack} />
+          )}
+
+          {view === 'course-architect' && (
+            <CourseArchitect onBack={handleBack} />
           )}
         </main>
 

@@ -1,7 +1,7 @@
 
 export type Language = 'EN' | 'HE' | 'ES' | 'FR' | 'DE' | 'IT' | 'PT' | 'RU' | 'ZH' | 'JA' | 'AR';
 
-export type View = 'landing' | 'cohort-detail';
+export type View = 'landing' | 'cohort-detail' | 'course-architect';
 
 export interface TranslationSet {
   hero_title: string;

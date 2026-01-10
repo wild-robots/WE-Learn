@@ -1,185 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../LanguageContext';
-import { 
-  ArrowLeft, Video, CheckCircle2, Award, Users, MessageSquare, 
-  ChevronRight, Clock, Calendar, Zap, ChevronLeft, 
-  ChevronRight as ChevronRightIcon, Sparkles, X, ExternalLink
+import {
+  ArrowLeft, Video, CheckCircle2, Award, Users, MessageSquare,
+  Clock, Calendar, Zap, ChevronRight, ExternalLink
 } from 'lucide-react';
 import { Cohort, SyllabusModule, Member } from '../types';
-import AIMatchmaker from './AIMatchmaker';
 
-interface Props {
-  cohort: Cohort;
-  onBack: () => void;
-}
-
-const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
-  const { t, isRTL } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'overview' | 'syllabus' | 'community'>('overview');
-  const [progress, setProgress] = useState(0);
-  
-  // Sidebar state logic - Starts collapsed by default for better initial UX
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setProgress(cohort.progress), 100);
-    return () => clearTimeout(timer);
-  }, [cohort.progress]);
-
-  const stats = [
-    { label: t('members'), value: `${cohort.members}/${cohort.maxMembers}`, icon: Users },
-    { label: 'Pace', value: cohort.duration, icon: Clock },
-    { label: t('starts'), value: cohort.startDate, icon: Calendar },
-    { label: 'Progress', value: `${cohort.progress}%`, icon: Zap }
-  ];
-
-  return (
-    <div className="min-h-screen pt-20 pb-20 px-4 md:px-8 bg-[#050505]">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start relative">
-        
-        {/* Main Feed Content Area */}
-        <div className={`flex-grow min-w-0 transition-all duration-500 ease-in-out pt-8 ${isExpanded ? 'lg:mr-8' : ''}`}>
-          {/* Breadcrumb Aligned with Chat Top */}
-          <button 
-            onClick={onBack}
-            className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-8 group"
-          >
-            <ArrowLeft className={`w-4 h-4 transition-transform group-hover:-translate-x-1 ${isRTL ? 'rotate-180' : ''}`} />
-            {t('back_to_cohorts')}
-          </button>
-
-          {/* Header Section */}
-          <div className="mb-12">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className="px-3 py-1 rounded-full bg-purple-600/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest border border-purple-600/30">
-                {cohort.category}
-              </span>
-              <span className="px-3 py-1 rounded-full bg-green-600/20 text-green-400 text-[10px] uppercase font-bold tracking-widest border border-green-600/30">
-                {cohort.level}
-              </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-white/60 text-[10px] uppercase font-bold tracking-widest border border-white/10">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                {t('active_now')}
-              </span>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight leading-tight">
-              {cohort.title}
-            </h1>
-            <p className="text-lg text-white/50 max-w-2xl leading-relaxed">
-              {cohort.description}
-            </p>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-            {stats.map((s, i) => (
-              <div key={i} className="glass p-6 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                <div className="flex items-center gap-3 text-white/40 mb-3">
-                  <s.icon className="w-4 h-4" />
-                  <span className="text-[10px] uppercase font-bold tracking-widest">{s.label}</span>
-                </div>
-                <div className="text-2xl font-bold text-white tracking-tight">{s.value}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="flex border-b border-white/5 mb-8">
-            {(['overview', 'syllabus', 'community'] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-8 py-4 text-sm font-bold transition-all relative ${
-                  activeTab === tab ? 'text-white' : 'text-white/40 hover:text-white/60'
-                }`}
-              >
-                {t(tab as any)}
-                {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]"></div>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab Panels */}
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {activeTab === 'overview' && <OverviewPanel cohort={cohort} progress={progress} />}
-            {activeTab === 'syllabus' && <SyllabusPanel syllabus={cohort.syllabus} />}
-            {activeTab === 'community' && <CommunityPanel members={cohort.communityMembers} />}
-          </div>
-        </div>
-
-        {/* Precision Sticky AI Chat Sidebar - Aligned with Breadcrumb top (Navbar + Content Padding) */}
-        <aside 
-          className={`hidden lg:block sticky top-28 shrink-0 transition-all duration-500 ease-in-out h-[calc(100vh-140px)] ${
-            isExpanded ? 'w-[400px]' : 'w-12'
-          }`}
-        >
-          {/* Collapse/Expand Toggle - Positioned for easy reach */}
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="absolute -left-4 top-4 w-8 h-8 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-[#222] transition-all z-30 shadow-2xl"
-            title={isExpanded ? "Collapse AI Assistant" : "Expand AI Assistant"}
-          >
-            {isExpanded ? (
-              <ChevronRightIcon className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-            ) : (
-              <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-            )}
-          </button>
-
-          {/* Chat Component - Sliding Content */}
-          <div className={`h-full flex flex-col transition-all duration-500 ease-in-out ${isExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12 pointer-events-none'}`}>
-            <AIMatchmaker />
-          </div>
-
-          {/* Minimized Vertical Tab State */}
-          {!isExpanded && (
-            <div 
-              className="absolute inset-0 flex flex-col items-center pt-12 gap-8 cursor-pointer group pointer-events-auto bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/5 transition-colors"
-              onClick={() => setIsExpanded(true)}
-            >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-[0.3em] font-bold text-white/30 group-hover:text-white/70 transition-colors py-4">
-                AI ASSISTANT
-              </div>
-            </div>
-          )}
-        </aside>
-      </div>
-
-      {/* Mobile Sidebar FAB */}
-      <button 
-        onClick={() => setIsMobileOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-blue-600/40 z-40 active:scale-95 transition-transform"
-      >
-        <Sparkles className="w-6 h-6" />
-      </button>
-
-      {/* Mobile Chat Overlay */}
-      {isMobileOpen && (
-        <div className="lg:hidden fixed inset-0 bg-[#050505]/95 backdrop-blur-xl z-[60] flex flex-col animate-in slide-in-from-bottom duration-300">
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
-            <h3 className="text-lg font-bold text-white tracking-tight">AI Assistant</h3>
-            <button onClick={() => setIsMobileOpen(false)} className="p-2 text-white/40 hover:text-white">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-          <div className="flex-grow overflow-hidden">
-            <AIMatchmaker />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Overview Panel
+// Sub-components moved to top for proper referencing via const
 const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort, progress }) => {
   return (
     <div className="space-y-10">
@@ -225,7 +53,7 @@ const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort,
           <span className="text-2xl font-bold text-white">{progress}%</span>
         </div>
         <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-blue-600 to-indigo-700 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(37,99,235,0.3)]"
             style={{ width: `${progress}%` }}
           />
@@ -238,7 +66,6 @@ const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort,
   );
 };
 
-// Syllabus Panel
 const SyllabusPanel: React.FC<{ syllabus?: SyllabusModule[] }> = ({ syllabus }) => {
   const defaultSyllabus: SyllabusModule[] = syllabus || [
     { id: 1, title: 'Foundations & Framework', items: ['Core concepts overview', 'Industry best practices', 'Tool setup'], deliverable: 'Personal learning goals document' },
@@ -249,24 +76,23 @@ const SyllabusPanel: React.FC<{ syllabus?: SyllabusModule[] }> = ({ syllabus }) 
 
   return (
     <div className="space-y-6">
-       <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center">
-            <Clock className="w-6 h-6 text-blue-400" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-white tracking-tight">Course Syllabus</h3>
-            <p className="text-white/40 text-sm">Follow the path to mastery</p>
-          </div>
+      <div className="flex items-center gap-4 mb-8">
+        <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center">
+          <Clock className="w-6 h-6 text-blue-400" />
         </div>
+        <div>
+          <h3 className="text-xl font-bold text-white tracking-tight">Course Syllabus</h3>
+          <p className="text-white/40 text-sm">Follow the path to mastery</p>
+        </div>
+      </div>
       {defaultSyllabus.map((mod, i) => (
         <div key={mod.id} className="relative pl-12 group">
           {i < defaultSyllabus.length - 1 && (
             <div className="absolute left-[23px] top-12 bottom-0 w-0.5 bg-white/10 group-hover:bg-blue-600/30 transition-colors"></div>
           )}
-          
-          <div className={`absolute left-0 top-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold border transition-all ${
-            i === 0 ? 'bg-blue-600 text-white border-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)] scale-110' : 'bg-white/5 text-white/40 border-white/10'
-          }`}>
+
+          <div className={`absolute left-0 top-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold border transition-all ${i === 0 ? 'bg-blue-600 text-white border-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)] scale-110' : 'bg-white/5 text-white/40 border-white/10'
+            }`}>
             {mod.id}
           </div>
 
@@ -294,7 +120,6 @@ const SyllabusPanel: React.FC<{ syllabus?: SyllabusModule[] }> = ({ syllabus }) 
   );
 };
 
-// Community Panel
 const CommunityPanel: React.FC<{ members?: Member[] }> = ({ members }) => {
   const defaultMembers: Member[] = members || [
     { id: '1', name: 'Member 1', role: 'Product Manager', online: true },
@@ -310,16 +135,15 @@ const CommunityPanel: React.FC<{ members?: Member[] }> = ({ members }) => {
   return (
     <div className="space-y-10">
       <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 flex items-center justify-center">
-            <Users className="w-6 h-6 text-indigo-400" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-white tracking-tight">Your Learning Community</h3>
-            <p className="text-white/40 text-sm">Learn alongside high-potential professionals</p>
-          </div>
+        <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 flex items-center justify-center">
+          <Users className="w-6 h-6 text-indigo-400" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-white tracking-tight">Your Learning Community</h3>
+          <p className="text-white/40 text-sm">Learn alongside high-potential professionals</p>
+        </div>
       </div>
 
-      {/* Prominent WhatsApp Integration Card */}
       <div className="glass group relative p-10 rounded-3xl border border-[#25D366]/30 overflow-hidden bg-gradient-to-br from-[#25D366]/5 to-transparent transition-all hover:border-[#25D366]/60 shadow-[0_20px_50px_rgba(37,211,102,0.15)] mb-12 cursor-pointer active:scale-[0.99]">
         <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none group-hover:scale-125 group-hover:rotate-12 transition-all duration-700">
           <MessageSquare className="w-64 h-64 text-[#25D366]" />
@@ -366,6 +190,101 @@ const CommunityPanel: React.FC<{ members?: Member[] }> = ({ members }) => {
         <button className="px-12 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all shadow-2xl active:scale-95">
           Register Now
         </button>
+      </div>
+    </div>
+  );
+};
+
+interface Props {
+  cohort: Cohort;
+  onBack: () => void;
+}
+
+const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
+  const { t, isRTL } = useLanguage();
+  const [activeTab, setActiveTab] = useState<'overview' | 'syllabus' | 'community'>('overview');
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(cohort.progress), 100);
+    return () => clearTimeout(timer);
+  }, [cohort.progress]);
+
+  const stats = [
+    { label: t('members'), value: `${cohort.members}/${cohort.maxMembers}`, icon: Users },
+    { label: 'Pace', value: cohort.duration, icon: Clock },
+    { label: t('starts'), value: cohort.startDate, icon: Calendar },
+    { label: 'Progress', value: `${cohort.progress}%`, icon: Zap }
+  ];
+
+  return (
+    <div className="min-h-screen pt-20 pb-20 px-4 md:px-8 bg-[#050505]">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start relative">
+        <div className="flex-grow min-w-0 transition-all duration-500 ease-in-out pt-8">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-8 group"
+          >
+            <ArrowLeft className={`w-4 h-4 transition-transform group-hover:-translate-x-1 ${isRTL ? 'rotate-180' : ''}`} />
+            {t('back_to_cohorts')}
+          </button>
+
+          <div className="mb-12">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="px-3 py-1 rounded-full bg-purple-600/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest border border-purple-600/30">
+                {cohort.category}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-green-600/20 text-green-400 text-[10px] uppercase font-bold tracking-widest border border-green-600/30">
+                {cohort.level}
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-white/60 text-[10px] uppercase font-bold tracking-widest border border-white/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                {t('active_now')}
+              </span>
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight leading-tight">
+              {cohort.title}
+            </h1>
+            <p className="text-lg text-white/50 max-w-2xl leading-relaxed">
+              {cohort.description}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+            {stats.map((s, i) => (
+              <div key={i} className="glass p-6 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
+                <div className="flex items-center gap-3 text-white/40 mb-3">
+                  <s.icon className="w-4 h-4" />
+                  <span className="text-[10px] uppercase font-bold tracking-widest">{s.label}</span>
+                </div>
+                <div className="text-2xl font-bold text-white tracking-tight">{s.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex border-b border-white/5 mb-8">
+            {(['overview', 'syllabus', 'community'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-8 py-4 text-sm font-bold transition-all relative ${activeTab === tab ? 'text-white' : 'text-white/40 hover:text-white/60'
+                  }`}
+              >
+                {t(tab as any)}
+                {activeTab === tab && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]"></div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {activeTab === 'overview' && <OverviewPanel cohort={cohort} progress={progress} />}
+            {activeTab === 'syllabus' && <SyllabusPanel syllabus={cohort.syllabus} />}
+            {activeTab === 'community' && <CommunityPanel members={cohort.communityMembers} />}
+          </div>
+        </div>
       </div>
     </div>
   );

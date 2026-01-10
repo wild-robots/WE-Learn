@@ -29,25 +29,25 @@ const Navbar: React.FC<Props> = ({ onLogoClick }) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050505]/80 backdrop-blur-md border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-        <div 
+        <div
           className="flex items-center gap-2 cursor-pointer group"
           onClick={onLogoClick}
         >
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center transition-transform group-hover:scale-110">
-            <span className="text-white font-bold text-lg">N</span>
+            <span className="text-white font-bold text-lg">W</span>
           </div>
-          <span className="text-xl font-bold text-white tracking-tight">Nexus Learn</span>
+          <span className="text-xl font-bold text-white tracking-tight">WE Learn</span>
         </div>
 
         <div className="hidden md:flex items-center gap-8">
-            <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Courses</a>
-            <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Tutors</a>
-            <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Pricing</a>
+          <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Courses</a>
+          <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Tutors</a>
+          <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Pricing</a>
         </div>
 
         <div className="flex items-center gap-6">
           <div className="relative">
-            <button 
+            <button
               onClick={() => setIsLangOpen(!isLangOpen)}
               className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
             >
@@ -73,7 +73,7 @@ const Navbar: React.FC<Props> = ({ onLogoClick }) => {
               </div>
             )}
           </div>
-          
+
           <button className="text-sm font-medium text-white/80 hover:text-white">Sign In</button>
         </div>
       </div>
