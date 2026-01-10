@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useLanguage } from '../LanguageContext';
-import { Search, Sparkles, Wand2, Paperclip } from 'lucide-react';
+import { Search, Sparkles, Wand2, Paperclip, Send } from 'lucide-react';
 
 const Hero: React.FC = () => {
   const { t, isRTL } = useLanguage();
@@ -31,7 +31,6 @@ const Hero: React.FC = () => {
             <p className="text-[11px] text-white/40 mb-3 px-1">Want to level up but not sure where to start? Share your professional goals with me.</p>
             <div className={`relative transition-all duration-500 rounded-2xl glass p-4 ${isFocused ? 'ring-2 ring-blue-600/50 scale-[1.02]' : ''}`}>
                 <div className="flex gap-4 items-start">
-                    {/* Updated to Ghost Style */}
                     <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                         <Wand2 className="w-5 h-5 text-white/70" />
                     </div>
@@ -57,8 +56,9 @@ const Hero: React.FC = () => {
                         <div className="px-2 py-1 rounded bg-white/5 text-[10px] text-white/40 border border-white/10 font-bold">
                             C35/O
                         </div>
-                        <button className="bg-white/5 hover:bg-white/10 border border-white/10 text-white p-2 rounded-xl transition-all">
-                            <Search className="w-4 h-4" />
+                        {/* Primary Send Button */}
+                        <button className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-2.5 rounded-xl transition-all hover:opacity-90 shadow-lg shadow-blue-600/20 active:scale-95">
+                            <Send className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                         </button>
                     </div>
                 </div>

@@ -4,7 +4,7 @@ import { useLanguage } from '../LanguageContext';
 import { 
   ArrowLeft, Video, CheckCircle2, Award, Users, MessageSquare, 
   ChevronRight, Clock, Calendar, Zap, ChevronLeft, 
-  ChevronRight as ChevronRightIcon, Sparkles, X, Send, ExternalLink
+  ChevronRight as ChevronRightIcon, Sparkles, X, ExternalLink
 } from 'lucide-react';
 import { Cohort, SyllabusModule, Member } from '../types';
 import AIMatchmaker from './AIMatchmaker';
@@ -19,16 +19,9 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'syllabus' | 'community'>('overview');
   const [progress, setProgress] = useState(0);
   
-  // Sidebar state logic
-  const [isExpanded, setIsExpanded] = useState(() => {
-    const saved = localStorage.getItem('nexus_chat_expanded');
-    return saved === null ? true : saved === 'true';
-  });
+  // Sidebar state logic - Starts collapsed by default for better initial UX
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('nexus_chat_expanded', isExpanded.toString());
-  }, [isExpanded]);
 
   useEffect(() => {
     const timer = setTimeout(() => setProgress(cohort.progress), 100);
@@ -43,12 +36,12 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
   ];
 
   return (
-    <div className="min-h-screen pt-28 pb-20 px-4 md:px-8 bg-[#050505]">
+    <div className="min-h-screen pt-20 pb-20 px-4 md:px-8 bg-[#050505]">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start relative">
         
-        {/* Main Content Area (Pushable Feed) */}
-        <div className="flex-grow min-w-0 transition-all duration-500 ease-in-out">
-          {/* Breadcrumb - Now inside the feed so it stays left of the chat */}
+        {/* Main Feed Content Area */}
+        <div className={`flex-grow min-w-0 transition-all duration-500 ease-in-out pt-8 ${isExpanded ? 'lg:mr-8' : ''}`}>
+          {/* Breadcrumb Aligned with Chat Top */}
           <button 
             onClick={onBack}
             className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-8 group"
@@ -105,7 +98,7 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
               >
                 {t(tab as any)}
                 {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full shadow-[0_0_15px_rgba(139,92,246,0.5)]"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]"></div>
                 )}
               </button>
             ))}
@@ -119,17 +112,17 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
           </div>
         </div>
 
-        {/* Sticky Collapsible Sidebar (Desktop) */}
+        {/* Precision Sticky AI Chat Sidebar - Aligned with Breadcrumb top (Navbar + Content Padding) */}
         <aside 
           className={`hidden lg:block sticky top-28 shrink-0 transition-all duration-500 ease-in-out h-[calc(100vh-140px)] ${
-            isExpanded ? 'w-[400px]' : 'w-16'
+            isExpanded ? 'w-[400px]' : 'w-12'
           }`}
         >
-          {/* Toggle Button */}
+          {/* Collapse/Expand Toggle - Positioned for easy reach */}
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`absolute -left-4 top-4 w-8 h-8 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-[#222] transition-all z-30 backdrop-blur-md shadow-2xl`}
-            title={isExpanded ? "Collapse AI Matchmaker" : "Expand AI Matchmaker"}
+            className="absolute -left-4 top-4 w-8 h-8 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-[#222] transition-all z-30 shadow-2xl"
+            title={isExpanded ? "Collapse AI Assistant" : "Expand AI Assistant"}
           >
             {isExpanded ? (
               <ChevronRightIcon className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
@@ -138,32 +131,32 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
             )}
           </button>
 
-          {/* Chat Content with Internal Feed Layout */}
-          <div className={`h-full flex flex-col transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          {/* Chat Component - Sliding Content */}
+          <div className={`h-full flex flex-col transition-all duration-500 ease-in-out ${isExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12 pointer-events-none'}`}>
             <AIMatchmaker />
           </div>
 
-          {/* Minimized Sidebar View */}
+          {/* Minimized Vertical Tab State */}
           {!isExpanded && (
             <div 
-              className="absolute inset-0 flex flex-col items-center pt-24 gap-8 cursor-pointer group pointer-events-auto"
+              className="absolute inset-0 flex flex-col items-center pt-12 gap-8 cursor-pointer group pointer-events-auto bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/5 transition-colors"
               onClick={() => setIsExpanded(true)}
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <div className="[writing-mode:vertical-lr] rotate-180 text-[10px] uppercase tracking-[0.3em] font-bold text-white/30 group-hover:text-white/60 transition-colors">
-                AI Matchmaker
+              <div className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-[0.3em] font-bold text-white/30 group-hover:text-white/70 transition-colors py-4">
+                AI ASSISTANT
               </div>
             </div>
           )}
         </aside>
       </div>
 
-      {/* Mobile Floating Action Button (FAB) */}
+      {/* Mobile Sidebar FAB */}
       <button 
         onClick={() => setIsMobileOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white shadow-2xl shadow-purple-600/40 z-40 active:scale-95 transition-transform"
+        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-blue-600/40 z-40 active:scale-95 transition-transform"
       >
         <Sparkles className="w-6 h-6" />
       </button>
@@ -172,7 +165,7 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 bg-[#050505]/95 backdrop-blur-xl z-[60] flex flex-col animate-in slide-in-from-bottom duration-300">
           <div className="flex items-center justify-between p-6 border-b border-white/10">
-            <h3 className="text-lg font-bold text-white tracking-tight">AI Matchmaker</h3>
+            <h3 className="text-lg font-bold text-white tracking-tight">AI Assistant</h3>
             <button onClick={() => setIsMobileOpen(false)} className="p-2 text-white/40 hover:text-white">
               <X className="w-6 h-6" />
             </button>
@@ -233,7 +226,7 @@ const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort,
         </div>
         <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(139,92,246,0.3)]"
+            className="h-full bg-gradient-to-r from-blue-600 to-indigo-700 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(37,99,235,0.3)]"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -268,11 +261,11 @@ const SyllabusPanel: React.FC<{ syllabus?: SyllabusModule[] }> = ({ syllabus }) 
       {defaultSyllabus.map((mod, i) => (
         <div key={mod.id} className="relative pl-12 group">
           {i < defaultSyllabus.length - 1 && (
-            <div className="absolute left-[23px] top-12 bottom-0 w-0.5 bg-white/10 group-hover:bg-purple-600/30 transition-colors"></div>
+            <div className="absolute left-[23px] top-12 bottom-0 w-0.5 bg-white/10 group-hover:bg-blue-600/30 transition-colors"></div>
           )}
           
           <div className={`absolute left-0 top-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold border transition-all ${
-            i === 0 ? 'bg-purple-600 text-white border-purple-600 shadow-[0_0_15px_rgba(139,92,246,0.4)] scale-110' : 'bg-white/5 text-white/40 border-white/10'
+            i === 0 ? 'bg-blue-600 text-white border-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)] scale-110' : 'bg-white/5 text-white/40 border-white/10'
           }`}>
             {mod.id}
           </div>
@@ -282,13 +275,13 @@ const SyllabusPanel: React.FC<{ syllabus?: SyllabusModule[] }> = ({ syllabus }) 
             <ul className="space-y-3 mb-8">
               {mod.items.map((item, j) => (
                 <li key={j} className="flex items-center gap-3 text-white/60 text-sm">
-                  <ChevronRight className="w-4 h-4 text-purple-500" />
+                  <ChevronRight className="w-4 h-4 text-blue-500" />
                   {item}
                 </li>
               ))}
             </ul>
-            <div className="p-4 rounded-xl bg-purple-600/10 border border-purple-600/20">
-              <div className="flex items-center gap-3 text-purple-400 text-xs font-bold uppercase tracking-widest mb-1">
+            <div className="p-4 rounded-xl bg-blue-600/10 border border-blue-600/20">
+              <div className="flex items-center gap-3 text-blue-400 text-xs font-bold uppercase tracking-widest mb-1">
                 <Award className="w-4 h-4" />
                 Deliverable
               </div>
@@ -327,23 +320,23 @@ const CommunityPanel: React.FC<{ members?: Member[] }> = ({ members }) => {
       </div>
 
       {/* Prominent WhatsApp Integration Card */}
-      <div className="glass group relative p-8 rounded-3xl border border-[#25D366]/30 overflow-hidden bg-gradient-to-br from-[#25D366]/5 to-transparent transition-all hover:border-[#25D366]/60 shadow-[0_10px_40px_rgba(37,211,102,0.1)] mb-12">
-        <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none group-hover:scale-110 transition-transform">
-          <MessageSquare className="w-48 h-48 text-[#25D366]" />
+      <div className="glass group relative p-10 rounded-3xl border border-[#25D366]/30 overflow-hidden bg-gradient-to-br from-[#25D366]/5 to-transparent transition-all hover:border-[#25D366]/60 shadow-[0_20px_50px_rgba(37,211,102,0.15)] mb-12 cursor-pointer active:scale-[0.99]">
+        <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none group-hover:scale-125 group-hover:rotate-12 transition-all duration-700">
+          <MessageSquare className="w-64 h-64 text-[#25D366]" />
         </div>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-[#25D366] flex items-center justify-center shadow-[0_0_30px_rgba(37,211,102,0.3)] shrink-0">
-              <MessageSquare className="w-8 h-8 text-white" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+          <div className="flex items-center gap-8">
+            <div className="w-20 h-20 rounded-2xl bg-[#25D366] flex items-center justify-center shadow-[0_0_40px_rgba(37,211,102,0.4)] shrink-0 transition-transform group-hover:scale-110">
+              <MessageSquare className="w-10 h-10 text-white fill-white" />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-1">Join the Cohort Community</h3>
-              <p className="text-white/60 text-sm max-w-sm">Connect instantly on WhatsApp with your fellow learners for 24/7 async collaboration.</p>
+            <div className="text-left">
+              <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Join the Cohort Community</h3>
+              <p className="text-white/70 text-base max-w-md leading-relaxed">Connect instantly with fellow learners on WhatsApp for 24/7 async collaboration, project updates, and networking.</p>
             </div>
           </div>
-          <button className="flex items-center gap-2 px-8 py-4 bg-[#25D366] hover:bg-[#22c35e] text-white font-bold rounded-2xl transition-all shadow-xl shadow-[#25D366]/20 active:scale-95 group/btn shrink-0">
+          <button className="flex items-center gap-3 px-10 py-5 bg-[#25D366] hover:bg-[#22c35e] text-white font-bold rounded-2xl transition-all shadow-2xl shadow-[#25D366]/30 active:scale-95 group/btn shrink-0 text-lg">
             Join WhatsApp Group
-            <ExternalLink className="w-4 h-4 opacity-70 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+            <ExternalLink className="w-5 h-5 opacity-80 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
           </button>
         </div>
       </div>
