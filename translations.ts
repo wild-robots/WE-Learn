@@ -5,7 +5,7 @@ export const translations: Record<Language, TranslationSet> = {
   EN: {
     hero_title: "Never Learn Alone Again",
     hero_subtitle: "Join matched cohorts with 1:1 tutors. Learn from AI-boosted content. Complete courses with a 10x higher success rate through peer accountability.",
-    search_placeholder: "Help me write a prompt that...",
+    search_placeholder: "What do you want to learn today?",
     btn_start: "Start Learning",
     btn_create: "Create New Group",
     section_active: "Active Learning Cohorts",
@@ -28,12 +28,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "Active Now",
     overview: "Overview",
     syllabus: "Syllabus",
-    community: "Community"
+    community: "Community",
+    view_group: "View Group",
+    btn_join: "Join Group",
+    tab_upcoming: "Upcoming Groups",
+    tab_active: "Active Groups",
+    tab_templates: "Course Templates",
+    tab_my_groups: "My Groups"
   },
   HE: {
     hero_title: "אל תלמדו לבד יותר לעולם",
     hero_subtitle: "הצטרפו לקבוצות למידה מותאמות עם מדריכים אישיים. למדו מתוכן מבוסס בינה מלאכותית. סיימו קורסים בשיעור הצלחה גבוה פי 10.",
-    search_placeholder: "עזור לי לכתוב הנחיה ש...",
+    search_placeholder: "מה תרצו ללמוד היום?",
     btn_start: "התחל ללמוד",
     btn_create: "צור קבוצה חדשה",
     section_active: "קבוצות למידה פעילות",
@@ -56,12 +62,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "פעיל עכשיו",
     overview: "סקירה כללית",
     syllabus: "סילבוס",
-    community: "קהילה"
+    community: "קהילה",
+    view_group: "צפה בקבוצה",
+    btn_join: "הצטרף לקבוצה",
+    tab_upcoming: "קבוצות קרובות",
+    tab_active: "קבוצות פעילות",
+    tab_templates: "תבניות קורס",
+    tab_my_groups: "הקבוצות שלי"
   },
   AR: {
     hero_title: "لا تتعلم بمفردك مرة أخرى",
     hero_subtitle: "انضم إلى مجموعات تعليمية منسقة مع مدربين شخصيين. تعلم من محتوى مدعوم بالذكاء الاصطناعي. أكمل الدورات بمعدل نجاح أعلى بـ 10 مرات.",
-    search_placeholder: "ساعدني في كتابة مطالبة...",
+    search_placeholder: "ماذا تريد أن تتعلم اليوم؟",
     btn_start: "ابدأ التعلم",
     btn_create: "إنشاء مجموعة جديدة",
     section_active: "مجموعات التعلم النشطة",
@@ -84,12 +96,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "نشط الآن",
     overview: "نظرة عامة",
     syllabus: "المناهج",
-    community: "المجتمع"
+    community: "المجتمع",
+    view_group: "عرض المجموعة",
+    btn_join: "انضم إلى المجموعة",
+    tab_upcoming: "مجموعات قادمة",
+    tab_active: "مجموعات نشطة",
+    tab_templates: "قوالب الدورة",
+    tab_my_groups: "مجموعاتي"
   },
   ES: {
     hero_title: "Nunca vuelvas a aprender solo",
     hero_subtitle: "Únete a cohortes emparejadas con tutores 1:1. Aprende de contenido potenciado por IA. Completa cursos con una tasa de éxito 10 veces mayor.",
-    search_placeholder: "Ayúdame a escribir un prompt que...",
+    search_placeholder: "¿Qué quieres aprender hoy?",
     btn_start: "Empezar a aprender",
     btn_create: "Crear nuevo grupo",
     section_active: "Cohortes de aprendizaje activo",
@@ -112,12 +130,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "Activo ahora",
     overview: "Visión general",
     syllabus: "Plan de estudios",
-    community: "Comunidad"
+    community: "Comunidad",
+    view_group: "Ver grupo",
+    btn_join: "Unirse al grupo",
+    tab_upcoming: "Próximos grupos",
+    tab_active: "Grupos activos",
+    tab_templates: "Plantillas de cursos",
+    tab_my_groups: "Mis grupos"
   },
   FR: {
     hero_title: "Ne plus jamais apprendre seul",
     hero_subtitle: "Rejoignez des cohortes avec des tuteurs 1:1. Apprenez avec du contenu boosté par l'IA. Terminez vos cours avec un taux de réussite 10 fois supérieur.",
-    search_placeholder: "Aidez-moi à écrire un prompt qui...",
+    search_placeholder: "Que voulez-vous apprendre aujourd'hui ?",
     btn_start: "Commencer à apprendre",
     btn_create: "Créer un nouveau groupe",
     section_active: "Cohortes d'apprentissage actif",
@@ -140,12 +164,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "Actif maintenant",
     overview: "Aperçu",
     syllabus: "Programme",
-    community: "Communauté"
+    community: "Communauté",
+    view_group: "Voir le groupe",
+    btn_join: "Rejoindre le groupe",
+    tab_upcoming: "Groupes à venir",
+    tab_active: "Groupes actifs",
+    tab_templates: "Modèles de cours",
+    tab_my_groups: "Mes groupes"
   },
   DE: {
     hero_title: "Nie wieder alleine lernen",
     hero_subtitle: "Treten Sie Kohorten mit 1:1-Tutoren bei. Lernen Sie mit KI-gestützten Inhalten. Schließen Sie Kurse mit einer 10-mal höheren Erfolgsquote ab.",
-    search_placeholder: "Hilf mir, einen Prompt zu schreiben...",
+    search_placeholder: "Was möchtest du heute lernen?",
     btn_start: "Lernen starten",
     btn_create: "Neue Gruppe erstellen",
     section_active: "Aktive Lernkohorten",
@@ -168,12 +198,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "Jetzt aktiv",
     overview: "Übersicht",
     syllabus: "Lehrplan",
-    community: "Community"
+    community: "Community",
+    view_group: "Gruppe ansehen",
+    btn_join: "Gruppe beitreten",
+    tab_upcoming: "Kommende Gruppen",
+    tab_active: "Aktive Gruppen",
+    tab_templates: "Kursvorlagen",
+    tab_my_groups: "Meine Gruppen"
   },
   IT: {
     hero_title: "Non imparare mai più da solo",
     hero_subtitle: "Unisciti a coorti con tutor 1:1. Impara da contenuti potenziati dall'IA. Completa i corsi con una percentuale di successo 10 volte superiore.",
-    search_placeholder: "Aiutami a scrivere un prompt che...",
+    search_placeholder: "Cosa vuoi imparare oggi?",
     btn_start: "Inizia a imparare",
     btn_create: "Crea nuovo gruppo",
     section_active: "Coorti di apprendimento attivo",
@@ -183,7 +219,7 @@ export const translations: Record<Language, TranslationSet> = {
     stat_ai: "IA sincronizzata 24/7",
     stat_guarantee: "100% Garantito",
     cta_title: "Pronto a trasformare il tuo apprendimento?",
-    cta_subtitle: "Unisciti a migliaia di studenti che hanno trovato la loro coorte perfetta",
+    cta_subtitle: "Unisciti a migliaia di studenti che hanno trovato la loro coorti perfetta",
     cta_btn: "Inizia il viaggio",
     register_now: "Iscriviti ora",
     tutor: "Tutor",
@@ -196,12 +232,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "Attivo ora",
     overview: "Panoramica",
     syllabus: "Programma",
-    community: "Comunità"
+    community: "Comunità",
+    view_group: "Visualizza gruppo",
+    btn_join: "Uniti al gruppo",
+    tab_upcoming: "Gruppi in arrivo",
+    tab_active: "Gruppi attivi",
+    tab_templates: "Modelli di corso",
+    tab_my_groups: "I miei gruppi"
   },
   PT: {
     hero_title: "Nunca mais aprenda sozinho",
     hero_subtitle: "Junte-se a coortes com tutores 1:1. Aprenda com conteúdo impulsionado por IA. Conclua cursos com uma taxa de sucesso 10 vezes maior.",
-    search_placeholder: "Ajude-me a escrever um prompt que...",
+    search_placeholder: "O que você quer aprender hoje?",
     btn_start: "Começar a aprender",
     btn_create: "Criar novo grupo",
     section_active: "Coortes de aprendizagem ativa",
@@ -224,12 +266,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "Ativo agora",
     overview: "Visão geral",
     syllabus: "Currículo",
-    community: "Comunidade"
+    community: "Comunidade",
+    view_group: "Ver grupo",
+    btn_join: "Entrar no grupo",
+    tab_upcoming: "Próximos grupos",
+    tab_active: "Grupos ativos",
+    tab_templates: "Modelos de curso",
+    tab_my_groups: "Meus grupos"
   },
   RU: {
     hero_title: "Никогда больше не учитесь в одиночку",
     hero_subtitle: "Присоединяйтесь к когортам с 1:1 репетиторами. Учитесь по контенту с ИИ. Завершайте курсы с успехом в 10 раз выше.",
-    search_placeholder: "Помогите мне написать промпт...",
+    search_placeholder: "Что вы хотите изучить сегодня?",
     btn_start: "Начать обучение",
     btn_create: "Создать группу",
     section_active: "Активные когорты",
@@ -252,12 +300,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "Активно сейчас",
     overview: "Обзор",
     syllabus: "Программа",
-    community: "Сообщество"
+    community: "Сообщество",
+    view_group: "Посмотреть группу",
+    btn_join: "Вступить в группу",
+    tab_upcoming: "Предстоящие группы",
+    tab_active: "Активные группы",
+    tab_templates: "Шаблоны курсов",
+    tab_my_groups: "Мои группы"
   },
   ZH: {
     hero_title: "再也不要独自学习",
     hero_subtitle: "加入配有 1:1 导师的学习小组。学习 AI 增强内容。通过同伴问责，课程完成率提高 10 倍。",
-    search_placeholder: "帮我写一个提示词...",
+    search_placeholder: "你今天想学习什么？",
     btn_start: "开始学习",
     btn_create: "创建新小组",
     section_active: "进行中的学习小组",
@@ -280,12 +334,18 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "正在进行",
     overview: "概览",
     syllabus: "课程大纲",
-    community: "社区"
+    community: "社区",
+    view_group: "查看小组",
+    btn_join: "加入小组",
+    tab_upcoming: "即将开始的小组",
+    tab_active: "活跃小组",
+    tab_templates: "课程模板",
+    tab_my_groups: "我的小组"
   },
   JA: {
     hero_title: "もう二度と一人で学ばない",
     hero_subtitle: "1:1のチューターがいるコホートに参加。AI強化されたコンテンツで学習。仲間との相互監視で10倍高い成功率を実現。",
-    search_placeholder: "プロンプト作成を助けて...",
+    search_placeholder: "今日は何を学びたいですか？",
     btn_start: "学習を開始",
     btn_create: "新しいグループを作成",
     section_active: "アクティブなコホート",
@@ -308,6 +368,12 @@ export const translations: Record<Language, TranslationSet> = {
     active_now: "開講中",
     overview: "概要",
     syllabus: "シラバス",
-    community: "コミュニティ"
+    community: "コミュニティ",
+    view_group: "グループを表示",
+    btn_join: "グループに参加",
+    tab_upcoming: "今後のグループ",
+    tab_active: "アクティブなグループ",
+    tab_templates: "コーステンプレート",
+    tab_my_groups: "マイグループ"
   }
 };

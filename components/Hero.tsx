@@ -1,7 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../LanguageContext';
-import { Search, Sparkles, Wand2, Paperclip, Send, Loader2, User, ChevronRight } from 'lucide-react';
+import { Sparkles, Send, Loader2, User, ChevronRight } from 'lucide-react';
+import { sendToGroq, formatGroqError, type GroqMessage } from '../groq';
 
 const ACTIVE_COHORTS = [
   { id: '1', title: 'Product Management Foundations', category: 'Product Management', description: 'Strategy, Roadmaps & Stakeholder Management fundamentals for modern teams.' },
@@ -23,57 +24,17 @@ Flow:
 3. If no match is found, explain that we can help them CREATE a custom course syllabus and lead them to our "Course Architect" tool.`;
 
 interface HeroProps {
-  onOpenArchitect: () => void;
+  onOpenArchitect: (context?: string) => void; // Fix #3: pass context
 }
 
 const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
   const { t, isRTL } = useLanguage();
   const [isFocused, setIsFocused] = useState(false);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const conversationHistory = useRef<{ role: string, content: string }[]>([]);
-
-  const sendToGroq = async (userMessage: string) => {
-    const apiKey = (import.meta as any).env.VITE_GROQ_API_KEY;
-    if (!apiKey) {
-      throw new Error("GROQ_API_KEY is missing! Please add it to your .env.local file.");
-    }
-
-    // Add user message to history
-    conversationHistory.current.push({ role: "user", content: userMessage });
-
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...conversationHistory.current
-        ],
-        temperature: 0.7,
-        max_tokens: 1024
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Groq API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const assistantMessage = data.choices[0]?.message?.content || "I couldn't generate a response.";
-
-    // Add assistant response to history
-    conversationHistory.current.push({ role: "assistant", content: assistantMessage });
-
-    return assistantMessage;
-  };
+  const conversationHistory = useRef<GroqMessage[]>([]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -84,17 +45,26 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
     setIsLoading(true);
 
     try {
-      const text = await sendToGroq(userMessage);
+      // Fix #5: Use shared groq service
+      const text = await sendToGroq(userMessage, conversationHistory.current, {
+        systemPrompt: SYSTEM_PROMPT,
+        maxTokens: 1024,
+      });
       setMessages(prev => [...prev, { role: 'ai', text }]);
     } catch (error: any) {
       console.error("Groq Error:", error);
-      const errorMsg = error.message?.includes("429")
-        ? "I'm a bit overwhelmed right now (Rate Limit). Please wait a moment."
-        : `Error: ${error.message || "Unknown error"}. Please check your API key.`;
-      setMessages(prev => [...prev, { role: 'ai', text: errorMsg }]);
+      setMessages(prev => [...prev, { role: 'ai', text: formatGroqError(error) }]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Fix #3: Build context summary from conversation for handoff
+  const getConversationSummary = (): string => {
+    return messages
+      .filter(m => m.role === 'user')
+      .map(m => m.text)
+      .join(' | ');
   };
 
   useEffect(() => {
@@ -106,25 +76,21 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
 
       <div className="max-w-4xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/60 uppercase tracking-widest font-bold mb-6 animate-in fade-in duration-700">
-          <Sparkles className="w-3 h-3 text-blue-400" />
-          WE Learn: Empowering Women via Social Learning
-        </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-[1.1] animate-in fade-in slide-in-from-bottom-2 duration-700">
+        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-[1.1]">
           {t('hero_title')}
         </h1>
 
-        <p className="text-lg md:text-xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <p className="text-lg md:text-xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed">
           {t('hero_subtitle')}
         </p>
 
-        {/* Integrated AI Chat / Search Bar */}
-        <div className="max-w-3xl mx-auto mb-4 group text-left relative z-10 transition-all duration-500">
+        {/* AI Search Bar */}
+        <div className="max-w-3xl mx-auto mb-4 group text-left">
           {messages.length > 0 && (
             <div className="mb-6 space-y-4 max-h-[300px] overflow-y-auto px-2 scrollbar-thin">
               {messages.map((m, i) => (
-                <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2`}>
+                <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${m.role === 'ai' ? 'bg-blue-600/20' : 'bg-white/10'}`}>
                     {m.role === 'ai' ? <Sparkles className="w-4 h-4 text-blue-400" /> : <User className="w-4 h-4 text-white/60" />}
                   </div>
@@ -133,10 +99,10 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
                     : 'bg-blue-600 text-white shadow-lg font-medium'
                     }`}>
                     {m.text}
-                    {m.role === 'ai' && (m.text.toLowerCase().includes('create') || m.text.toLowerCase().includes('architect')) && (
+                    {m.role === 'ai' && (m.text.toLowerCase().includes('create') || m.text.toLowerCase().includes('architect') || m.text.toLowerCase().includes('custom course')) && (
                       <div className="mt-4">
                         <button
-                          onClick={onOpenArchitect}
+                          onClick={() => onOpenArchitect(getConversationSummary())}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-400/20 hover:bg-blue-400/30 border border-blue-400/30 rounded-xl text-blue-300 text-xs font-bold transition-all"
                         >
                           Open Course Architect
@@ -161,15 +127,8 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
             </div>
           )}
 
-          <p className="text-[11px] text-white/40 mb-3 px-1 font-bold uppercase tracking-widest">
-            {messages.length === 0 ? "Share your goals to find your cohort" : "Ask a follow up..."}
-          </p>
-
-          <div className={`relative transition-all duration-500 rounded-3xl glass p-4 ${isFocused ? 'ring-2 ring-blue-600/50 bg-white/[0.05]' : 'bg-white/[0.02]'}`}>
+          <div className={`relative transition-all duration-500 rounded-2xl glass p-4 ${isFocused ? 'ring-2 ring-blue-600/50 scale-[1.02]' : ''}`}>
             <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                <Wand2 className="w-5 h-5 text-white/70" />
-              </div>
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -181,24 +140,12 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
               />
             </div>
 
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
-              <div className="flex gap-2">
-                <button className="p-2 rounded-lg hover:bg-white/5 transition-colors text-white/40 hover:text-white/80">
-                  <Sparkles className="w-4 h-4" />
-                </button>
-                <button className="p-2 rounded-lg hover:bg-white/5 transition-colors text-white/40 hover:text-white/80">
-                  <Paperclip className="w-4 h-4" />
-                </button>
-              </div>
-
+            <div className="flex items-center justify-end mt-4 pt-4 border-t border-white/5">
               <div className="flex items-center gap-2">
-                <div className="px-2 py-1 rounded bg-white/5 text-[10px] text-white/40 border border-white/10 font-bold">
-                  Llama 3.3
-                </div>
                 <button
                   onClick={handleSend}
                   disabled={isLoading}
-                  className={`bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-2.5 rounded-xl transition-all hover:opacity-90 shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50`}
+                  className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-2.5 rounded-xl transition-all hover:opacity-90 shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50"
                 >
                   <Send className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>

@@ -3,12 +3,24 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../LanguageContext';
 import {
   ArrowLeft, Video, CheckCircle2, Award, Users, MessageSquare,
-  Clock, Calendar, Zap, ChevronRight, ExternalLink
+  Clock, Calendar, Zap, ChevronRight, ExternalLink, Loader2
 } from 'lucide-react';
 import { Cohort, SyllabusModule, Member } from '../types';
+import { enrollStudent } from '../classroom';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../AuthContext';
 
-// Sub-components moved to top for proper referencing via const
+// Sub-components
 const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort, progress }) => {
+  const schedule = cohort.schedule || "Self-paced";
+  const highlights = cohort.highlights || [
+    "Learn key concepts and frameworks",
+    "Build real-world projects for your portfolio",
+    "Collaborate with peers on team exercises",
+    "Get feedback from experienced mentors",
+  ];
+
   return (
     <div className="space-y-10">
       <div className="glass p-8 rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.02] to-transparent">
@@ -17,8 +29,8 @@ const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort,
             <Video className="w-6 h-6 text-purple-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white tracking-tight">Live Session Schedule</h3>
-            <p className="text-white/40 text-sm">{cohort.schedule}</p>
+            <h3 className="text-lg font-bold text-white tracking-tight">Schedule</h3>
+            <p className="text-white/40 text-sm">{schedule}</p>
           </div>
         </div>
         <button className="w-full py-4 rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all text-sm font-medium text-white/70">
@@ -26,19 +38,14 @@ const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort,
         </button>
       </div>
 
+      {/* Fix #18: Use cohort-specific highlights or sensible defaults */}
       <section>
         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
           <CheckCircle2 className="w-6 h-6 text-green-400" />
           What You'll Learn
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            "Master core frameworks and methodologies",
-            "Build real-world projects for your portfolio",
-            "Develop collaborative problem-solving skills",
-            "Network with peers and industry professionals",
-            "Gain hands-on experience with cutting-edge tools"
-          ].map((item, i) => (
+          {highlights.map((item, i) => (
             <div key={i} className="flex items-center gap-4 p-5 glass rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
               <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
               <span className="text-white/80 font-medium text-sm">{item}</span>
@@ -58,8 +65,9 @@ const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort,
             style={{ width: `${progress}%` }}
           />
         </div>
+        {/* Fix #19: Dynamic progress text */}
         <div className="mt-4 text-[11px] uppercase tracking-widest font-bold text-white/30">
-          Currently in Week 2
+          {progress === 0 ? "Not started yet" : progress >= 100 ? "Completed!" : `${progress}% through the course`}
         </div>
       </section>
     </div>
@@ -120,16 +128,16 @@ const SyllabusPanel: React.FC<{ syllabus?: SyllabusModule[] }> = ({ syllabus }) 
   );
 };
 
-const CommunityPanel: React.FC<{ members?: Member[] }> = ({ members }) => {
-  const defaultMembers: Member[] = members || [
-    { id: '1', name: 'Member 1', role: 'Product Manager', online: true },
-    { id: '2', name: 'Member 2', role: 'UX Designer', online: true },
-    { id: '3', name: 'Member 3', role: 'Researcher', online: true },
-    { id: '4', name: 'Member 4', role: 'Product Designer', online: false },
-    { id: '5', name: 'Member 5', role: 'Product Manager', online: false },
-    { id: '6', name: 'Member 6', role: 'UX Designer', online: false },
-    { id: '7', name: 'Member 7', role: 'Researcher', online: false },
-    { id: '8', name: 'Member 8', role: 'Product Designer', online: false }
+const CommunityPanel: React.FC<{ cohort: Cohort }> = ({ cohort }) => {
+  // Fix #18/#19: Dynamic member count and slot calculation
+  const memberCount = typeof cohort.members === 'number' ? cohort.members : (cohort.members?.length ?? 0);
+  const maxMembers = cohort.maxMembers || 20;
+  const spotsLeft = Math.max(0, maxMembers - memberCount);
+
+  // Fix #17: Use ui-avatars instead of picsum
+  const memberNames = cohort.communityMembers || [
+    { id: '1', name: 'Learner 1', role: 'Student', online: false },
+    { id: '2', name: 'Learner 2', role: 'Student', online: false },
   ];
 
   return (
@@ -140,10 +148,11 @@ const CommunityPanel: React.FC<{ members?: Member[] }> = ({ members }) => {
         </div>
         <div>
           <h3 className="text-xl font-bold text-white tracking-tight">Your Learning Community</h3>
-          <p className="text-white/40 text-sm">Learn alongside high-potential professionals</p>
+          <p className="text-white/40 text-sm">Learn alongside other professionals</p>
         </div>
       </div>
 
+      {/* Fix #15: WhatsApp button with functional link */}
       <div className="glass group relative p-10 rounded-3xl border border-[#25D366]/30 overflow-hidden bg-gradient-to-br from-[#25D366]/5 to-transparent transition-all hover:border-[#25D366]/60 shadow-[0_20px_50px_rgba(37,211,102,0.15)] mb-12 cursor-pointer active:scale-[0.99]">
         <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none group-hover:scale-125 group-hover:rotate-12 transition-all duration-700">
           <MessageSquare className="w-64 h-64 text-[#25D366]" />
@@ -155,22 +164,28 @@ const CommunityPanel: React.FC<{ members?: Member[] }> = ({ members }) => {
             </div>
             <div className="text-left">
               <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Join the Cohort Community</h3>
-              <p className="text-white/70 text-base max-w-md leading-relaxed">Connect instantly with fellow learners on WhatsApp for 24/7 async collaboration, project updates, and networking.</p>
+              <p className="text-white/70 text-base max-w-md leading-relaxed">Connect with fellow learners on WhatsApp for async collaboration, project updates, and networking.</p>
             </div>
           </div>
-          <button className="flex items-center gap-3 px-10 py-5 bg-[#25D366] hover:bg-[#22c35e] text-white font-bold rounded-2xl transition-all shadow-2xl shadow-[#25D366]/30 active:scale-95 group/btn shrink-0 text-lg">
+          <a
+            href="https://chat.whatsapp.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-10 py-5 bg-[#25D366] hover:bg-[#22c35e] text-white font-bold rounded-2xl transition-all shadow-2xl shadow-[#25D366]/30 active:scale-95 group/btn shrink-0 text-lg"
+          >
             Join WhatsApp Group
             <ExternalLink className="w-5 h-5 opacity-80 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-          </button>
+          </a>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {defaultMembers.map(m => (
+        {memberNames.map((m: any) => (
           <div key={m.id} className="glass p-5 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all hover:bg-white/[0.02]">
             <div className="flex items-center gap-4">
               <div className="relative shrink-0">
-                <img src={`https://picsum.photos/seed/${m.id}/64/64`} className="w-12 h-12 rounded-full border-2 border-white/10 group-hover:border-white/30 transition-colors" alt={m.name} />
+                {/* Fix #17: ui-avatars instead of picsum */}
+                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=1e293b&color=94a3b8&size=48&font-size=0.4`} className="w-12 h-12 rounded-full border-2 border-white/10 group-hover:border-white/30 transition-colors" alt={m.name} />
                 {m.online && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#050505]"></div>}
               </div>
               <div>
@@ -183,13 +198,20 @@ const CommunityPanel: React.FC<{ members?: Member[] }> = ({ members }) => {
         ))}
       </div>
 
+      {/* Fix #19: Dynamic spots count */}
       <div className="glass p-12 rounded-3xl border border-white/5 text-center bg-white/[0.01]">
         <Users className="w-12 h-12 text-white/20 mx-auto mb-6" />
-        <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">4 Spots Available</h3>
-        <p className="text-white/40 mb-8">Join now to secure your place in this cohort</p>
-        <button className="px-12 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all shadow-2xl active:scale-95">
-          Register Now
-        </button>
+        <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">
+          {spotsLeft > 0 ? `${spotsLeft} Spot${spotsLeft !== 1 ? 's' : ''} Available` : "Group is Full"}
+        </h3>
+        <p className="text-white/40 mb-8">
+          {spotsLeft > 0 ? "Join now to secure your place in this cohort" : "This cohort is at capacity"}
+        </p>
+        {spotsLeft > 0 && (
+          <button className="px-12 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all shadow-2xl active:scale-95">
+            Register Now
+          </button>
+        )}
       </div>
     </div>
   );
@@ -202,19 +224,61 @@ interface Props {
 
 const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
   const { t, isRTL } = useLanguage();
+  const { user, signInWithGoogle } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'syllabus' | 'community'>('overview');
   const [progress, setProgress] = useState(0);
+  const [isJoining, setIsJoining] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
+  const [joinStatus, setJoinStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Safe defaults for all optional fields
+  const memberCount = typeof cohort.members === 'number' ? cohort.members : (cohort.members?.length ?? 0);
+  const maxMembers = cohort.maxMembers || 20;
+  const duration = cohort.duration || "Self-paced";
+  const startDate = cohort.startDate || "Coming soon";
+  const cohortProgress = cohort.progress ?? 0;
+
+  const isMember = hasJoined || (user && Array.isArray(cohort.members) && cohort.members.includes(user.uid));
+
+  const handleJoin = async () => {
+    if (!user) {
+      signInWithGoogle();
+      return;
+    }
+    if (!cohort.googleClassroomId || !cohort.enrollmentCode) {
+      setJoinStatus({ type: 'error', message: 'This cohort is not linked to a classroom yet.' });
+      return;
+    }
+
+    setIsJoining(true);
+    setJoinStatus(null);
+    try {
+      await enrollStudent(cohort.googleClassroomId, cohort.enrollmentCode);
+      await updateDoc(doc(db, "cohorts", cohort.id), {
+        members: arrayUnion(user.uid)
+      });
+      setHasJoined(true);
+      // Fix #13: Inline success feedback instead of alert()
+      setJoinStatus({ type: 'success', message: '🎉 You have joined! Check your Google Classroom.' });
+    } catch (error: any) {
+      console.error("Failed to join:", error);
+      // Fix #13: Inline error feedback instead of alert()
+      setJoinStatus({ type: 'error', message: `Failed to join: ${error.message || "Please try again."}` });
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setProgress(cohort.progress), 100);
+    const timer = setTimeout(() => setProgress(cohortProgress), 100);
     return () => clearTimeout(timer);
-  }, [cohort.progress]);
+  }, [cohortProgress]);
 
   const stats = [
-    { label: t('members'), value: `${cohort.members}/${cohort.maxMembers}`, icon: Users },
-    { label: 'Pace', value: cohort.duration, icon: Clock },
-    { label: t('starts'), value: cohort.startDate, icon: Calendar },
-    { label: 'Progress', value: `${cohort.progress}%`, icon: Zap }
+    { label: t('members'), value: `${memberCount}/${maxMembers}`, icon: Users },
+    { label: 'Pace', value: duration, icon: Clock },
+    { label: t('starts'), value: startDate, icon: Calendar },
+    { label: 'Progress', value: `${cohortProgress}%`, icon: Zap }
   ];
 
   return (
@@ -232,23 +296,65 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
           <div className="mb-12">
             <div className="flex flex-wrap gap-2 mb-4">
               <span className="px-3 py-1 rounded-full bg-purple-600/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest border border-purple-600/30">
-                {cohort.category}
+                {cohort.category || "General"}
               </span>
               <span className="px-3 py-1 rounded-full bg-green-600/20 text-green-400 text-[10px] uppercase font-bold tracking-widest border border-green-600/30">
-                {cohort.level}
+                {cohort.level || "Beginner"}
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-white/60 text-[10px] uppercase font-bold tracking-widest border border-white/10">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                {t('active_now')}
-              </span>
+              {cohortProgress > 0 && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-white/60 text-[10px] uppercase font-bold tracking-widest border border-white/10">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                  {t('active_now')}
+                </span>
+              )}
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight leading-tight">
-              {cohort.title}
+              {cohort.title || "Untitled Course"}
             </h1>
             <p className="text-lg text-white/50 max-w-2xl leading-relaxed">
-              {cohort.description}
+              {cohort.description || "No description available."}
             </p>
+
+            <div className="mt-8 flex flex-col gap-4">
+              <div className="flex gap-4">
+                {isMember ? (
+                  <a
+                    href={cohort.alternateLink || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-8 py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-500 transition-all shadow-lg shadow-green-900/40 flex items-center gap-2"
+                  >
+                    Go to Classroom
+                    <ExternalLink className="w-5 h-5" />
+                  </a>
+                ) : (
+                  <button
+                    onClick={handleJoin}
+                    disabled={isJoining}
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg shadow-blue-900/40 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isJoining ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Joining...
+                      </>
+                    ) : (
+                      <>
+                        Join Cohort
+                        <ChevronRight className="w-5 h-5" />
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              {/* Fix #13: Inline join status message */}
+              {joinStatus && (
+                <div className={`px-4 py-3 rounded-xl text-sm font-medium ${joinStatus.type === 'success' ? 'bg-green-600/10 text-green-400 border border-green-600/20' : 'bg-red-600/10 text-red-400 border border-red-600/20'}`}>
+                  {joinStatus.message}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
@@ -282,7 +388,7 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {activeTab === 'overview' && <OverviewPanel cohort={cohort} progress={progress} />}
             {activeTab === 'syllabus' && <SyllabusPanel syllabus={cohort.syllabus} />}
-            {activeTab === 'community' && <CommunityPanel members={cohort.communityMembers} />}
+            {activeTab === 'community' && <CommunityPanel cohort={cohort} />}
           </div>
         </div>
       </div>

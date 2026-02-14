@@ -1,20 +1,31 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
 
-# Run and deploy your AI Studio app
+# WE Learn Platform
 
-This contains everything you need to run your app locally.
+> **Zero-Friction, Zero-Cost Cohort Learning**
 
-View your app in AI Studio: https://ai.studio/apps/drive/1dSw0s6HGuNH5yIRCeY9LICvES0avYWON
+WE Learn is an open-source platform that orchestrates Google Services (Classroom, Calendar) to create and manage learning cohorts. It features an AI Course Architect that helps users design syllabi and instantly provision entire courses.
 
-## Run Locally
+## 🚀 Quick Start
 
-**Prerequisites:**  Node.js
+1.  **Install**: `npm install`
+2.  **Environment**: Create `.env.local` with Firebase and Groq keys.
+3.  **Run**: `npm run dev`
 
+## 📚 Documentation
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Detailed documentation for developers and future AI agents:
+
+-   [`architecture_design.md`](../../.gemini/antigravity/brain/ec6a112c-1242-4390-90da-b76633768e02/architecture_design.md) - **Source of Truth** for system design.
+-   [`CONTRIBUTING.md`](../../.gemini/antigravity/brain/ec6a112c-1242-4390-90da-b76633768e02/CONTRIBUTING.md) - Guide for new devs/agents.
+-   [`google_setup.md`](../../.gemini/antigravity/brain/ec6a112c-1242-4390-90da-b76633768e02/google_setup.md) - How to configure the Google Cloud Console.
+-   [`deployment_guide.md`](../../.gemini/antigravity/brain/ec6a112c-1242-4390-90da-b76633768e02/deployment_guide.md) - Deploying to Firebase Hosting.
+
+## 🛠️ Stack
+
+-   **Frontend**: React + Vite + TypeScript
+-   **Auth**: Firebase Auth + Google Identity Services (GIS)
+-   **Data**: Firestore (Metadata) + Google Classroom (Content)
+-   **AI**: Groq (Llama 3 / Mixtral)
+
+## License
+MIT

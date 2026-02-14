@@ -1,7 +1,7 @@
 
 export type Language = 'EN' | 'HE' | 'ES' | 'FR' | 'DE' | 'IT' | 'PT' | 'RU' | 'ZH' | 'JA' | 'AR';
 
-export type View = 'landing' | 'cohort-detail' | 'course-architect';
+export type View = 'landing' | 'cohort-detail' | 'course-architect' | 'privacy' | 'terms';
 
 export interface TranslationSet {
   hero_title: string;
@@ -30,6 +30,12 @@ export interface TranslationSet {
   overview: string;
   syllabus: string;
   community: string;
+  view_group: string;
+  btn_join: string;
+  tab_upcoming: string;
+  tab_active: string;
+  tab_templates: string;
+  tab_my_groups: string;
 }
 
 export interface SyllabusModule {
@@ -52,10 +58,10 @@ export interface Cohort {
   category: string;
   description: string;
   tutor: string;
-  members: number;
+  members: string[] | number; // Array of UIDs or legacy number count
   maxMembers: number;
   duration: string;
-  successRate: string;
+  successRate: string; // Could be calculated
   schedule: string;
   startDate: string;
   progress: number;
@@ -63,6 +69,13 @@ export interface Cohort {
   highlights?: string[];
   syllabus?: SyllabusModule[];
   communityMembers?: Member[];
+
+  // Google Classroom Integration
+  googleClassroomId?: string;
+  enrollmentCode?: string;
+  alternateLink?: string;
+  creatorId?: string;
+  status?: 'OPEN' | 'CLOSED';
 }
 
 export interface LanguageContextType {

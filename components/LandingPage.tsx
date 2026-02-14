@@ -1,133 +1,122 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Hero from './Hero';
 import CohortCard from './CohortCard';
 import { Cohort } from '../types';
 import { useLanguage } from '../LanguageContext';
-import { ChevronRight, Sparkles, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { Sparkles, Users, BookOpen, Zap, Loader2 } from 'lucide-react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../AuthContext';
 
 interface Props {
   onSelectCohort: (cohort: Cohort) => void;
-  onOpenArchitect: () => void;
+  onOpenArchitect: (context?: string) => void;
+  onNavigate: (view: 'privacy' | 'terms') => void;
 }
 
-type TabType = 'open' | 'existing' | 'topics' | 'personal';
+type TabType = 'upcoming' | 'existing' | 'mygroups';
 
-const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect }) => {
+const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onNavigate }) => {
   const { t, isRTL } = useLanguage();
-  const [activeTab, setActiveTab] = useState<TabType>('open');
+  const { user, signInWithGoogle } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabType>('upcoming');
+  const [allCohorts, setAllCohorts] = useState<Cohort[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const activeCohorts: Cohort[] = [
-    {
-      id: '1',
-      title: 'Product Management Foundations',
-      category: 'Product Management',
-      description: 'Strategy, Roadmaps & Stakeholder Management fundamentals for modern teams.',
-      tutor: 'Alex Rivers',
-      members: 8,
-      maxMembers: 12,
-      duration: '3-4 hrs/week',
-      successRate: '92%',
-      schedule: 'Mon & Wed 19:00-20:30 IST',
-      startDate: 'Jan 22',
-      progress: 35,
-      level: 'Beginner'
-    },
-    {
-      id: '2',
-      title: 'UX Design Mastery',
-      category: 'UX Design',
-      description: 'User-Centered Design & Prototyping techniques used by world-class studios.',
-      tutor: 'Sarah Chen',
-      members: 10,
-      maxMembers: 15,
-      duration: '4-5 hrs/week',
-      successRate: '88%',
-      schedule: 'Tue & Thu 20:00-21:30 IST',
-      startDate: 'Jan 20',
-      progress: 45,
-      level: 'Intermediate'
-    },
-    {
-      id: '3',
-      title: 'User Research Fundamentals',
-      category: 'User Research',
-      description: 'Interviews, Testing & Data Analysis to drive product decisions.',
-      tutor: 'Marco Rossi',
-      members: 12,
-      maxMembers: 12,
-      duration: '5-6 hrs/week',
-      successRate: '95%',
-      schedule: 'Sun & Wed 18:00-19:30 IST',
-      startDate: 'Jan 18',
-      progress: 60,
-      level: 'Beginner'
-    }
+  // Firestore Listener — fetch all cohorts
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "cohorts"),
+      (snapshot) => {
+        const cohorts = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Cohort[];
+        setAllCohorts(cohorts);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching cohorts:", error);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
+  // Fix #2: Derive active vs upcoming from Firestore data instead of hardcoding
+  const upcomingCohorts = allCohorts.filter(c => c.status === 'OPEN');
+  const activeCohorts = allCohorts.filter(c => c.status !== 'OPEN' || (c.progress && c.progress > 0));
+  const myCohorts = user ? allCohorts.filter(c => Array.isArray(c.members) && c.members.includes(user.uid)) : [];
+
+  const tabs: { id: TabType; label: string; icon: any }[] = [
+    { id: 'upcoming', label: 'Upcoming Groups', icon: Users },
+    { id: 'existing', label: 'Active Groups', icon: Zap },
+    { id: 'mygroups', label: 'My Groups', icon: BookOpen }
   ];
 
-  const existingGroups: Cohort[] = [
-    {
-      id: 'ex-1',
-      title: 'Advanced AI Systems',
-      category: 'Artificial Intelligence',
-      description: 'Building scalable LLM applications and agentic workflows.',
-      tutor: 'Dr. Emily Watson',
-      members: 15,
-      maxMembers: 15,
-      duration: '6-8 hrs/week',
-      successRate: '98%',
-      schedule: 'Fri 18:00-21:00 IST',
-      startDate: 'Dec 10',
-      progress: 85,
-      level: 'Advanced'
-    }
-  ];
-
-  const tabs: { id: TabType; label: string }[] = [
-    { id: 'open', label: 'Open Cohorts' },
-    { id: 'existing', label: 'Existing Groups' },
-    { id: 'topics', label: 'Topics' },
-    { id: 'personal', label: 'Personal Space' }
-  ];
+  const renderCohortGrid = (cohorts: Cohort[], emptyText: string, isMyGroups = false) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      {loading ? (
+        <div className="col-span-full flex justify-center py-20">
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        </div>
+      ) : cohorts.length > 0 ? (
+        cohorts.map(cohort => (
+          <CohortCard
+            key={cohort.id}
+            cohort={cohort}
+            onClick={() => {
+              if (isMyGroups && cohort.alternateLink) {
+                window.open(cohort.alternateLink, '_blank');
+              } else {
+                onSelectCohort(cohort);
+              }
+            }}
+          />
+        ))
+      ) : (
+        <div className="col-span-full text-center py-20 text-white/40">
+          {emptyText}
+        </div>
+      )}
+    </div>
+  );
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'open':
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {activeCohorts.map(cohort => (
-              <CohortCard key={cohort.id} cohort={cohort} onClick={() => onSelectCohort(cohort)} />
-            ))}
-          </div>
-        );
+      case 'upcoming':
+        return renderCohortGrid(upcomingCohorts, "No upcoming cohorts found. Be the first to launch one!");
       case 'existing':
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {existingGroups.map(cohort => (
-              <CohortCard key={cohort.id} cohort={cohort} onClick={() => onSelectCohort(cohort)} />
-            ))}
-          </div>
-        );
-      case 'topics':
-        return (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {['Product', 'Design', 'Engineering', 'Marketing', 'Sales', 'Strategy'].map(topic => (
-              <div key={topic} className="glass p-8 rounded-2xl flex flex-col items-center justify-center text-center hover:border-white/20 transition-all cursor-pointer group">
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Sparkles className="w-5 h-5 text-blue-400" />
-                </div>
-                <h3 className="font-bold text-white">{topic}</h3>
+        // Fix #2: Uses real Firestore data instead of hardcoded array
+        return renderCohortGrid(activeCohorts, "No active groups yet. Check back soon!");
+      case 'mygroups':
+        return user ? (
+          myCohorts.length > 0 ? (
+            renderCohortGrid(myCohorts, "", true)
+          ) : (
+            <div className="glass p-12 rounded-3xl border border-white/5 text-center">
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Welcome back, {user.displayName}</h3>
+                <p className="text-white/40 mb-8 max-w-sm mx-auto">You haven't joined any groups yet.</p>
+                <button onClick={() => setActiveTab('upcoming')} className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all">
+                  Browse Upcoming Groups
+                </button>
               </div>
-            ))}
-          </div>
-        );
-      case 'personal':
-        return (
-          <div className="glass p-12 rounded-3xl border border-white/5 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+            </div>
+          )
+        ) : (
+          <div className="glass p-12 rounded-3xl border border-white/5 text-center">
             <Sparkles className="w-12 h-12 text-white/20 mx-auto mb-6" />
             <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Your Personal Workspace</h3>
-            <p className="text-white/40 mb-8 max-w-sm mx-auto">Sign in to track your current cohorts, certifications, and peer network.</p>
-            <button className="px-12 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all">Sign In</button>
+            <p className="text-white/40 mb-8 max-w-sm mx-auto">Sign in to track your current groups, certifications, and peer network.</p>
+            <button
+              onClick={signInWithGoogle}
+              className="px-12 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all flex items-center gap-2 mx-auto"
+            >
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+              Sign In with Google
+            </button>
           </div>
         );
     }
@@ -140,15 +129,14 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect }) => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 pb-32">
         <div className="flex flex-col gap-8 items-start relative">
 
-          {/* Main Feed Content */}
           <div className="w-full transition-all duration-500 ease-in-out">
-            {/* High-Fidelity Tab Bar */}
+            {/* Tab Bar */}
             <div className="flex items-center gap-1 p-1 bg-white/[0.03] border border-white/5 rounded-2xl mb-12 w-fit max-w-full overflow-x-auto scrollbar-none">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 text-sm font-bold transition-all rounded-xl relative whitespace-nowrap ${activeTab === tab.id ? 'text-white bg-white/5 shadow-lg' : 'text-white/40 hover:text-white/60'
+                  className={`flex items-center gap-2 px-6 py-3 text-sm font-bold transition-all rounded-xl relative whitespace-nowrap ${activeTab === tab.id ? 'text-white bg-white/5 shadow-lg' : 'text-white/40 hover:text-white/60'
                     }`}
                 >
                   {tab.label}
@@ -159,37 +147,119 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect }) => {
               ))}
             </div>
 
-            {/* Content Feed */}
+            {/* Content */}
             {renderContent()}
-
-            <div className="mt-16 text-center">
-              <button className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl glass text-white text-sm font-bold hover:bg-white/10 transition-all border border-white/5 shadow-xl">
-                Explore More Cohorts
-                <ChevronRightIcon className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
           </div>
         </div>
-      </div>
 
-      {/* CTA Section */}
-      <section className="py-32 px-4 relative overflow-hidden bg-[#050505]">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-full bg-blue-600/5 blur-[120px] rounded-full -z-10"></div>
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-            {t('cta_title')}
-          </h2>
-          <p className="text-xl text-white/60 mb-12">
-            {t('cta_subtitle')}
-          </p>
-          <button className="px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold rounded-2xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-lg group">
-            <span className="flex items-center gap-3">
-              {t('cta_btn')}
-              <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${isRTL ? 'rotate-180' : ''}`} />
-            </span>
-          </button>
-        </div>
-      </section>
+        {/* Fix #6: Debug button only in development mode */}
+        {import.meta.env.DEV && (
+          <div className="fixed bottom-4 right-4 z-50 opacity-50 hover:opacity-100 transition-opacity">
+            <button
+              onClick={async () => {
+                try {
+                  const { collection, addDoc } = await import('firebase/firestore');
+                  const { db } = await import('../firebase');
+
+                  const seedCohorts = [
+                    {
+                      googleClassroomId: 'SEED_PM_101',
+                      title: 'Product Management Foundations',
+                      description: 'Master the fundamentals of product strategy and stakeholder management.',
+                      enrollmentCode: 'PM101_DEMO',
+                      alternateLink: 'https://classroom.google.com',
+                      creatorId: 'SEED_SARAH',
+                      creatorName: 'Sarah Chen',
+                      createdAt: new Date(),
+                      status: 'OPEN',
+                      members: [],
+                      maxMembers: 15,
+                      category: 'Product',
+                      level: 'Beginner',
+                      duration: '4 weeks',
+                      startDate: 'Mar 15',
+                      progress: 0,
+                      tutor: 'Sarah Chen',
+                      schedule: 'Mon & Wed 18:00 EST'
+                    },
+                    {
+                      googleClassroomId: 'SEED_AI_202',
+                      title: 'Generative AI for Designers',
+                      description: 'Transform your design workflow with Midjourney and prompt engineering.',
+                      enrollmentCode: 'AI202_DEMO',
+                      alternateLink: 'https://classroom.google.com',
+                      creatorId: 'SEED_MARCUS',
+                      creatorName: 'Marcus V.',
+                      createdAt: new Date(),
+                      status: 'OPEN',
+                      members: [],
+                      maxMembers: 10,
+                      category: 'Design',
+                      level: 'Intermediate',
+                      duration: '6 weeks',
+                      startDate: 'Apr 2',
+                      progress: 0,
+                      tutor: 'Marcus V.',
+                      schedule: 'Tuesdays 19:00 PST'
+                    },
+                    {
+                      googleClassroomId: 'SEED_UX_ACTIVE',
+                      title: 'Advanced UX Research',
+                      description: 'Biometrics, eye-tracking, and quantitative UX data analysis.',
+                      enrollmentCode: 'UX_ACTIVE',
+                      alternateLink: 'https://classroom.google.com',
+                      creatorId: 'SEED_ELENA',
+                      creatorName: 'Dr. Elena Rossi',
+                      createdAt: new Date(),
+                      status: 'IN_PROGRESS',
+                      members: ['user1', 'user2', 'user3'],
+                      maxMembers: 12,
+                      category: 'Design',
+                      level: 'Advanced',
+                      duration: '8 weeks',
+                      startDate: 'Feb 1',
+                      progress: 45,
+                      tutor: 'Dr. Elena Rossi',
+                      schedule: 'Saturdays 10:00 GMT'
+                    },
+                    {
+                      googleClassroomId: 'SEED_JS_ACTIVE',
+                      title: 'Directing LLM Agents',
+                      description: 'Building autonomous coding agents with LangChain frameworks.',
+                      enrollmentCode: 'JS_ACTIVE',
+                      alternateLink: 'https://classroom.google.com',
+                      creatorId: 'SEED_ALEX',
+                      creatorName: 'Alex Rivers',
+                      createdAt: new Date(),
+                      status: 'IN_PROGRESS',
+                      members: ['user4', 'user5'],
+                      maxMembers: 8,
+                      category: 'Development',
+                      level: 'Advanced',
+                      duration: '5 weeks',
+                      startDate: 'Jan 15',
+                      progress: 85,
+                      tutor: 'Alex Rivers',
+                      schedule: 'Fridays 17:00 IST'
+                    }
+                  ];
+
+                  for (const cohort of seedCohorts) {
+                    await addDoc(collection(db, 'cohorts'), cohort);
+                  }
+                  alert('Seed data added!');
+                } catch (e) {
+                  console.error(e);
+                  alert('Error seeding data');
+                }
+              }}
+              className="px-4 py-2 bg-red-900/50 text-red-200 text-xs rounded-full border border-red-500/30 font-bold"
+            >
+              [Dev] Seed Data
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-white/5 bg-[#050505]">
@@ -203,8 +273,8 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect }) => {
 
           <div className="flex gap-8 text-xs font-medium text-white/40">
             <a href="#" className="hover:text-white transition-colors">About</a>
-            <a href="#" className="hover:text-white transition-colors">Privacy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms</a>
+            <button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy</button>
+            <button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Terms</button>
             <a href="#" className="hover:text-white transition-colors">Help</a>
           </div>
         </div>

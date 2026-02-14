@@ -1,34 +1,33 @@
 
-import React, { useState } from 'react';
-import { useLanguage } from '../LanguageContext';
-import { Language } from '../types';
-import { Globe, ChevronDown } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../AuthContext';
 
 interface Props {
   onLogoClick?: () => void;
 }
 
 const Navbar: React.FC<Props> = ({ onLogoClick }) => {
-  const { language, setLanguage, isRTL } = useLanguage();
-  const [isLangOpen, setIsLangOpen] = useState(false);
+  const { user, signInWithGoogle, signOut } = useAuth();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
-  const languages: { code: Language; name: string }[] = [
-    { code: 'EN', name: 'English' },
-    { code: 'HE', name: 'עברית' },
-    { code: 'AR', name: 'العربية' },
-    { code: 'ES', name: 'Español' },
-    { code: 'FR', name: 'Français' },
-    { code: 'DE', name: 'Deutsch' },
-    { code: 'IT', name: 'Italiano' },
-    { code: 'PT', name: 'Português' },
-    { code: 'RU', name: 'Русский' },
-    { code: 'ZH', name: '中文' },
-    { code: 'JA', name: '日本語' }
-  ];
+  // Fix #11: Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    if (isProfileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isProfileOpen]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050505]/80 backdrop-blur-md border-b border-white/5">
+    <nav className="fixed top-0 left-0 right-0 z-[100] bg-[#050505]/80 backdrop-blur-md border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+        {/* Logo Section */}
         <div
           className="flex items-center gap-2 cursor-pointer group"
           onClick={onLogoClick}
@@ -39,42 +38,48 @@ const Navbar: React.FC<Props> = ({ onLogoClick }) => {
           <span className="text-xl font-bold text-white tracking-tight">WE Learn</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-8">
-          <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Courses</a>
-          <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Tutors</a>
-          <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">Pricing</a>
-        </div>
-
+        {/* Actions Section */}
         <div className="flex items-center gap-6">
-          <div className="relative">
-            <button
-              onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
-            >
-              <Globe className="w-4 h-4" />
-              <span>{language}</span>
-              <ChevronDown className={`w-3 h-3 transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
-            </button>
+          {/* Auth Button */}
+          {user ? (
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 hover:bg-white/5 p-1 rounded-full transition-colors"
+              >
+                <img
+                  src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=1e293b&color=94a3b8`}
+                  alt={user.displayName || 'User'}
+                  className="w-8 h-8 rounded-full border border-white/10"
+                />
+              </button>
 
-            {isLangOpen && (
-              <div className={`absolute top-full mt-2 w-48 glass rounded-xl overflow-hidden py-1 z-50 ${isRTL ? 'left-0' : 'right-0'}`}>
-                {languages.map((lang) => (
+              {isProfileOpen && (
+                <div className="absolute top-full mt-2 right-0 w-48 glass rounded-xl overflow-hidden py-1 z-50">
+                  <div className="px-4 py-3 border-b border-white/5">
+                    <p className="text-sm text-white font-medium truncate">{user.displayName}</p>
+                    <p className="text-xs text-white/40 truncate">{user.email}</p>
+                  </div>
                   <button
-                    key={lang.code}
                     onClick={() => {
-                      setLanguage(lang.code);
-                      setIsLangOpen(false);
+                      signOut();
+                      setIsProfileOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-xs hover:bg-white/10 transition-colors ${language === lang.code ? 'text-blue-400 font-bold bg-white/5' : 'text-white/60'}`}
+                    className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-white/10 transition-colors"
                   >
-                    {lang.name}
+                    Sign Out
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button className="text-sm font-medium text-white/80 hover:text-white">Sign In</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={signInWithGoogle}
+              className="text-sm font-medium text-white/80 hover:text-white"
+            >
+              Sign In
+            </button>
+          )}
         </div>
       </div>
     </nav>
