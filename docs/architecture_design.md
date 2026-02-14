@@ -72,6 +72,27 @@ platform/
 -   **Environment**: `.env.local` contains all public API keys (Firebase, Groq).
 -   **Verification**: Google OAuth verification is required for production use of "Sensitive Scopes" (Classroom/Calendar).
 
-## 6. Future Considerations
--   **Backend Proxy**: Currently, API keys (Groq) are client-side. A future implementation should move this to Firebase Functions to hide keys.
--   **WhatsApp Integration**: Currently a manual link. Future: Twilio/WhatsApp Business API for automated notifications.
+## 6. Security Disclosure: Runtime API Keys
+> [!WARNING]
+> **Current State**: Groq API keys are handled via `VITE_GROQ_API_KEY` and are exposed in the client-side bundle.
+>
+> **Rationale**: This was chosen to maintain the **$0 Budget (Firebase Spark Plan)**. Firebase Functions requires the paid "Blaze" plan for outbound requests to non-Google APIs (like Groq).
+
+### Security Hardening (Roadmap)
+To achieve "No client-side keys" for $0:
+1.  **Vercel/Netlify Functions**: Use a serverless provider that allows outbound requests on their free tier.
+2.  **Proxy Route**: Create an `/api/chat` route that holds the secret key and forwards requests to Groq.
+3.  **Update**: Point `groq.ts` to this new internal endpoint.
+
+## 7. Collaborative Workflows
+
+### WhatsApp Implementation (Manual Integration)
+- **Who/When**: The Course Guide (creator) creates a WhatsApp group manually once the cohort is initialized.
+- **Link Sharing**: The creator pastes the invite link into the platform (requires adding a `whatsappLink` field to the Cohort model).
+- **Security**: The "Join Community" button is only visible to logged-in users who have successfully joined the cohort roster.
+- **Zero Cost**: This method is 100% free and avoids Twilio/Enterprise API costs.
+
+## 8. Development Roadmap
+- [ ] Migrate Groq API to a backend proxy (Vercel/Cloud Functions).
+- [ ] Add `whatsappLink` field to Firestore `cohorts` collection.
+- [ ] Implement manual link input in the Course Architect "Launch" phase.

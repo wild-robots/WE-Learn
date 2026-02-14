@@ -68,6 +68,7 @@ const CourseArchitect: React.FC<CourseArchitectProps> = ({ onBack, initialContex
         level: string;
         duration: string;
     } | null>(null);
+    const [whatsappLink, setWhatsappLink] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const conversationHistory = useRef<GroqMessage[]>([]);
 
@@ -339,6 +340,7 @@ AT THE END, output: [[READY_TO_LAUNCH]]`;
                     creatorName: user.displayName || "Unknown Guide",
                     createdAt: new Date(),
                     status: 'OPEN',
+                    whatsappLink: whatsappLink || null
                 });
             } catch (fsError) {
                 console.error("Firestore save failed:", fsError);
@@ -381,15 +383,24 @@ AT THE END, output: [[READY_TO_LAUNCH]]`;
                     </div>
                 </div>
                 {phase === "done" && (
-                    <div className="flex gap-2">
-                        <button onClick={downloadPack} className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold transition-all hover:bg-white/10">
-                            <Download className="w-4 h-4" />
-                            Download
-                        </button>
-                        <button onClick={handleLaunch} disabled={isLaunching} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl text-xs font-bold transition-all hover:opacity-90 shadow-lg shadow-blue-900/40 disabled:opacity-50">
-                            {isLaunching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
-                            Launch Cohort
-                        </button>
+                    <div className="flex items-center gap-4">
+                        <input
+                            type="text"
+                            placeholder="Optional: WhatsApp Invite Link"
+                            value={whatsappLink}
+                            onChange={(e) => setWhatsappLink(e.target.value)}
+                            className="hidden md:block w-48 lg:w-64 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-green-500/50 outline-none transition-all"
+                        />
+                        <div className="flex gap-2">
+                            <button onClick={downloadPack} className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold transition-all hover:bg-white/10">
+                                <Download className="w-4 h-4" />
+                                Download
+                            </button>
+                            <button onClick={handleLaunch} disabled={isLaunching} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl text-xs font-bold transition-all hover:opacity-90 shadow-lg shadow-blue-900/40 disabled:opacity-50">
+                                {isLaunching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
+                                Launch Cohort
+                            </button>
+                        </div>
                     </div>
                 )}
             </header>

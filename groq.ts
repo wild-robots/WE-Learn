@@ -35,25 +35,35 @@ export async function sendToGroq(
     history: GroqMessage[],
     options: GroqOptions
 ): Promise<string> {
-    const apiKey = getApiKey();
+    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiKey = isLocalDev ? getApiKey() : null;
 
     history.push({ role: "user", content: userMessage });
 
-    const response = await fetch(GROQ_API_URL, {
+    const payload = {
+        model: options.model || DEFAULT_MODEL,
+        messages: [
+            { role: "system", content: options.systemPrompt },
+            ...history
+        ],
+        temperature: options.temperature ?? 0.7,
+        max_tokens: options.maxTokens ?? 2048
+    };
+
+    // If we're not on localhost, use the secure backend proxy
+    const targetUrl = isLocalDev ? GROQ_API_URL : "/api/chat";
+    const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+    };
+
+    if (isLocalDev && apiKey) {
+        headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(targetUrl, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            model: options.model || DEFAULT_MODEL,
-            messages: [
-                { role: "system", content: options.systemPrompt },
-                ...history
-            ],
-            temperature: options.temperature ?? 0.7,
-            max_tokens: options.maxTokens ?? 2048
-        })
+        headers,
+        body: JSON.stringify(payload)
     });
 
     if (!response.ok) {

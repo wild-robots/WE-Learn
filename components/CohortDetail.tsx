@@ -168,7 +168,7 @@ const CommunityPanel: React.FC<{ cohort: Cohort }> = ({ cohort }) => {
             </div>
           </div>
           <a
-            href="https://chat.whatsapp.com/"
+            href={cohort.whatsappLink || "https://chat.whatsapp.com/"}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 px-10 py-5 bg-[#25D366] hover:bg-[#22c35e] text-white font-bold rounded-2xl transition-all shadow-2xl shadow-[#25D366]/30 active:scale-95 group/btn shrink-0 text-lg"

@@ -76,6 +76,7 @@ export interface Cohort {
   alternateLink?: string;
   creatorId?: string;
   status?: 'OPEN' | 'CLOSED';
+  whatsappLink?: string;
 }
 
 export interface LanguageContextType {
