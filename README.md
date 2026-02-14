@@ -15,10 +15,10 @@ WE Learn is an open-source platform that orchestrates Google Services (Classroom
 
 Detailed documentation for developers and future AI agents:
 
--   [`architecture_design.md`](../../.gemini/antigravity/brain/ec6a112c-1242-4390-90da-b76633768e02/architecture_design.md) - **Source of Truth** for system design.
--   [`CONTRIBUTING.md`](../../.gemini/antigravity/brain/ec6a112c-1242-4390-90da-b76633768e02/CONTRIBUTING.md) - Guide for new devs/agents.
--   [`google_setup.md`](../../.gemini/antigravity/brain/ec6a112c-1242-4390-90da-b76633768e02/google_setup.md) - How to configure the Google Cloud Console.
--   [`deployment_guide.md`](../../.gemini/antigravity/brain/ec6a112c-1242-4390-90da-b76633768e02/deployment_guide.md) - Deploying to Firebase Hosting.
+-   [`architecture_design.md`](docs/architecture_design.md) - **Source of Truth** for system design.
+-   [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) - Guide for new devs/agents.
+-   [`google_setup.md`](docs/google_setup.md) - How to configure the Google Cloud Console.
+-   [`deployment_guide.md`](docs/deployment_guide.md) - Deploying to Firebase Hosting.
 
 ## 🛠️ Stack
 
