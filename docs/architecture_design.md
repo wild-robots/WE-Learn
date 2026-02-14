@@ -72,17 +72,15 @@ platform/
 -   **Environment**: `.env.local` contains all public API keys (Firebase, Groq).
 -   **Verification**: Google OAuth verification is required for production use of "Sensitive Scopes" (Classroom/Calendar).
 
-## 6. Security Disclosure: Runtime API Keys
-> [!WARNING]
-> **Current State**: Groq API keys are handled via `VITE_GROQ_API_KEY` and are exposed in the client-side bundle.
->
-> **Rationale**: This was chosen to maintain the **$0 Budget (Firebase Spark Plan)**. Firebase Functions requires the paid "Blaze" plan for outbound requests to non-Google APIs (like Groq).
+## 6. Security: Backend Proxy Vault
+> [!IMPORTANT]
+> **Current State**: Groq API keys are secured via a **Backend Proxy** (`api/chat.ts`). They are never exposed to the client-side in non-local environments.
 
-### Security Hardening (Roadmap)
-To achieve "No client-side keys" for $0:
-1.  **Vercel/Netlify Functions**: Use a serverless provider that allows outbound requests on their free tier.
-2.  **Proxy Route**: Create an `/api/chat` route that holds the secret key and forwards requests to Groq.
-3.  **Update**: Point `groq.ts` to this new internal endpoint.
+The platform uses a serverless function to forward AI requests:
+1.  **Frontend**: Calls `/api/chat` instead of the Groq API directly.
+2.  **Backend**: The serverless function retrieves the `GROQ_API_KEY` from the server's environment variables.
+3.  **Fallback**: On `localhost`, the system can still use a `.env.local` key for easier development.
+
 
 ## 7. Collaborative Workflows
 
@@ -92,7 +90,8 @@ To achieve "No client-side keys" for $0:
 - **Security**: The "Join Community" button is only visible to logged-in users who have successfully joined the cohort roster.
 - **Zero Cost**: This method is 100% free and avoids Twilio/Enterprise API costs.
 
-## 8. Development Roadmap
-- [ ] Migrate Groq API to a backend proxy (Vercel/Cloud Functions).
-- [ ] Add `whatsappLink` field to Firestore `cohorts` collection.
-- [ ] Implement manual link input in the Course Architect "Launch" phase.
+## 8. Development Roadmap (Next Steps)
+- [ ] **Verification**: Conduct a full end-to-end test of the Google Classroom launch flow in a staging environment.
+- [ ] **Data Validation**: Implement stricter validation for the `whatsappLink` field (e.g., regex for `chat.whatsapp.com`).
+- [ ] **Enhanced Profiles**: Store user profiles in Firestore (currently relying on Google Auth data).
+

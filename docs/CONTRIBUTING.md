@@ -6,8 +6,8 @@ Welcome! This document is for developers and AI agents joining the project.
 
 **Context:**
 -   **Docs**: Read `architecture_design.md` first. It is the Source of Truth.
--   **State**: The app is a client-side React SPA. No backend server (yet); we use Firebase/Google APIs directly.
--   **Keys**: You need a `.env.local` file with Firebase and Groq keys.
+-   **State**: The app is a hybrid React SPA with **Serverless API Routes** (`api/` folder).
+-   **Keys**: You need a `.env.local` file for local development. For production/preview, you must also set `GROQ_API_KEY` in your hosting provider's (Vercel/Netlify) environment settings.
 
 ## 🛠️ Setup
 
