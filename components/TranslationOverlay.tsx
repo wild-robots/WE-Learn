@@ -21,7 +21,7 @@ const TranslationOverlay: React.FC = () => {
           {translationStatus}
         </p>
 
-        <div className="bg-[#1a050d] border border-white/10 rounded-2xl shadow-2xl p-4 w-72 animate-in slide-in-from-bottom-2 duration-300">
+        <div className="bg-[#420b24] border border-white/10 rounded-2xl shadow-2xl p-4 w-72 animate-in slide-in-from-bottom-2 duration-300">
           <div
             className="h-full bg-gradient-to-r from-blue-600 to-indigo-700 transition-all duration-300 ease-out"
             style={{ width: `${translationProgress}%` }}

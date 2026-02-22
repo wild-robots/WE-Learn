@@ -282,7 +282,7 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
   ];
 
   return (
-    <div className="min-h-screen pt-20 pb-20 px-4 md:px-8 bg-[#1a050d]">
+    <div className="min-h-screen pt-20 pb-20 px-4 md:px-8 bg-[#420b24]">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start relative">
         <div className="flex-grow min-w-0 transition-all duration-500 ease-in-out pt-8">
           <button

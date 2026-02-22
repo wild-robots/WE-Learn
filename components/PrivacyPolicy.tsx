@@ -8,7 +8,7 @@ interface Props {
 
 const PrivacyPolicy: React.FC<Props> = ({ onBack }) => {
     return (
-        <div className="min-h-screen bg-[#1a050d] text-white pt-32 pb-20 px-4">
+        <div className="min-h-screen bg-[#420b24] text-white pt-32 pb-20 px-4">
             <div className="max-w-3xl mx-auto">
                 <button
                     onClick={onBack}
