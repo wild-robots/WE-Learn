@@ -36,6 +36,16 @@ Welcome! This document is for developers and AI agents joining the project.
 -   **Types**: Keep `types.ts` updated. Avoid `any`.
 -   **Artifacts**: Update `architecture_design.md` if you change core flows.
 
+## 🤝 Collaborative Workflow
+
+Since this project (wild-robots/WE-Learn) is designed for multiple contributors and AI agents:
+
+1. **Branching**: Do not push directly to `main`. Create a descriptive branch for your work (e.g., `feat/whatsapp-integration` or `fix/auth-loop`).
+2. **Pull Requests**: Submit a PR when your task is ready. Use the provided PR template to explain your changes.
+3. **Agent Handoff**: When passing the project to a new agent:
+   - Ensure `architecture_design.md` is updated if you changed the system flow.
+   - Leave a clear "State of the Union" in the PR or a final commit message.
+
 ## 🚀 Deployment
 
 The project is configured for **Firebase Hosting**.
