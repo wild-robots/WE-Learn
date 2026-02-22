@@ -38,7 +38,7 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <div className="min-h-screen bg-[#050505] selection:bg-blue-600/30 selection:text-white">
+        <div className="min-h-screen bg-[#1a050d] selection:bg-blue-600/30 selection:text-white">
           <Navbar onLogoClick={handleBack} />
 
           <main className="transition-all duration-500">

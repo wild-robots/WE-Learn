@@ -73,7 +73,7 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
 
   return (
     <div className="relative pt-32 pb-20 px-4 overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] bg-pink-600/10 blur-[120px] rounded-full -z-10"></div>
 
       <div className="max-w-4xl mx-auto text-center">
 

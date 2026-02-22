@@ -105,7 +105,7 @@ const CohortCard: React.FC<Props> = ({ cohort, isUpcoming, onClick }) => {
             <img
               key={i}
               src={`https://ui-avatars.com/api/?name=${letter}&background=1e293b&color=94a3b8&size=32&font-size=0.4`}
-              className="w-7 h-7 rounded-full border-2 border-[#050505]"
+              className="w-7 h-7 rounded-full border-2 border-[#1a050d]"
               alt="Member"
             />
           ))}

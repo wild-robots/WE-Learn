@@ -38,7 +38,7 @@ Welcome! This document is for developers and AI agents joining the project.
 
 ## 🤝 Collaborative Workflow
 
-Since this project (wild-robots/WE-Learn) is designed for multiple contributors and AI agents:
+Since this project (we-learn/WE-Learn) is designed for multiple contributors and AI agents:
 
 1. **Branching**: Do not push directly to `main`. Create a descriptive branch for your work (e.g., `feat/whatsapp-integration` or `fix/auth-loop`).
 2. **Pull Requests**: Submit a PR when your task is ready. Use the provided PR template to explain your changes.

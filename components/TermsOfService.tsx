@@ -8,7 +8,7 @@ interface Props {
 
 const TermsOfService: React.FC<Props> = ({ onBack }) => {
     return (
-        <div className="min-h-screen bg-[#050505] text-white pt-24 px-4 pb-12">
+        <div className="min-h-screen bg-[#1a050d] text-white pt-24 px-4 pb-12">
             <div className="max-w-3xl mx-auto">
                 <button
                     onClick={onBack}
