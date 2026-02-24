@@ -12,12 +12,13 @@ import { useAuth } from '../AuthContext';
 interface Props {
   onSelectCohort: (cohort: Cohort) => void;
   onOpenArchitect: (context?: string) => void;
+  onOpenBubbleAgent: () => void;
   onNavigate: (view: 'privacy' | 'terms') => void;
 }
 
 type TabType = 'upcoming' | 'existing' | 'mygroups';
 
-const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onNavigate }) => {
+const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenBubbleAgent, onNavigate }) => {
   const { t, isRTL } = useLanguage();
   const { user, signInWithGoogle } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
@@ -127,6 +128,22 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onNavig
       <Hero onOpenArchitect={onOpenArchitect} />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 pb-32">
+        {/* Bubble Agent CTA */}
+        <div className="mb-12">
+          <button
+            onClick={onOpenBubbleAgent}
+            className="w-full md:w-auto group flex items-center gap-4 px-8 py-5 bg-gradient-to-r from-purple-600/10 to-indigo-600/10 border border-purple-500/20 hover:border-purple-500/40 rounded-2xl transition-all hover:shadow-lg hover:shadow-purple-900/20"
+          >
+            <div className="p-2 bg-purple-600/20 rounded-xl">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-white text-sm">מצאי בועת למידה</p>
+              <p className="text-white/40 text-xs">הסוכנת תמצא לך קבוצה מתאימה או תפתח אחת חדשה</p>
+            </div>
+          </button>
+        </div>
+
         <div className="flex flex-col gap-8 items-start relative">
 
           <div className="w-full transition-all duration-500 ease-in-out">
@@ -247,7 +264,57 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onNavig
                   for (const cohort of seedCohorts) {
                     await addDoc(collection(db, 'cohorts'), cohort);
                   }
-                  alert('Seed data added!');
+
+                  const seedBubbles = [
+                    {
+                      topic: 'design systems',
+                      level: 'intermediate',
+                      meeting_day: 'sunday',
+                      meeting_time: '18:00',
+                      goal_description: 'לבנות design system מלא עם design tokens ו-component library',
+                      participant_count: 3,
+                      participants: ['seed_user_a', 'seed_user_b', 'seed_user_c'],
+                      status: 'open',
+                      waitlist: [],
+                      waitlist_count: 0,
+                      founder_id: 'seed_founder',
+                      created_at: new Date(),
+                    },
+                    {
+                      topic: 'figma',
+                      level: 'beginner',
+                      meeting_day: 'tuesday',
+                      meeting_time: '19:00',
+                      goal_description: 'ללמוד Figma מאפס עד autolayout ו-prototyping מתקדם',
+                      participant_count: 4,
+                      participants: ['seed_user_d', 'seed_user_e', 'seed_user_f', 'seed_user_g'],
+                      status: 'open',
+                      waitlist: [],
+                      waitlist_count: 0,
+                      founder_id: 'seed_founder',
+                      created_at: new Date(),
+                    },
+                    {
+                      topic: 'ux',
+                      level: 'advanced',
+                      meeting_day: 'wednesday',
+                      meeting_time: '20:00',
+                      goal_description: 'מחקר UX מתקדם — ביומטריה, eye-tracking וניתוח נתונים כמותי',
+                      participant_count: 8,
+                      participants: ['seed_user_h', 'seed_user_i', 'seed_user_j', 'seed_user_k', 'seed_user_l', 'seed_user_m', 'seed_user_n', 'seed_user_o'],
+                      status: 'full',
+                      waitlist: [],
+                      waitlist_count: 0,
+                      founder_id: 'seed_founder',
+                      created_at: new Date(),
+                    },
+                  ];
+
+                  for (const bubble of seedBubbles) {
+                    await addDoc(collection(db, 'bubbles'), bubble);
+                  }
+
+                  alert('Seed data added! (4 cohorts + 3 bubbles)');
                 } catch (e) {
                   console.error(e);
                   alert('Error seeding data');
