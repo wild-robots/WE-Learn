@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import StyleGuide from './components/StyleGuide';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,6 +12,6 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    {window.location.pathname === '/styleguide' ? <StyleGuide /> : <App />}
   </React.StrictMode>
 );

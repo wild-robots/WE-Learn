@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { LanguageProvider } from './LanguageContext';
 import { AuthProvider } from './AuthContext';
 import Navbar from './components/Navbar';
+import { StyleGuide } from './components/StyleGuide';
 import LandingPage from './components/LandingPage';
 import CohortDetail from './components/CohortDetail';
 import CourseArchitect from './components/CourseArchitect';
+import BubbleAgent from './components/BubbleAgent';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import TranslationOverlay from './components/TranslationOverlay';
@@ -29,7 +31,6 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Fix #3: Accept optional context from Hero chatbot
   const handleOpenArchitect = (context?: string) => {
     setArchitectContext(context);
     setView('course-architect');
@@ -38,14 +39,15 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <div className="min-h-screen bg-[#420b24] selection:bg-blue-600/30 selection:text-white">
-          <Navbar onLogoClick={handleBack} />
+        <div className="min-h-screen bg-[#F8FAFA] selection:bg-teal-100 selection:text-teal-900">
+          <StyleGuide />
 
           <main className="transition-all duration-500">
             {view === 'landing' && (
               <LandingPage
                 onSelectCohort={handleSelectCohort}
                 onOpenArchitect={handleOpenArchitect}
+                onOpenBubbleAgent={() => setView('bubble-agent')}
                 onNavigate={(view) => {
                   setView(view);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -61,10 +63,15 @@ function App() {
               <CourseArchitect onBack={handleBack} initialContext={architectContext} />
             )}
 
+            {view === 'bubble-agent' && (
+              <BubbleAgent onBack={handleBack} />
+            )}
+
             {view === 'privacy' && <PrivacyPolicy onBack={handleBack} />}
             {view === 'terms' && <TermsOfService onBack={handleBack} />}
           </main>
 
+          <Navbar onLogoClick={handleBack} />
           <TranslationOverlay />
         </div>
       </AuthProvider>
