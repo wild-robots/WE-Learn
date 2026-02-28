@@ -23,50 +23,52 @@ const OverviewPanel: React.FC<{ cohort: Cohort; progress: number }> = ({ cohort,
 
   return (
     <div className="space-y-10">
-      <div className="glass p-8 rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.02] to-transparent">
+      {/* Schedule card */}
+      <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-purple-600/20 flex items-center justify-center">
-            <Video className="w-6 h-6 text-purple-400" />
+          <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center">
+            <Video className="w-6 h-6 text-teal-600" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white tracking-tight">Schedule</h3>
-            <p className="text-white/40 text-sm">{schedule}</p>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Schedule</h3>
+            <p className="text-slate-500 text-sm">{schedule}</p>
           </div>
         </div>
-        <button className="w-full py-4 rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all text-sm font-medium text-white/70">
+        <button className="w-full py-4 rounded-xl border border-slate-200 hover:border-teal-300 hover:bg-teal-50 transition-all text-sm font-medium text-slate-600">
           Times don't work? Create your own cohort!
         </button>
       </div>
 
       {/* Fix #18: Use cohort-specific highlights or sensible defaults */}
       <section>
-        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-          <CheckCircle2 className="w-6 h-6 text-green-400" />
+        <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+          <CheckCircle2 className="w-6 h-6 text-green-600" />
           What You'll Learn
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {highlights.map((item, i) => (
-            <div key={i} className="flex items-center gap-4 p-5 glass rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-              <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-              <span className="text-white/80 font-medium text-sm">{item}</span>
+            <div key={i} className="flex items-center gap-4 p-5 bg-white border border-slate-200 shadow-sm rounded-2xl hover:border-teal-300 transition-colors">
+              <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+              <span className="text-slate-700 font-medium text-sm">{item}</span>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="glass p-8 rounded-3xl border border-white/10">
+      {/* Progress card */}
+      <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
         <div className="flex justify-between items-end mb-4">
-          <h3 className="text-xl font-bold text-white tracking-tight">Cohort Progress</h3>
-          <span className="text-2xl font-bold text-white">{progress}%</span>
+          <h3 className="text-xl font-bold text-slate-900 tracking-tight">Cohort Progress</h3>
+          <span className="text-2xl font-bold text-slate-900">{progress}%</span>
         </div>
-        <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden">
+        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-600 to-indigo-700 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+            className="h-full bg-teal-600 transition-all duration-1000 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
         {/* Fix #19: Dynamic progress text */}
-        <div className="mt-4 text-[11px] uppercase tracking-widest font-bold text-white/30">
+        <div className="mt-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">
           {progress === 0 ? "Not started yet" : progress >= 100 ? "Completed!" : `${progress}% through the course`}
         </div>
       </section>
@@ -85,41 +87,46 @@ const SyllabusPanel: React.FC<{ syllabus?: SyllabusModule[] }> = ({ syllabus }) 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center">
-          <Clock className="w-6 h-6 text-blue-400" />
+        <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center">
+          <Clock className="w-6 h-6 text-teal-600" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-white tracking-tight">Course Syllabus</h3>
-          <p className="text-white/40 text-sm">Follow the path to mastery</p>
+          <h3 className="text-xl font-bold text-slate-900 tracking-tight">Course Syllabus</h3>
+          <p className="text-slate-500 text-sm">Follow the path to mastery</p>
         </div>
       </div>
       {defaultSyllabus.map((mod, i) => (
         <div key={mod.id} className="relative pl-12 group">
           {i < defaultSyllabus.length - 1 && (
-            <div className="absolute left-[23px] top-12 bottom-0 w-0.5 bg-white/10 group-hover:bg-blue-600/30 transition-colors"></div>
+            <div className="absolute left-[23px] top-12 bottom-0 w-0.5 bg-slate-200 group-hover:bg-teal-300 transition-colors"></div>
           )}
 
-          <div className={`absolute left-0 top-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold border transition-all ${i === 0 ? 'bg-blue-600 text-white border-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)] scale-110' : 'bg-white/5 text-white/40 border-white/10'
-            }`}>
+          <div className={`absolute left-0 top-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold border transition-all ${
+            i === 0
+              ? 'bg-teal-600 text-white border-teal-600 shadow-sm scale-110'
+              : 'bg-slate-100 text-slate-400 border-slate-200'
+          }`}>
             {mod.id}
           </div>
 
-          <div className={`glass p-8 rounded-3xl border border-white/5 transition-all ${i === 0 ? 'border-white/20 bg-white/[0.04]' : 'opacity-60'}`}>
-            <h4 className="text-xl font-bold text-white mb-4">{mod.title}</h4>
+          <div className={`bg-white p-8 rounded-3xl border transition-all shadow-sm ${
+            i === 0 ? 'border-teal-300' : 'border-slate-200 opacity-60'
+          }`}>
+            <h4 className="text-xl font-bold text-slate-900 mb-4">{mod.title}</h4>
             <ul className="space-y-3 mb-8">
               {mod.items.map((item, j) => (
-                <li key={j} className="flex items-center gap-3 text-white/60 text-sm">
-                  <ChevronRight className="w-4 h-4 text-blue-500" />
+                <li key={j} className="flex items-center gap-3 text-slate-600 text-sm">
+                  <ChevronRight className="w-4 h-4 text-teal-500 shrink-0" />
                   {item}
                 </li>
               ))}
             </ul>
-            <div className="p-4 rounded-xl bg-blue-600/10 border border-blue-600/20">
-              <div className="flex items-center gap-3 text-blue-400 text-xs font-bold uppercase tracking-widest mb-1">
+            <div className="p-4 rounded-xl bg-teal-50 border border-teal-200">
+              <div className="flex items-center gap-3 text-teal-600 text-xs font-bold uppercase tracking-widest mb-1">
                 <Award className="w-4 h-4" />
                 Deliverable
               </div>
-              <p className="text-white text-sm font-medium">{mod.deliverable}</p>
+              <p className="text-slate-800 text-sm font-medium">{mod.deliverable}</p>
             </div>
           </div>
         </div>
@@ -143,35 +150,35 @@ const CommunityPanel: React.FC<{ cohort: Cohort }> = ({ cohort }) => {
   return (
     <div className="space-y-10">
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 flex items-center justify-center">
-          <Users className="w-6 h-6 text-indigo-400" />
+        <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center">
+          <Users className="w-6 h-6 text-teal-600" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-white tracking-tight">Your Learning Community</h3>
-          <p className="text-white/40 text-sm">Learn alongside other professionals</p>
+          <h3 className="text-xl font-bold text-slate-900 tracking-tight">Your Learning Community</h3>
+          <p className="text-slate-500 text-sm">Learn alongside other professionals</p>
         </div>
       </div>
 
-      {/* Fix #15: WhatsApp button with functional link */}
-      <div className="glass group relative p-10 rounded-3xl border border-[#25D366]/30 overflow-hidden bg-gradient-to-br from-[#25D366]/5 to-transparent transition-all hover:border-[#25D366]/60 shadow-[0_20px_50px_rgba(37,211,102,0.15)] mb-12 cursor-pointer active:scale-[0.99]">
+      {/* Fix #15: WhatsApp button with functional link — brand color retained */}
+      <div className="group relative p-10 rounded-3xl border border-[#25D366]/30 overflow-hidden bg-gradient-to-br from-[#25D366]/5 to-transparent transition-all hover:border-[#25D366]/60 shadow-sm mb-12 cursor-pointer active:scale-[0.99]">
         <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none group-hover:scale-125 group-hover:rotate-12 transition-all duration-700">
           <MessageSquare className="w-64 h-64 text-[#25D366]" />
         </div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
           <div className="flex items-center gap-8">
-            <div className="w-20 h-20 rounded-2xl bg-[#25D366] flex items-center justify-center shadow-[0_0_40px_rgba(37,211,102,0.4)] shrink-0 transition-transform group-hover:scale-110">
+            <div className="w-20 h-20 rounded-2xl bg-[#25D366] flex items-center justify-center shadow-lg shrink-0 transition-transform group-hover:scale-110">
               <MessageSquare className="w-10 h-10 text-white fill-white" />
             </div>
             <div className="text-left">
-              <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Join the Cohort Community</h3>
-              <p className="text-white/70 text-base max-w-md leading-relaxed">Connect with fellow learners on WhatsApp for async collaboration, project updates, and networking.</p>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">Join the Cohort Community</h3>
+              <p className="text-slate-600 text-base max-w-md leading-relaxed">Connect with fellow learners on WhatsApp for async collaboration, project updates, and networking.</p>
             </div>
           </div>
           <a
             href={cohort.whatsappLink || "https://chat.whatsapp.com/"}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-10 py-5 bg-[#25D366] hover:bg-[#22c35e] text-white font-bold rounded-2xl transition-all shadow-2xl shadow-[#25D366]/30 active:scale-95 group/btn shrink-0 text-lg"
+            className="flex items-center gap-3 px-10 py-5 bg-[#25D366] hover:bg-[#22c35e] text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95 group/btn shrink-0 text-lg"
           >
             Join WhatsApp Group
             <ExternalLink className="w-5 h-5 opacity-80 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
@@ -179,18 +186,23 @@ const CommunityPanel: React.FC<{ cohort: Cohort }> = ({ cohort }) => {
         </div>
       </div>
 
+      {/* Member cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {memberNames.map((m: any) => (
-          <div key={m.id} className="glass p-5 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all hover:bg-white/[0.02]">
+          <div key={m.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-teal-300 transition-all">
             <div className="flex items-center gap-4">
               <div className="relative shrink-0">
                 {/* Fix #17: ui-avatars instead of picsum */}
-                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=1e293b&color=94a3b8&size=48&font-size=0.4`} className="w-12 h-12 rounded-full border-2 border-white/10 group-hover:border-white/30 transition-colors" alt={m.name} />
-                {m.online && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#050505]"></div>}
+                <img
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=F0FDFA&color=0D9488&size=48&font-size=0.4`}
+                  className="w-12 h-12 rounded-full border-2 border-slate-200 group-hover:border-teal-300 transition-colors"
+                  alt={m.name}
+                />
+                {m.online && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>}
               </div>
               <div>
-                <h4 className="text-white font-bold text-sm tracking-tight">{m.name}</h4>
-                <p className="text-white/40 text-xs">{m.role}</p>
+                <h4 className="text-slate-900 font-bold text-sm tracking-tight">{m.name}</h4>
+                <p className="text-slate-500 text-xs">{m.role}</p>
               </div>
             </div>
             {m.online && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
@@ -199,16 +211,16 @@ const CommunityPanel: React.FC<{ cohort: Cohort }> = ({ cohort }) => {
       </div>
 
       {/* Fix #19: Dynamic spots count */}
-      <div className="glass p-12 rounded-3xl border border-white/5 text-center bg-white/[0.01]">
-        <Users className="w-12 h-12 text-white/20 mx-auto mb-6" />
-        <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">
+      <div className="bg-white p-12 rounded-3xl border border-slate-200 shadow-sm text-center">
+        <Users className="w-12 h-12 text-slate-300 mx-auto mb-6" />
+        <h3 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">
           {spotsLeft > 0 ? `${spotsLeft} Spot${spotsLeft !== 1 ? 's' : ''} Available` : "Group is Full"}
         </h3>
-        <p className="text-white/40 mb-8">
+        <p className="text-slate-500 mb-8">
           {spotsLeft > 0 ? "Join now to secure your place in this cohort" : "This cohort is at capacity"}
         </p>
         {spotsLeft > 0 && (
-          <button className="px-12 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all shadow-2xl active:scale-95">
+          <button className="px-12 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl transition-all shadow-sm active:scale-95">
             Register Now
           </button>
         )}
@@ -282,37 +294,39 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
   ];
 
   return (
-    <div className="min-h-screen pt-20 pb-20 px-4 md:px-8 bg-[#050505]">
+    <div className="min-h-screen pt-20 pb-20 px-4 md:px-8 bg-[#F8FAFA]">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start relative">
         <div className="flex-grow min-w-0 transition-all duration-500 ease-in-out pt-8">
+          {/* Back button */}
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-8 group"
+            className="flex items-center gap-2 text-sm text-slate-400 hover:text-teal-600 transition-colors mb-8 group"
           >
             <ArrowLeft className={`w-4 h-4 transition-transform group-hover:-translate-x-1 ${isRTL ? 'rotate-180' : ''}`} />
             {t('back_to_cohorts')}
           </button>
 
+          {/* Hero section */}
           <div className="mb-12">
             <div className="flex flex-wrap gap-2 mb-4">
-              <span className="px-3 py-1 rounded-full bg-purple-600/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest border border-purple-600/30">
+              <span className="px-3 py-1 rounded-full bg-teal-50 text-teal-600 text-[10px] uppercase font-bold tracking-widest border border-teal-200">
                 {cohort.category || "General"}
               </span>
-              <span className="px-3 py-1 rounded-full bg-green-600/20 text-green-400 text-[10px] uppercase font-bold tracking-widest border border-green-600/30">
+              <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] uppercase font-bold tracking-widest border border-green-200">
                 {cohort.level || "Beginner"}
               </span>
               {cohortProgress > 0 && (
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-white/60 text-[10px] uppercase font-bold tracking-widest border border-white/10">
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 text-teal-600 text-[10px] uppercase font-bold tracking-widest border border-teal-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                   {t('active_now')}
                 </span>
               )}
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 tracking-tight leading-tight">
               {cohort.title || "Untitled Course"}
             </h1>
-            <p className="text-lg text-white/50 max-w-2xl leading-relaxed">
+            <p className="text-lg text-slate-500 max-w-2xl leading-relaxed">
               {cohort.description || "No description available."}
             </p>
 
@@ -323,7 +337,7 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
                     href={cohort.alternateLink || "#"}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-8 py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-500 transition-all shadow-lg shadow-green-900/40 flex items-center gap-2"
+                    className="px-8 py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-sm flex items-center gap-2"
                   >
                     Go to Classroom
                     <ExternalLink className="w-5 h-5" />
@@ -332,7 +346,7 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
                   <button
                     onClick={handleJoin}
                     disabled={isJoining}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg shadow-blue-900/40 disabled:opacity-50 flex items-center gap-2"
+                    className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                   >
                     {isJoining ? (
                       <>
@@ -350,41 +364,49 @@ const CohortDetail: React.FC<Props> = ({ cohort, onBack }) => {
               </div>
               {/* Fix #13: Inline join status message */}
               {joinStatus && (
-                <div className={`px-4 py-3 rounded-xl text-sm font-medium ${joinStatus.type === 'success' ? 'bg-green-600/10 text-green-400 border border-green-600/20' : 'bg-red-600/10 text-red-400 border border-red-600/20'}`}>
+                <div className={`px-4 py-3 rounded-xl text-sm font-medium ${
+                  joinStatus.type === 'success'
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
                   {joinStatus.message}
                 </div>
               )}
             </div>
           </div>
 
+          {/* Stats row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {stats.map((s, i) => (
-              <div key={i} className="glass p-6 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                <div className="flex items-center gap-3 text-white/40 mb-3">
+              <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-teal-300 transition-colors">
+                <div className="flex items-center gap-3 text-slate-500 mb-3">
                   <s.icon className="w-4 h-4" />
                   <span className="text-[10px] uppercase font-bold tracking-widest">{s.label}</span>
                 </div>
-                <div className="text-2xl font-bold text-white tracking-tight">{s.value}</div>
+                <div className="text-2xl font-bold text-slate-900 tracking-tight">{s.value}</div>
               </div>
             ))}
           </div>
 
-          <div className="flex border-b border-white/5 mb-8">
+          {/* Tab bar */}
+          <div className="flex border-b border-slate-200 mb-8">
             {(['overview', 'syllabus', 'community'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-8 py-4 text-sm font-bold transition-all relative ${activeTab === tab ? 'text-white' : 'text-white/40 hover:text-white/60'
-                  }`}
+                className={`px-8 py-4 text-sm font-bold transition-all relative ${
+                  activeTab === tab ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
+                }`}
               >
                 {t(tab as any)}
                 {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600 rounded-full"></div>
                 )}
               </button>
             ))}
           </div>
 
+          {/* Tab content */}
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {activeTab === 'overview' && <OverviewPanel cohort={cohort} progress={progress} />}
             {activeTab === 'syllabus' && <SyllabusPanel syllabus={cohort.syllabus} />}

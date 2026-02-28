@@ -10,7 +10,7 @@ const ACTIVE_COHORTS = [
   { id: '3', title: 'User Research Fundamentals', category: 'User Research', description: 'Interviews, Testing & Data Analysis to drive product decisions.' }
 ];
 
-const SYSTEM_PROMPT = `You are the Strategic Matchmaker AI for WE Learn (Women Experience Learn). 
+const SYSTEM_PROMPT = `You are the Strategic Matchmaker AI for WE Learn (Women Experience Learn).
 WE Learn is a high-fidelity social learning platform for cohort-based courses with 1:1 tutors, specifically designed for women.
 Key values: Social learning, peer accountability, 1:1 tutors, empowerment.
 Success rate: 10x higher than traditional online courses.
@@ -73,37 +73,56 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
 
   return (
     <div className="relative pt-32 pb-20 px-4 overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
+      {/* Subtle teal ambient glow — light mode depth */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] bg-teal-200/40 blur-[120px] rounded-full -z-10"></div>
 
       <div className="max-w-4xl mx-auto text-center">
 
-        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-[1.1]">
+        <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6 tracking-tight leading-[1.1]">
           {t('hero_title')}
         </h1>
 
-        <p className="text-lg md:text-xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed">
           {t('hero_subtitle')}
         </p>
 
-        {/* AI Search Bar */}
+        {/* AI Chat */}
         <div className="max-w-3xl mx-auto mb-4 group text-left">
+
+          {/* Message thread */}
           {messages.length > 0 && (
             <div className="mb-6 space-y-4 max-h-[300px] overflow-y-auto px-2 scrollbar-thin">
               {messages.map((m, i) => (
                 <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${m.role === 'ai' ? 'bg-blue-600/20' : 'bg-white/10'}`}>
-                    {m.role === 'ai' ? <Sparkles className="w-4 h-4 text-blue-400" /> : <User className="w-4 h-4 text-white/60" />}
+
+                  {/* Avatar */}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                    m.role === 'ai' ? 'bg-teal-100' : 'bg-slate-100'
+                  }`}>
+                    {m.role === 'ai'
+                      ? <Sparkles className="w-4 h-4 text-teal-600" />
+                      : <User className="w-4 h-4 text-slate-500" />
+                    }
                   </div>
-                  <div className={`p-4 rounded-2xl text-sm leading-relaxed max-w-[80%] ${m.role === 'ai'
-                    ? 'bg-white/5 text-white/80 border border-white/5 prose prose-invert prose-sm'
-                    : 'bg-blue-600 text-white shadow-lg font-medium'
-                    }`}>
+
+                  {/* Bubble */}
+                  <div className={`p-4 rounded-2xl text-sm leading-relaxed max-w-[80%] ${
+                    m.role === 'ai'
+                      ? 'bg-slate-50 text-slate-700 border border-slate-200 prose prose-sm prose-slate'
+                      : 'bg-teal-600 text-white shadow-lg font-medium'
+                  }`}>
                     {m.text}
-                    {m.role === 'ai' && (m.text.toLowerCase().includes('create') || m.text.toLowerCase().includes('architect') || m.text.toLowerCase().includes('custom course')) && (
+
+                    {/* Course Architect inline CTA */}
+                    {m.role === 'ai' && (
+                      m.text.toLowerCase().includes('create') ||
+                      m.text.toLowerCase().includes('architect') ||
+                      m.text.toLowerCase().includes('custom course')
+                    ) && (
                       <div className="mt-4">
                         <button
                           onClick={() => onOpenArchitect(getConversationSummary())}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-400/20 hover:bg-blue-400/30 border border-blue-400/30 rounded-xl text-blue-300 text-xs font-bold transition-all"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl text-teal-700 text-xs font-bold transition-all"
                         >
                           Open Course Architect
                           <ChevronRight className="w-3 h-3" />
@@ -113,12 +132,14 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
                   </div>
                 </div>
               ))}
+
+              {/* Loading indicator */}
               {isLoading && (
                 <div className="flex gap-3 animate-in fade-in">
-                  <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center shrink-0">
-                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                  <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                    <Loader2 className="w-4 h-4 text-teal-600 animate-spin" />
                   </div>
-                  <div className="p-4 rounded-2xl text-sm bg-white/5 text-white/40 border border-white/5 italic">
+                  <div className="p-4 rounded-2xl text-sm bg-slate-50 text-slate-400 border border-slate-200 italic">
                     Thinking...
                   </div>
                 </div>
@@ -127,31 +148,33 @@ const Hero: React.FC<HeroProps> = ({ onOpenArchitect }) => {
             </div>
           )}
 
-          <div className={`relative transition-all duration-500 rounded-2xl glass p-4 ${isFocused ? 'ring-2 ring-blue-600/50 scale-[1.02]' : ''}`}>
+          {/* Input bar */}
+          <div className={`relative transition-all duration-300 rounded-2xl bg-white border border-slate-200 shadow-sm p-4 ${
+            isFocused ? 'ring-2 ring-teal-500/50 border-teal-500 scale-[1.02]' : ''
+          }`}>
             <div className="flex gap-4 items-start">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-                className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-white/20 resize-none pt-2 text-sm h-12 outline-none"
+                className="w-full bg-transparent border-none focus:ring-0 text-slate-900 placeholder-slate-400 resize-none pt-2 text-sm h-12 outline-none"
                 placeholder={t('search_placeholder')}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
               />
             </div>
 
-            <div className="flex items-center justify-end mt-4 pt-4 border-t border-white/5">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleSend}
-                  disabled={isLoading}
-                  className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-2.5 rounded-xl transition-all hover:opacity-90 shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50"
-                >
-                  <Send className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
+            <div className="flex items-center justify-end mt-4 pt-4 border-t border-slate-100">
+              <button
+                onClick={handleSend}
+                disabled={isLoading}
+                className="bg-teal-600 hover:bg-teal-700 text-white p-2.5 rounded-xl transition-all shadow-sm shadow-teal-600/20 active:scale-95 disabled:opacity-50"
+              >
+                <Send className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+              </button>
             </div>
           </div>
+
         </div>
       </div>
     </div>

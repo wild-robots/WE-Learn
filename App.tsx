@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
 import CohortDetail from './components/CohortDetail';
 import CourseArchitect from './components/CourseArchitect';
+import BubbleAgent from './components/BubbleAgent';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import TranslationOverlay from './components/TranslationOverlay';
@@ -38,7 +39,7 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <div className="min-h-screen bg-[#050505] selection:bg-blue-600/30 selection:text-white">
+        <div className="min-h-screen bg-[#F8FAFA] selection:bg-teal-100 selection:text-teal-900">
           <Navbar onLogoClick={handleBack} />
 
           <main className="transition-all duration-500">
@@ -46,6 +47,7 @@ function App() {
               <LandingPage
                 onSelectCohort={handleSelectCohort}
                 onOpenArchitect={handleOpenArchitect}
+                onOpenBubbleAgent={() => setView('bubble-agent')}
                 onNavigate={(view) => {
                   setView(view);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -59,6 +61,10 @@ function App() {
 
             {view === 'course-architect' && (
               <CourseArchitect onBack={handleBack} initialContext={architectContext} />
+            )}
+
+            {view === 'bubble-agent' && (
+              <BubbleAgent onBack={handleBack} />
             )}
 
             {view === 'privacy' && <PrivacyPolicy onBack={handleBack} />}

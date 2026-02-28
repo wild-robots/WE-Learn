@@ -1,7 +1,7 @@
 
 export type Language = 'EN' | 'HE' | 'ES' | 'FR' | 'DE' | 'IT' | 'PT' | 'RU' | 'ZH' | 'JA' | 'AR';
 
-export type View = 'landing' | 'cohort-detail' | 'course-architect' | 'privacy' | 'terms';
+export type View = 'landing' | 'cohort-detail' | 'course-architect' | 'bubble-agent' | 'privacy' | 'terms';
 
 export interface TranslationSet {
   hero_title: string;

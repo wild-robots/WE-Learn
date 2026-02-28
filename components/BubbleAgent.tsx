@@ -58,13 +58,13 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
             if (initialContext) {
                 setIsLoading(true);
                 try {
-                    const contextMsg = `המשתמשת כבר דיברה על מה שהיא רוצה ללמוד. הנה מה שהיא אמרה: "${initialContext}". המשיכי משם — אל תחזרי על שאלות שכבר נענו. סכמי מה שאת יודעת ושאלי את השאלה הבאה.`;
+                    const contextMsg = `The user has already shared what they want to learn. Here's what they said: "${initialContext}". Continue from where they left off — don't repeat already-answered questions. Summarize what you know and ask the next question.`;
                     const response = await sendToGroq(contextMsg, conversationHistory.current, {
                         systemPrompt: DISCOVERY_PROMPT,
                     });
                     setMessages([{ id: 'init', role: 'model', content: response }]);
                 } catch {
-                    setMessages([{ id: 'init', role: 'model', content: "היי! אני כאן כדי לעזור לך למצוא קבוצת למידה מושלמת. ספרי לי, מה את רוצה ללמוד?" }]);
+                    setMessages([{ id: 'init', role: 'model', content: "Hi! I'm here to help you find the perfect learning group. Tell me, what would you like to learn?" }]);
                 } finally {
                     setIsLoading(false);
                 }
@@ -72,7 +72,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                 setMessages([{
                     id: 'init',
                     role: 'model',
-                    content: "היי! אני סוכנת השיבוץ של WE Learn 🌟\n\nאני כאן כדי לעזור לך למצוא קבוצת למידה (\"בועה\") שמתאימה בדיוק לך — או לפתוח אחת חדשה.\n\nבואי נתחיל — מה את רוצה ללמוד?"
+                    content: "Hi! I'm the WE Learn placement agent 🌟\n\nI'm here to help you find a learning bubble that's perfect for you — or open a new one.\n\nLet's start — what would you like to learn?"
                 }]);
             }
         };
@@ -190,7 +190,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
         setMessages(prev => [...prev, {
             id: "sys-matching",
             role: "system",
-            content: "מחפשת בועות תואמות..."
+            content: "Searching for matching bubbles..."
         }]);
 
         try {
@@ -201,7 +201,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
 
             const prompt = buildMatchingPrompt(matches);
             const response = await sendToGroq(
-                "הצגי את תוצאות החיפוש",
+                "Display the search results",
                 conversationHistory.current,
                 { systemPrompt: prompt }
             );
@@ -222,7 +222,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: "system",
-                content: `שגיאה בחיפוש: ${error.message || "Unknown error"}`,
+                content: `Search error: ${error.message || "Unknown error"}`,
             }]);
         } finally {
             setIsLoading(false);
@@ -235,7 +235,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: "system",
-                content: "יש להתחבר כדי לפתוח בועה חדשה.",
+                content: "You must be signed in to create a new bubble.",
             }]);
             return;
         }
@@ -258,7 +258,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
 
             // Generate handoff message
             const response = await sendToGroq(
-                `הבועה נוצרה בהצלחה. מזהה: ${newId}. המשתמשת היא המייסדת.`,
+                `Bubble created successfully. ID: ${newId}. The user is the founder.`,
                 conversationHistory.current,
                 { systemPrompt: HANDOFF_PROMPT }
             );
@@ -275,7 +275,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: "system",
-                content: `שגיאה ביצירת בועה: ${error.message}`,
+                content: `Error creating bubble: ${error.message}`,
             }]);
         }
     };
@@ -317,7 +317,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                     setMessages(prev => [...prev, {
                         id: Date.now().toString(),
                         role: "model",
-                        content: cleanResponse(response) + "\n\n**בירור הצרכים הושלם!** בודקת ריאליות...",
+                        content: cleanResponse(response) + "\n\n**Needs discovery complete!** Running reality check...",
                     }]);
 
                     // Auto-trigger reality check
@@ -334,7 +334,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                             // Need to ask about goals first
                             const rcPrompt = buildRealityCheckPrompt(prefs, goals);
                             const rcResponse = await sendToGroq(
-                                "השעות מספיקות. המשתמשת צריכה לבחור מטרה.",
+                                "Hours are sufficient. The user needs to select a goal.",
                                 conversationHistory.current,
                                 { systemPrompt: rcPrompt }
                             );
@@ -351,7 +351,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                         // Hours insufficient — let reality check prompt handle it
                         const rcPrompt = buildRealityCheckPrompt(prefs);
                         const rcResponse = await sendToGroq(
-                            `השעות שהוגדרו: ${prefs.weeklyHours}. ${validation.suggestion}`,
+                            `Defined weekly hours: ${prefs.weeklyHours}. ${validation.suggestion}`,
                             conversationHistory.current,
                             { systemPrompt: rcPrompt }
                         );
@@ -366,7 +366,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                     setMessages(prev => [...prev, {
                         id: Date.now().toString(),
                         role: "model",
-                        content: cleanResponse(response) + "\n\nלא הצלחתי לעבד את הנתונים. ננסה שוב — מה הנושא שאת רוצה ללמוד?",
+                        content: cleanResponse(response) + "\n\nI couldn't process that data. Let's try again — what topic would you like to learn?",
                     }]);
                 }
                 return;
@@ -386,7 +386,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                     setMessages(prev => [...prev, {
                         id: Date.now().toString(),
                         role: "model",
-                        content: cleanResponse(response) + "\n\n**תיקוף עבר בהצלחה!** מחפשת בועות...",
+                        content: cleanResponse(response) + "\n\n**Reality check passed!** Searching for bubbles...",
                     }]);
 
                     await triggerMatching();
@@ -419,7 +419,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                     setPhase("handoff");
 
                     const handoffResponse = await sendToGroq(
-                        `המשתמשת הצטרפה לבועה ${data.bubble_id}.`,
+                        `The user joined bubble ${data.bubble_id}.`,
                         conversationHistory.current,
                         { systemPrompt: HANDOFF_PROMPT }
                     );
@@ -449,7 +449,7 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                     setMessages(prev => [...prev, {
                         id: Date.now().toString(),
                         role: "system",
-                        content: `שגיאה בהצטרפות: ${error.message}`,
+                        content: `Error joining bubble: ${error.message}`,
                     }]);
                 }
                 return;
@@ -464,14 +464,14 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                     setMessages(prev => [...prev, {
                         id: Date.now().toString(),
                         role: "model",
-                        content: cleanResponse(response) + "\n\n**נרשמת לרשימת ההמתנה!** נעדכן אותך ברגע שיתפנה מקום.",
+                        content: cleanResponse(response) + "\n\n**Added to the waitlist!** We'll notify you as soon as a spot opens.",
                     }]);
                 } catch (error: any) {
                     console.error("Waitlist error:", error);
                     setMessages(prev => [...prev, {
                         id: Date.now().toString(),
                         role: "system",
-                        content: `שגיאה בהרשמה לרשימת המתנה: ${error.message}`,
+                        content: `Error joining waitlist: ${error.message}`,
                     }]);
                 }
                 return;
@@ -514,52 +514,52 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
         }
     };
 
-    // --- Phase indicator ---
+    // --- Phase indicator labels ---
     const phaseLabels: Record<AgentPhase, string> = {
-        discovery: "בירור צרכים",
-        reality_check: "תיקוף ריאליות",
-        matching: "חיפוש בועה",
-        placement: "שיבוץ",
-        handoff: "סיכום",
+        discovery: "Needs Discovery",
+        reality_check: "Reality Check",
+        matching: "Finding Matches",
+        placement: "Placement",
+        handoff: "Summary",
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-80px)] mt-20 max-w-5xl mx-auto bg-[#0a0a0a]/80 backdrop-blur-xl shadow-2xl overflow-hidden border-x border-white/5">
+        <div className="flex flex-col h-[calc(100vh-80px)] mt-20 max-w-5xl mx-auto bg-white border-x border-slate-200 shadow-sm overflow-hidden">
             {/* Header */}
-            <header className="p-6 border-b border-white/5 bg-white/2 backdrop-blur-md sticky top-0 flex items-center justify-between z-20">
+            <header className="p-6 border-b border-slate-100 bg-white sticky top-0 flex items-center justify-between z-20">
                 <div className="flex items-center gap-4">
-                    <button onClick={onBack} className="p-2 hover:bg-white/5 rounded-xl transition-colors text-white/40 hover:text-white">
+                    <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-700">
                         <ChevronLeft className="w-5 h-5" />
                     </button>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-600/10 rounded-xl border border-purple-500/20">
-                            <Sparkles className="w-5 h-5 text-purple-400" />
+                        <div className="p-2 bg-teal-50 rounded-xl border border-teal-200">
+                            <Sparkles className="w-5 h-5 text-teal-600" />
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h2 className="font-bold text-white tracking-tight">Bubble Agent</h2>
+                                <h2 className="font-bold text-slate-900 tracking-tight">Bubble Agent</h2>
                                 {MOCK_MODE && (
-                                    <span className="text-xs px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 rounded-full">
+                                    <span className="text-xs px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-600 rounded-full">
                                         Demo
                                     </span>
                                 )}
                             </div>
-                            <p className="text-xs text-white/40">{phaseLabels[phase]}</p>
+                            <p className="text-xs text-slate-500">{phaseLabels[phase]}</p>
                         </div>
                     </div>
                 </div>
                 {userPrefs.topic && (
-                    <div className="hidden md:flex items-center gap-2 text-xs text-white/30">
-                        <span className="px-2 py-1 bg-white/5 rounded-lg border border-white/10">{userPrefs.topic}</span>
+                    <div className="hidden md:flex items-center gap-2 text-xs text-slate-500">
+                        <span className="px-2 py-1 bg-slate-50 rounded-lg border border-slate-200">{userPrefs.topic}</span>
                         {userPrefs.level && (
-                            <span className="px-2 py-1 bg-white/5 rounded-lg border border-white/10">{userPrefs.level}</span>
+                            <span className="px-2 py-1 bg-slate-50 rounded-lg border border-slate-200">{userPrefs.level}</span>
                         )}
                     </div>
                 )}
             </header>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin bg-[#F8FAFA]">
                 {messages.map((msg) => (
                     <div key={msg.id} className={cn(
                         "flex gap-4 max-w-3xl animate-in fade-in slide-in-from-bottom-2 duration-300",
@@ -568,24 +568,24 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                         <div className={cn(
                             "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border",
                             msg.role === 'user'
-                                ? "bg-white/10 border-white/10"
+                                ? "bg-slate-100 border-slate-200"
                                 : msg.role === 'system'
-                                    ? "bg-purple-600/10 border-purple-500/20"
-                                    : "bg-white/5 border-white/5"
+                                    ? "bg-amber-50 border-amber-200"
+                                    : "bg-teal-50 border-teal-200"
                         )}>
                             {msg.role === 'user'
-                                ? <User className="w-5 h-5 text-white/60" />
-                                : <Bot className="w-5 h-5 text-purple-400" />
+                                ? <User className="w-5 h-5 text-slate-500" />
+                                : <Bot className="w-5 h-5 text-teal-600" />
                             }
                         </div>
                         <div className={cn("flex flex-col gap-2", msg.role === 'user' ? "items-end" : "items-start")}>
                             <div className={cn(
-                                "p-5 rounded-2xl text-sm leading-relaxed shadow-xl prose prose-invert prose-sm max-w-none border",
+                                "p-5 rounded-2xl text-sm leading-relaxed shadow-sm prose prose-sm max-w-none border",
                                 msg.role === 'user'
-                                    ? "bg-purple-600 border-purple-500 text-white"
+                                    ? "bg-teal-600 border-teal-600 text-white prose-invert"
                                     : msg.role === 'system'
-                                        ? "bg-white/5 border-white/5 text-white/40 italic"
-                                        : "bg-white/5 border-white/5 text-white/80"
+                                        ? "bg-amber-50 border-amber-200 text-amber-700 italic"
+                                        : "bg-white border-slate-200 text-slate-700 prose-slate"
                             )}>
                                 {msg.role === 'system' ? msg.content : <ReactMarkdown>{msg.content}</ReactMarkdown>}
                             </div>
@@ -593,31 +593,30 @@ const BubbleAgent: React.FC<BubbleAgentProps> = ({ onBack, onHandoff, initialCon
                     </div>
                 ))}
                 {isLoading && (
-                    <div className="flex items-center gap-3 text-white/30 text-xs font-bold uppercase tracking-widest p-4 animate-pulse">
+                    <div className="flex items-center gap-3 text-slate-400 text-xs font-bold uppercase tracking-widest p-4 animate-pulse">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        הסוכנת חושבת...
+                        Agent is thinking...
                     </div>
                 )}
                 <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
-            <div className="p-6 bg-white/2 border-t border-white/5">
+            <div className="p-6 bg-white border-t border-slate-100">
                 <div className="relative max-w-3xl mx-auto flex gap-3">
                     <textarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                        placeholder={phase === 'handoff' ? "שאלי שאלות נוספות..." : "כתבי כאן..."}
+                        placeholder={phase === 'handoff' ? "Ask follow-up questions..." : "Type here..."}
                         rows={1}
-                        className="flex-1 bg-white/5 border border-white/10 focus:border-purple-600/50 focus:ring-0 rounded-2xl px-5 py-4 text-sm text-white placeholder-white/20 transition-all resize-none min-h-[56px] max-h-32 outline-none"
+                        className="flex-1 bg-slate-50 border border-slate-200 focus:border-teal-500 focus:ring-0 rounded-2xl px-5 py-4 text-sm text-slate-900 placeholder-slate-400 transition-all resize-none min-h-[56px] max-h-32 outline-none"
                         disabled={isLoading}
-                        dir="rtl"
                     />
                     <button
                         onClick={handleSend}
                         disabled={isLoading || !input.trim()}
-                        className="p-4 bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-2xl hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-purple-900/20 active:scale-95 shrink-0"
+                        className="p-4 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl disabled:opacity-50 transition-all shadow-sm active:scale-95 shrink-0"
                     >
                         <Send className="w-5 h-5" />
                     </button>

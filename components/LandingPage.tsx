@@ -60,7 +60,7 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       {loading ? (
         <div className="col-span-full flex justify-center py-20">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
         </div>
       ) : cohorts.length > 0 ? (
         cohorts.map(cohort => (
@@ -77,7 +77,7 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
           />
         ))
       ) : (
-        <div className="col-span-full text-center py-20 text-white/40">
+        <div className="col-span-full text-center py-20 text-slate-400">
           {emptyText}
         </div>
       )}
@@ -96,24 +96,24 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
           myCohorts.length > 0 ? (
             renderCohortGrid(myCohorts, "", true)
           ) : (
-            <div className="glass p-12 rounded-3xl border border-white/5 text-center">
+            <div className="bg-white p-12 rounded-3xl border border-slate-200 shadow-sm text-center">
               <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Welcome back, {user.displayName}</h3>
-                <p className="text-white/40 mb-8 max-w-sm mx-auto">You haven't joined any groups yet.</p>
-                <button onClick={() => setActiveTab('upcoming')} className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all">
+                <h3 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">Welcome back, {user.displayName}</h3>
+                <p className="text-slate-500 mb-8 max-w-sm mx-auto">You haven't joined any groups yet.</p>
+                <button onClick={() => setActiveTab('upcoming')} className="px-8 py-3 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl transition-all">
                   Browse Upcoming Groups
                 </button>
               </div>
             </div>
           )
         ) : (
-          <div className="glass p-12 rounded-3xl border border-white/5 text-center">
-            <Sparkles className="w-12 h-12 text-white/20 mx-auto mb-6" />
-            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Your Personal Workspace</h3>
-            <p className="text-white/40 mb-8 max-w-sm mx-auto">Sign in to track your current groups, certifications, and peer network.</p>
+          <div className="bg-white p-12 rounded-3xl border border-slate-200 shadow-sm text-center">
+            <Sparkles className="w-12 h-12 text-slate-300 mx-auto mb-6" />
+            <h3 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">Your Personal Workspace</h3>
+            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Sign in to track your current groups, certifications, and peer network.</p>
             <button
               onClick={signInWithGoogle}
-              className="px-12 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all flex items-center gap-2 mx-auto"
+              className="px-8 py-3 bg-white border border-slate-200 text-slate-800 font-semibold rounded-2xl hover:bg-slate-50 shadow-sm transition-all flex items-center gap-2 mx-auto"
             >
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
               Sign In with Google
@@ -124,7 +124,7 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
   };
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen bg-[#F8FAFA]">
       <Hero onOpenArchitect={onOpenArchitect} />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 pb-32">
@@ -132,14 +132,14 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
         <div className="mb-12">
           <button
             onClick={onOpenBubbleAgent}
-            className="w-full md:w-auto group flex items-center gap-4 px-8 py-5 bg-gradient-to-r from-purple-600/10 to-indigo-600/10 border border-purple-500/20 hover:border-purple-500/40 rounded-2xl transition-all hover:shadow-lg hover:shadow-purple-900/20"
+            className="w-full md:w-auto group flex items-center gap-4 px-8 py-5 bg-teal-50 border border-teal-200 hover:border-teal-400 rounded-2xl transition-all hover:shadow-[0_4px_12px_rgba(13,148,136,0.12)]"
           >
-            <div className="p-2 bg-purple-600/20 rounded-xl">
-              <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="p-2 bg-teal-100 rounded-xl">
+              <Sparkles className="w-5 h-5 text-teal-600" />
             </div>
-            <div className="text-right">
-              <p className="font-bold text-white text-sm">מצאי בועת למידה</p>
-              <p className="text-white/40 text-xs">הסוכנת תמצא לך קבוצה מתאימה או תפתח אחת חדשה</p>
+            <div className={isRTL ? 'text-right' : 'text-left'}>
+              <p className="font-bold text-slate-900 text-sm">Find a Learning Bubble</p>
+              <p className="text-slate-500 text-xs">Our agent will match you with the right group or open a new one</p>
             </div>
           </button>
         </div>
@@ -148,17 +148,20 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
 
           <div className="w-full transition-all duration-500 ease-in-out">
             {/* Tab Bar */}
-            <div className="flex items-center gap-1 p-1 bg-white/[0.03] border border-white/5 rounded-2xl mb-12 w-fit max-w-full overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-2xl mb-12 w-fit max-w-full overflow-x-auto scrollbar-none">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-3 text-sm font-bold transition-all rounded-xl relative whitespace-nowrap ${activeTab === tab.id ? 'text-white bg-white/5 shadow-lg' : 'text-white/40 hover:text-white/60'
-                    }`}
+                  className={`flex items-center gap-2 px-6 py-3 text-sm font-bold transition-all rounded-xl relative whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'text-teal-700 bg-white shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
                 >
                   {tab.label}
                   {activeTab === tab.id && (
-                    <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-full shadow-[0_0_10px_rgba(37,99,235,0.5)]"></div>
+                    <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-teal-600 rounded-full"></div>
                   )}
                 </button>
               ))}
@@ -271,7 +274,7 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
                       level: 'intermediate',
                       meeting_day: 'sunday',
                       meeting_time: '18:00',
-                      goal_description: 'לבנות design system מלא עם design tokens ו-component library',
+                      goal_description: 'Build a full design system with design tokens and a component library',
                       participant_count: 3,
                       participants: ['seed_user_a', 'seed_user_b', 'seed_user_c'],
                       status: 'open',
@@ -285,7 +288,7 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
                       level: 'beginner',
                       meeting_day: 'tuesday',
                       meeting_time: '19:00',
-                      goal_description: 'ללמוד Figma מאפס עד autolayout ו-prototyping מתקדם',
+                      goal_description: 'Learn Figma from scratch through auto layout and advanced prototyping',
                       participant_count: 4,
                       participants: ['seed_user_d', 'seed_user_e', 'seed_user_f', 'seed_user_g'],
                       status: 'open',
@@ -299,7 +302,7 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
                       level: 'advanced',
                       meeting_day: 'wednesday',
                       meeting_time: '20:00',
-                      goal_description: 'מחקר UX מתקדם — ביומטריה, eye-tracking וניתוח נתונים כמותי',
+                      goal_description: 'Advanced UX research — biometrics, eye-tracking, and quantitative data analysis',
                       participant_count: 8,
                       participants: ['seed_user_h', 'seed_user_i', 'seed_user_j', 'seed_user_k', 'seed_user_l', 'seed_user_m', 'seed_user_n', 'seed_user_o'],
                       status: 'full',
@@ -320,7 +323,7 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
                   alert('Error seeding data');
                 }
               }}
-              className="px-4 py-2 bg-red-900/50 text-red-200 text-xs rounded-full border border-red-500/30 font-bold"
+              className="px-4 py-2 bg-red-50 text-red-600 text-xs rounded-full border border-red-200 font-bold"
             >
               [Dev] Seed Data
             </button>
@@ -329,20 +332,20 @@ const LandingPage: React.FC<Props> = ({ onSelectCohort, onOpenArchitect, onOpenB
       </div>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-white/5 bg-[#050505]">
+      <footer className="py-12 px-4 border-t border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
+            <div className="w-6 h-6 rounded bg-teal-600 flex items-center justify-center">
               <span className="text-white font-bold text-sm">W</span>
             </div>
-            <span className="text-sm font-bold text-white/40">WE Learn © 2025</span>
+            <span className="text-sm font-bold text-slate-400">WE Learn © 2025</span>
           </div>
 
-          <div className="flex gap-8 text-xs font-medium text-white/40">
-            <a href="#" className="hover:text-white transition-colors">About</a>
-            <button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy</button>
-            <button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Terms</button>
-            <a href="#" className="hover:text-white transition-colors">Help</a>
+          <div className="flex gap-8 text-xs font-medium text-slate-500">
+            <a href="#" className="hover:text-teal-600 transition-colors">About</a>
+            <button onClick={() => onNavigate('privacy')} className="hover:text-teal-600 transition-colors">Privacy</button>
+            <button onClick={() => onNavigate('terms')} className="hover:text-teal-600 transition-colors">Terms</button>
+            <a href="#" className="hover:text-teal-600 transition-colors">Help</a>
           </div>
         </div>
       </footer>
