@@ -1,0 +1,415 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
+import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search } from "lucide-react";
+import { useApp } from "../../context/AppContext";
+import { getBubbleById, getBubbleMembers } from "../../data/mock";
+import { SyllabusTab } from "./SyllabusTab";
+import { MembersTab } from "./MembersTab";
+import { ResourcesTab } from "./ResourcesTab";
+import { JoinBubbleModal } from "./JoinBubbleModal";
+import { AuthModal } from "./AuthModal";
+import type { BubbleLevel } from "../../types";
+
+type Tab = 'syllabus' | 'members' | 'resources';
+
+// ─── Bubble Logo Icon ─────────────────────────────────────────────────────────
+
+function BubbleLogoIcon() {
+  return (
+    <div className="relative shrink-0 size-7">
+      <svg className="absolute block size-full" fill="none" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="14" fill="url(#gp-g1)" fillOpacity="0.3" />
+        <circle cx="16" cy="16" r="14" stroke="url(#gp-g2)" strokeWidth="2" />
+        <ellipse cx="16" cy="10" fill="url(#gp-g3)" fillOpacity="0.5" rx="7" ry="4" />
+        <defs>
+          <linearGradient id="gp-g1" x1="16" x2="16" y1="2" y2="30" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#2BBFAA" /><stop offset="1" stopColor="#1FA090" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="gp-g2" x1="2" x2="30" y1="16" y2="16" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#2BBFAA" /><stop offset="0.5" stopColor="#60D4C8" /><stop offset="1" stopColor="#1FA090" />
+          </linearGradient>
+          <linearGradient id="gp-g3" x1="16" x2="16" y1="6" y2="14" gradientUnits="userSpaceOnUse">
+            <stop stopColor="white" /><stop offset="1" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  );
+}
+
+// ─── Avatar Stack (small) ─────────────────────────────────────────────────────
+
+function AvatarStackSmall({ avatars }: { avatars: string[] }) {
+  return (
+    <div className="relative flex" style={{ width: Math.min(avatars.length, 5) * 12 + 10, height: 24 }}>
+      {avatars.slice(0, 5).map((src, i) => (
+        <div key={i} className="absolute rounded-full size-6 border-2 border-white overflow-hidden"
+          style={{ left: i * 12, zIndex: i }}>
+          <img src={src} alt="" className="size-full object-cover" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── GroupPage ────────────────────────────────────────────────────────────────
+
+// ─── Add Session Modal ────────────────────────────────────────────────────────
+
+function AddSessionModal({ onClose, onAdd }: {
+  onClose: () => void;
+  onAdd: (title: string, date: string, level: BubbleLevel) => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [date,  setDate]  = useState('');
+  const [level, setLevel] = useState<BubbleLevel>('Intermediate');
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !date.trim()) return;
+    onAdd(title.trim(), date.trim(), level);
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden"
+        style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+        <div className="px-5 pt-5 pb-4 border-b border-[#E9ECEF] flex items-center justify-between">
+          <h3 className="font-bold text-[17px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+            Add a session
+          </h3>
+          <button onClick={onClose} className="text-[#ADB5BD] hover:text-[#495057] transition-colors">
+            <X className="size-5" strokeWidth={1.75} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="px-5 py-4 flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
+              Session title *
+            </label>
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
+              placeholder="e.g. Introduction & Foundations"
+              className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+              style={{ fontFamily: 'var(--font-body)' }} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
+              Date *
+            </label>
+            <input type="text" value={date} onChange={e => setDate(e.target.value)} required
+              placeholder="e.g. Apr 15, 2026"
+              className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+              style={{ fontFamily: 'var(--font-body)' }} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
+              Level
+            </label>
+            <div className="flex gap-2">
+              {(['Beginner', 'Intermediate', 'Advanced'] as BubbleLevel[]).map(l => (
+                <button key={l} type="button" onClick={() => setLevel(l)}
+                  className="flex-1 py-2 rounded-xl border text-[13px] font-medium transition-all"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    background: level === l ? '#E8F9F7' : 'white',
+                    borderColor: level === l ? '#A8E8E2' : '#E9ECEF',
+                    color: level === l ? '#1FA090' : '#6C757D',
+                  }}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              Cancel
+            </button>
+            <button type="submit"
+              className="flex-1 py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              Add session
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── GroupPage ────────────────────────────────────────────────────────────────
+
+export function GroupPage() {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const { bubbles, currentUser, isFounder, isJoined, isLoggedIn, addRecentBubble } = useApp();
+
+  const [activeTab, setActiveTab]       = useState<Tab>('syllabus');
+  const [showAddSession, setShowAddSession] = useState(false);
+  const [showJoin, setShowJoin] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+
+  // Find bubble from context (includes newly created ones)
+  const bubble = bubbles.find(b => b.id === id) ?? getBubbleById(id ?? '');
+
+  // Track this bubble as "recently viewed" for smart search
+  useEffect(() => {
+    if (bubble) addRecentBubble(bubble.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bubble?.id]);
+
+  if (!bubble) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white">
+        <div className="size-16 bg-[#E8F9F7] rounded-2xl flex items-center justify-center">
+          <Search className="size-8 text-[#2BBFAA]" strokeWidth={1.5} />
+        </div>
+        <p className="text-[18px] font-semibold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+          Bubble not found
+        </p>
+        <button
+          onClick={() => navigate('/')}
+          className="text-[#2BBFAA] text-[14px] hover:underline"
+          style={{ fontFamily: 'var(--font-body)' }}
+        >
+          ← Back to all Bubbles
+        </button>
+      </div>
+    );
+  }
+
+  const members = getBubbleMembers(bubble);
+  const founder = members.find(m => m.id === bubble.founderId);
+  const isUserFounder = isFounder(bubble.id);
+
+  const userJoined = isJoined(bubble.id);
+
+  const tabs: { id: Tab; label: string; icon: typeof BookOpen; founderOnly?: boolean }[] = [
+    { id: 'syllabus',  label: 'Syllabus',  icon: BookOpen, founderOnly: false },
+    { id: 'members',   label: 'Members',   icon: Users, founderOnly: false },
+    { id: 'resources', label: 'Resources', icon: FolderOpen, founderOnly: false },
+  ];
+
+  function handleJoinClick() {
+    if (!isLoggedIn) {
+      setShowAuth(true);
+      return;
+    }
+    setShowJoin(true);
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F8F9FA] flex flex-col">
+
+      {/* ── Top Nav ── */}
+      <header className="bg-white border-b border-[#E9ECEF] sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center py-3.5 gap-4">
+            {/* Back + Logo */}
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-1.5 text-[#6C757D] hover:text-[#212529] transition-colors"
+            >
+              <ChevronLeft className="size-4" strokeWidth={1.75} />
+            </button>
+            <BubbleLogoIcon />
+            <span className="font-bold text-[16px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+              We Learn
+            </span>
+
+            <div className="flex-1" />
+
+            {/* Share */}
+            <button
+              onClick={async () => {
+                const url = window.location.href;
+                const shareData = { title: bubble.title, text: `Join my learning Bubble: ${bubble.title}`, url };
+                if (navigator.share && navigator.canShare?.(shareData)) {
+                  try { await navigator.share(shareData); } catch {}
+                } else {
+                  await navigator.clipboard.writeText(url);
+                  toast.success('Link copied to clipboard');
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E9ECEF] text-[13px] text-[#495057] hover:bg-neutral-50 hover:border-[#2BBFAA] hover:text-[#2BBFAA] transition-colors"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              <Share2 className="size-4" strokeWidth={1.75} />
+              Share
+            </button>
+
+            {/* User avatar */}
+            {currentUser && (
+              <div className="size-8 rounded-full overflow-hidden border-2 border-[#2BBFAA]">
+                <img src={currentUser.avatar} alt={currentUser.name} className="size-full object-cover" />
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ── Hero Banner ── */}
+      <div className="relative overflow-hidden" style={{ height: 200 }}>
+        {bubble.heroImage ? (
+          <img src={bubble.heroImage} alt={bubble.title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-r from-[#2BBFAA] to-[#1FA090]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        {/* Topic tag */}
+        <div className="absolute top-4 left-6">
+          <span className="bg-white/90 text-[#1FA090] text-[12px] font-semibold px-3 py-1 rounded-full"
+            style={{ fontFamily: 'var(--font-body)' }}>
+            {bubble.topic}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Bubble Info Card ── */}
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6">
+        <div className="bg-white rounded-2xl -mt-8 relative z-10 px-6 py-5"
+          style={{ boxShadow: 'var(--shadow-md)' }}>
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="flex-1">
+              <h1 className="font-bold text-[22px] text-[#212529] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+                {bubble.title}
+              </h1>
+              <p className="text-[14px] text-[#6C757D] mb-3" style={{ fontFamily: 'var(--font-body)' }}>
+                {bubble.description}
+              </p>
+              <div className="flex flex-wrap items-center gap-3 text-[13px] text-[#495057]"
+                style={{ fontFamily: 'var(--font-body)' }}>
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="size-4 text-[#6C757D] shrink-0" strokeWidth={1.5} />
+                  Every {bubble.scheduleDay} @ {bubble.scheduleTime}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Users className="size-4 text-[#6C757D] shrink-0" strokeWidth={1.5} />
+                  {bubble.takenSeats} of {bubble.maxSeats} seats
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="size-4 text-[#6C757D] shrink-0" strokeWidth={1.5} />
+                  90 min · {bubble.level}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Info className="size-4 text-[#6C757D] shrink-0" strokeWidth={1.5} />
+                  Public
+                </span>
+              </div>
+            </div>
+
+            {/* Members + Founder */}
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              <AvatarStackSmall avatars={members.map(m => m.avatar)} />
+              {founder && (
+                <div className="flex items-center gap-1.5 text-[12px] text-[#6C757D]"
+                  style={{ fontFamily: 'var(--font-body)' }}>
+                  <img src={founder.avatar} alt={founder.name} className="size-5 rounded-full object-cover" />
+                  Founded by <strong className="text-[#495057]">{founder.name}</strong>
+                </div>
+              )}
+              {isUserFounder && (
+                <span className="text-[11px] bg-[#E8F9F7] text-[#1FA090] border border-[#A8E8E2] px-2 py-0.5 rounded-full font-semibold"
+                  style={{ fontFamily: 'var(--font-body)' }}>
+                  <Crown className="size-3 text-[#1FA090]" strokeWidth={1.75} /> You're the founder
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Join Bubble CTA */}
+          {!userJoined && (
+            <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+                Like what you see? Join this Bubble to participate in sessions and connect with members.
+              </p>
+              <button
+                onClick={handleJoinClick}
+                className="flex items-center gap-1.5 shrink-0 px-5 py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                Join Bubble <ArrowRight className="size-4" strokeWidth={2} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Tabs ── */}
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 mt-4">
+        <div className="flex items-center gap-1 bg-white rounded-xl p-1 w-fit"
+          style={{ boxShadow: 'var(--shadow-sm)' }}>
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[14px] transition-all"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  background: activeTab === tab.id ? '#2BBFAA' : 'transparent',
+                  color: activeTab === tab.id ? 'white' : '#6C757D',
+                  fontWeight: activeTab === tab.id ? 600 : 400,
+                }}
+              >
+                <Icon className="size-4" strokeWidth={1.75} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Tab Content ── */}
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
+        {activeTab === 'syllabus'  && (
+          <SyllabusTab
+            bubble={bubble}
+            isFounder={isUserFounder}
+            onAddSessionClick={() => setShowAddSession(true)}
+          />
+        )}
+        {activeTab === 'members'   && <MembersTab   bubble={bubble} isFounder={isUserFounder} />}
+        {activeTab === 'resources' && <ResourcesTab bubble={bubble} isFounder={isUserFounder} />}
+      </div>
+
+      {/* ── Add Session Modal ── */}
+      {showAddSession && (
+        <AddSessionModal
+          onClose={() => setShowAddSession(false)}
+          onAdd={(title, date, level) => {
+            // SyllabusTab manages its own session state — we trigger via callback
+            // For now show a success toast; real wiring is inside SyllabusTab
+            toast.success(`Session "${title}" added!`);
+            setShowAddSession(false);
+          }}
+        />
+      )}
+
+      {/* ── Auth Modal ── */}
+      {showAuth && (
+        <AuthModal
+          onClose={() => setShowAuth(false)}
+          onSuccess={() => {
+            setShowAuth(false);
+            setShowJoin(true);
+          }}
+        />
+      )}
+
+      {/* ── Join Bubble Modal ── */}
+      {showJoin && (
+        <JoinBubbleModal
+          bubble={bubble}
+          onClose={() => setShowJoin(false)}
+          onEnter={() => setShowJoin(false)}
+        />
+      )}
+
+    </div>
+  );
+}
