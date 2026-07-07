@@ -5,7 +5,7 @@ import {
   Plus, Pin, MoreVertical, Pencil, Sparkles, Copy, ChevronRight, ChevronUp, ChevronDown, Trash2,
   Check, Star,
 } from "lucide-react";
-import type { Bubble, Session, SessionStatus } from "../../types";
+import type { Bubble, Session, SessionStatus, BubbleLevel } from "../../types";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -307,15 +307,27 @@ function SessionCard({
   const [savedReflect, setSavedReflect] = useState(!!session.reflectionNote);
 
   // Inline edit state
-  const [editTitle, setEditTitle] = useState(session.title);
-  const [editDate, setEditDate] = useState(session.date);
+  const [editTitle,    setEditTitle]    = useState(session.title);
+  const [editDate,     setEditDate]     = useState(session.date);
+  const [editDuration, setEditDuration] = useState(String(session.duration));
+  const [editXP,       setEditXP]       = useState(String(session.xp));
+  const [editLevel,    setEditLevel]    = useState<BubbleLevel>(session.level);
+  const [editSections, setEditSections] = useState(session.sections);
 
   useEffect(() => {
     if (isEditing) {
       setEditTitle(session.title);
       setEditDate(session.date);
+      setEditDuration(String(session.duration));
+      setEditXP(String(session.xp));
+      setEditLevel(session.level);
+      setEditSections(session.sections);
     }
-  }, [isEditing, session.title, session.date]);
+  }, [isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function updateSection(idx: number, patch: Partial<Session['sections'][number]>) {
+    setEditSections(ss => ss.map((s, i) => i === idx ? { ...s, ...patch } : s));
+  }
 
   const cfg = STATUS_CFG[session.status];
   const isLocked = session.status === 'locked';
@@ -372,20 +384,63 @@ function SessionCard({
 
           {isEditing ? (
             <div className="flex flex-col gap-2 mt-1" onClick={e => e.stopPropagation()}>
+              {/* Title */}
               <input
                 value={editTitle}
                 onChange={e => setEditTitle(e.target.value)}
-                className="font-semibold text-[15px] text-[#212529] w-full px-2 py-1 rounded-lg border border-[#2BBFAA] focus:outline-none bg-[#F8FFFE]"
+                className="font-semibold text-[15px] text-[#212529] w-full px-2 py-1.5 rounded-lg border border-[#2BBFAA] focus:outline-none bg-[#F8FFFE]"
                 style={{ fontFamily: 'var(--font-display)' }}
                 placeholder="Session title"
               />
-              <input
-                value={editDate}
-                onChange={e => setEditDate(e.target.value)}
-                className="text-[13px] text-[#495057] w-full px-2 py-1 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
-                style={{ fontFamily: 'var(--font-body)' }}
-                placeholder="e.g. Apr 15, 2026"
-              />
+              {/* Date + Duration */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[10px] text-[#ADB5BD] font-medium px-1" style={{ fontFamily: 'var(--font-body)' }}>Date</label>
+                  <input
+                    value={editDate}
+                    onChange={e => setEditDate(e.target.value)}
+                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                    placeholder="e.g. Apr 15, 2026"
+                  />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[10px] text-[#ADB5BD] font-medium px-1" style={{ fontFamily: 'var(--font-body)' }}>Duration (min)</label>
+                  <input
+                    type="number" min="1"
+                    value={editDuration}
+                    onChange={e => setEditDuration(e.target.value)}
+                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  />
+                </div>
+              </div>
+              {/* XP + Level */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[10px] text-[#ADB5BD] font-medium px-1" style={{ fontFamily: 'var(--font-body)' }}>XP</label>
+                  <input
+                    type="number" min="0"
+                    value={editXP}
+                    onChange={e => setEditXP(e.target.value)}
+                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[10px] text-[#ADB5BD] font-medium px-1" style={{ fontFamily: 'var(--font-body)' }}>Level</label>
+                  <select
+                    value={editLevel}
+                    onChange={e => setEditLevel(e.target.value as BubbleLevel)}
+                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    <option>Beginner</option>
+                    <option>Intermediate</option>
+                    <option>Advanced</option>
+                  </select>
+                </div>
+              </div>
               {isEditingAI && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-[#ADB5BD] bg-[#F8F9FA] opacity-60 mt-1">
                   <Sparkles className="size-4 text-[#ADB5BD] shrink-0" strokeWidth={1.75} />
@@ -443,6 +498,75 @@ function SessionCard({
         </div>
       </div>
 
+      {/* Editable sections panel */}
+      {isEditing && (
+        <div className="border-t border-[#E9ECEF]" onClick={e => e.stopPropagation()}>
+          {editSections.map((section, idx) => {
+            const SectionIcon = SECTION_ICONS[section.type] ?? Pin;
+            const isReadOnly = section.type === 'ai-eval' || section.type === 'reflection';
+
+            return (
+              <div
+                key={section.id}
+                className={`px-5 py-3.5 border-b border-[#F8F9FA] last:border-0 ${isReadOnly ? 'opacity-40' : ''}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <SectionIcon className={`size-4 shrink-0 ${isReadOnly ? 'text-[#ADB5BD]' : 'text-[#2BBFAA]'}`} strokeWidth={1.75} />
+                  <p className="text-[13px] font-semibold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+                    {section.title}
+                  </p>
+                  {isReadOnly && (
+                    <span className="ml-auto text-[11px] text-[#ADB5BD]" style={{ fontFamily: 'var(--font-body)' }}>
+                      Member only
+                    </span>
+                  )}
+                </div>
+
+                {isReadOnly && (
+                  <p className="text-[12px] text-[#ADB5BD] italic" style={{ fontFamily: 'var(--font-body)' }}>
+                    {section.type === 'ai-eval' ? 'AI feedback is generated after project submission.' : 'Members fill this in after each session.'}
+                  </p>
+                )}
+
+                {!isReadOnly && (section.type === 'learning-path' || section.type === 'brief' || section.type === 'sandbox') && (
+                  <textarea
+                    rows={3}
+                    value={section.content ?? ''}
+                    onChange={e => updateSection(idx, { content: e.target.value })}
+                    placeholder={
+                      section.type === 'sandbox'
+                        ? 'Describe the project task for this session…'
+                        : 'Enter content…'
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-[#F8F9FA] resize-none"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  />
+                )}
+
+                {!isReadOnly && section.type === 'video' && (
+                  <div className="flex flex-col gap-2">
+                    <input
+                      value={section.videoTitle ?? ''}
+                      onChange={e => updateSection(idx, { videoTitle: e.target.value })}
+                      placeholder="Video title"
+                      className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-[#F8F9FA]"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    />
+                    <input
+                      value={section.videoUrl ?? ''}
+                      onChange={e => updateSection(idx, { videoUrl: e.target.value })}
+                      placeholder="https://youtube.com/watch?v=…"
+                      className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-[#F8F9FA]"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Inline edit footer */}
       {isEditing && (
         <div
@@ -457,7 +581,14 @@ function SessionCard({
             Cancel
           </button>
           <button
-            onClick={() => onSaveEdit({ title: editTitle.trim() || session.title, date: editDate.trim() || session.date })}
+            onClick={() => onSaveEdit({
+              title:    editTitle.trim()    || session.title,
+              date:     editDate.trim()     || session.date,
+              duration: parseInt(editDuration) || session.duration,
+              xp:       parseInt(editXP)       || session.xp,
+              level:    editLevel,
+              sections: editSections,
+            })}
             className="px-4 py-2 rounded-xl bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors"
             style={{ fontFamily: 'var(--font-body)' }}
           >
