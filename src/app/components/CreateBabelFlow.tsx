@@ -11,10 +11,11 @@ import { BabelTransition } from "./BabelTransition";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type StepKey = "topic" | "level" | "schedule" | "seats" | "sessions";
+type StepKey = "topic" | "description" | "level" | "schedule" | "seats" | "sessions";
 
 interface BubbleData {
   topic: string;
+  description: string;
   level: BubbleLevel;
   day: string;
   time: string;
@@ -29,7 +30,7 @@ type FeedItem =
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STEP_ORDER: StepKey[] = ["topic", "level", "schedule", "seats", "sessions"];
+const STEP_ORDER: StepKey[] = ["topic", "description", "level", "schedule", "seats", "sessions"];
 
 const TOPICS: { label: string; icon: typeof Bot; tag: string }[] = [
   { label: "AI-Native Product Design",       icon: Bot,      tag: "Design"   },
@@ -57,11 +58,12 @@ const TIMES = [
 ];
 
 const AI_PROMPTS: Record<StepKey, string> = {
-  topic:    "I'm your Bubble guide. What topic do you want to teach or facilitate? Choose one below or type your own.",
-  level:    "Great choice! Who is this Bubble for? What's the experience level of your participants?",
-  schedule: "Perfect. When will your group meet? Pick a day and time that works for you — sessions are 90 minutes.",
-  seats:    "Almost there! How many participants do you want in this Bubble? (4–8 is the sweet spot for cohort learning.)",
-  sessions: "Last step! Do you want AI to generate your full syllabus, or would you prefer to build it manually?",
+  topic:       "I'm your Bubble guide. What topic do you want to teach or facilitate? Choose one below or type your own.",
+  description: "How would you describe this Bubble to someone who's never heard of it? What will members walk away knowing or doing?",
+  level:       "Great choice! Who is this Bubble for? What's the experience level of your participants?",
+  schedule:    "Perfect. When will your group meet? Pick a day and time that works for you — sessions are 90 minutes.",
+  seats:       "Almost there! How many members do you want in your Bubble?",
+  sessions:    "Last step! Do you want AI to generate your full syllabus, or would you prefer to build it manually?",
 };
 
 // ─── Mock syllabus generator ──────────────────────────────────────────────────
@@ -97,8 +99,6 @@ function generateMockSessions(topic: string, level: BubbleLevel): Session[] {
         videoTitle: `Recommended: ${title}`, videoUrl: 'https://youtube.com' },
       { id: `ns-${i}-sb`, type: 'sandbox' as const, title: 'Project Sandbox',
         content: 'Submit your project link below.' },
-      { id: `ns-${i}-ai`, type: 'ai-eval' as const, title: 'AI Evaluation' },
-      { id: `ns-${i}-ref`, type: 'reflection' as const, title: 'Reflection' },
     ],
   }));
 }
@@ -213,48 +213,87 @@ function ScheduleWidget({ onSelect, locked }: { onSelect: (day: string, time: st
   );
 }
 
+const SEAT_OPTIONS = [
+  { key: 'small',    label: 'Small',    range: '3–5 members',  desc: 'Intimate and focused',   value: 5,  recommended: false },
+  { key: 'standard', label: 'Standard', range: '6–8 members',  desc: 'Recommended',            value: 8,  recommended: true  },
+  { key: 'large',    label: 'Large',    range: '9+ members',   desc: 'For wider communities',  value: 12, recommended: false },
+] as const;
+
+type SeatKey = typeof SEAT_OPTIONS[number]['key'];
+
 function SeatsWidget({ onSelect, locked }: { onSelect: (n: number) => void; locked: boolean }) {
-  const [seats, setSeats] = useState(6);
+  const [selected, setSelected] = useState<SeatKey>('standard');
+  const current = SEAT_OPTIONS.find(o => o.key === selected)!;
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-4">
-        <button onClick={() => !locked && setSeats(s => Math.max(1, s - 1))} disabled={locked || seats <= 1}
-          className="size-10 rounded-xl border border-[#E9ECEF] text-[18px] font-bold text-[#495057] hover:border-[#2BBFAA] disabled:opacity-30 transition-colors">
-          −
-        </button>
-        <div className="flex-1 text-center">
-          <p className="text-[36px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-            {seats}
-          </p>
-          <p className="text-[12px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-            choose your group size
-          </p>
-        </div>
-        <button onClick={() => !locked && setSeats(s => s + 1)} disabled={locked}
-          className="size-10 rounded-xl border border-[#E9ECEF] text-[18px] font-bold text-[#495057] hover:border-[#2BBFAA] disabled:opacity-30 transition-colors">
-          +
-        </button>
-      </div>
-      <div className="flex gap-2">
-        {[4, 6, 8, 10, 12].map(n => (
-          <button key={n} onClick={() => !locked && setSeats(n)} disabled={locked}
-            className="flex-1 py-2 rounded-xl border text-[13px] font-medium transition-all disabled:opacity-50"
+    <div className="flex flex-col gap-3">
+      <p className="text-[12px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+        We recommend 6–8 for the best learning experience.
+      </p>
+      <div className="flex flex-col gap-2">
+        {SEAT_OPTIONS.map(opt => (
+          <button key={opt.key}
+            onClick={() => !locked && setSelected(opt.key)}
+            disabled={locked}
+            className="flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all disabled:opacity-50"
             style={{
-              fontFamily: 'var(--font-body)',
-              borderColor: seats === n ? '#2BBFAA' : '#E9ECEF',
-              background: seats === n ? '#E8F9F7' : 'white',
-              color: seats === n ? '#1FA090' : '#495057',
+              borderColor: selected === opt.key ? '#2BBFAA' : '#E9ECEF',
+              background: selected === opt.key ? '#E8F9F7' : 'white',
             }}>
-            {n}
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <p className="font-semibold text-[14px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+                  {opt.label}
+                </p>
+                {opt.recommended && (
+                  <span className="text-[11px] bg-[#FFF3CD] text-[#856404] px-2 py-0.5 rounded-full font-medium"
+                    style={{ fontFamily: 'var(--font-body)' }}>
+                    Recommended
+                  </span>
+                )}
+              </div>
+              <p className="text-[12px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+                {opt.range} · {opt.desc}
+              </p>
+            </div>
+            <div className={`size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selected === opt.key ? 'border-[#2BBFAA] bg-[#2BBFAA]' : 'border-[#D1D5DB]'}`}>
+              {selected === opt.key && <Check className="size-3 text-white" strokeWidth={2.5} />}
+            </div>
           </button>
         ))}
       </div>
       {!locked && (
         <button
-          onClick={() => onSelect(seats)}
+          onClick={() => onSelect(current.value)}
           className="w-full py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
           style={{ fontFamily: 'var(--font-body)' }}>
-          {seats} seats — Let's go →
+          {current.label} ({current.range}) — Let's go →
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DescriptionWidget({ onSelect, locked }: { onSelect: (desc: string) => void; locked: boolean }) {
+  const [text, setText] = useState('');
+  return (
+    <div className="flex flex-col gap-3">
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        disabled={locked}
+        rows={5}
+        placeholder="In this Bubble, we'll explore... By the end, members will be able to..."
+        className="w-full px-3 py-3 rounded-xl border border-[#E9ECEF] text-[14px] bg-white focus:outline-none focus:border-[#2BBFAA] resize-none disabled:opacity-50"
+        style={{ fontFamily: 'var(--font-body)' }}
+      />
+      {!locked && (
+        <button
+          onClick={() => text.trim() && onSelect(text.trim())}
+          disabled={!text.trim()}
+          className="w-full py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors disabled:opacity-40"
+          style={{ fontFamily: 'var(--font-body)' }}>
+          Continue →
         </button>
       )}
     </div>
@@ -421,7 +460,7 @@ export function CreateBabelFlow() {
       id: `bubble-${Date.now()}`,
       title: finalData.topic,
       topic: finalData.topic,
-      description: `A cohort-based learning group on ${finalData.topic}. ${finalData.seats} participants, every ${finalData.day} at ${finalData.time}.`,
+      description: finalData.description,
       level: finalData.level,
       status: 'open',
       maxSeats: finalData.seats,
@@ -498,7 +537,11 @@ export function CreateBabelFlow() {
               <div key={item.id} className="ml-11">
                 {item.step === 'topic' && (
                   <TopicWidget locked={item.locked}
-                    onSelect={t => advanceTo('level', t, { topic: t })} />
+                    onSelect={t => advanceTo('description', t, { topic: t })} />
+                )}
+                {item.step === 'description' && (
+                  <DescriptionWidget locked={item.locked}
+                    onSelect={desc => advanceTo('level', desc.length > 60 ? desc.slice(0, 60) + '...' : desc, { description: desc })} />
                 )}
                 {item.step === 'level' && (
                   <LevelWidget locked={item.locked}

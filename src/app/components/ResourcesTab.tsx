@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Video, FileText, Book, Wrench, Mic, Paperclip,
   ThumbsUp, ThumbsDown, ExternalLink, CheckCircle2,
-  Pencil, Trash2, GripVertical, Plus, X,
+  Pencil, Trash2, Plus, X, MoreVertical,
 } from "lucide-react";
+import { toast } from "sonner";
 import type { Bubble, Resource, ResourceType } from "../../types";
 import { useApp } from "../../context/AppContext";
 import { getMemberById } from "../../data/mock";
@@ -19,118 +20,42 @@ const TYPE_CONFIG: Record<ResourceType, { icon: typeof Video; label: string }> =
   other:   { icon: Paperclip, label: 'Other'   },
 };
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Delete Confirm Modal ─────────────────────────────────────────────────────
 
-interface Props {
-  bubble: Bubble;
-  isFounder: boolean;
-}
-
-// ─── Resource Card ────────────────────────────────────────────────────────────
-
-function ResourceCard({
-  resource,
-  canDelete,
-  canEdit,
-  editMode,
-  onDelete,
-  onVote,
-  dragHandleProps,
+function DeleteConfirmModal({
+  title,
+  onConfirm,
+  onCancel,
 }: {
-  resource: Resource;
-  canDelete: boolean;
-  canEdit: boolean;
-  editMode?: boolean;
-  onDelete: () => void;
-  onVote: (vote: 'up' | 'down') => void;
-  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
+  title: string;
+  onConfirm: () => void;
+  onCancel: () => void;
 }) {
-  const cfg = TYPE_CONFIG[resource.type];
-  const TypeIcon = cfg.icon;
-  const upCount   = resource.communityRatings.filter(r => r.vote === 'up').length;
-  const downCount = resource.communityRatings.filter(r => r.vote === 'down').length;
-  const uploader  = getMemberById(resource.uploadedById);
-
   return (
-    <div className="bg-white rounded-xl p-4 flex gap-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-      {/* Drag handle */}
-      {editMode && (
-        <div {...dragHandleProps} className="self-center shrink-0 cursor-grab active:cursor-grabbing text-[#ADB5BD] hover:text-[#495057]" title="Drag to reorder">
-          <GripVertical className="size-4" strokeWidth={1.75} />
-        </div>
-      )}
-
-      {/* Type icon */}
-      <div className="size-10 rounded-xl bg-[#F8F9FA] flex items-center justify-center shrink-0">
-        <TypeIcon className="size-5 text-[#2BBFAA]" strokeWidth={1.75} />
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1">
-            <a
-              href={resource.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold text-[15px] text-[#212529] hover:text-[#2BBFAA] transition-colors"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              {resource.title}
-              <ExternalLink className="size-3.5 opacity-50" strokeWidth={1.75} />
-            </a>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[11px] text-[#ADB5BD] bg-[#F8F9FA] px-2 py-0.5 rounded-full"
-                style={{ fontFamily: 'var(--font-body)' }}>
-                {cfg.label}
-              </span>
-              {resource.watched && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-[#40C057]" style={{ fontFamily: 'var(--font-body)' }}>
-                  <CheckCircle2 className="size-3" strokeWidth={2} /> Verified by uploader
-                </span>
-              )}
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden"
+        style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+        <div className="px-6 pt-6 pb-5 flex flex-col gap-3">
+          <div className="size-11 rounded-xl bg-[#FEE2E2] flex items-center justify-center">
+            <Trash2 className="size-5 text-[#FA5252]" strokeWidth={1.75} />
           </div>
-
-          {/* Delete */}
-          {(canDelete || editMode) && (
-            <button
-              onClick={onDelete}
-              className="shrink-0 text-[#ADB5BD] hover:text-[#FA5252] transition-colors"
-              title="Delete resource"
-            >
-              <Trash2 className="size-4" strokeWidth={1.75} />
+          <h3 className="font-bold text-[17px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+            Delete "{title}"?
+          </h3>
+          <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+            This resource will be removed from the Bubble.
+          </p>
+          <div className="flex gap-3 mt-2">
+            <button onClick={onCancel}
+              className="flex-1 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              Cancel
             </button>
-          )}
-        </div>
-
-        <p className="text-[13px] text-[#6C757D] mt-2 leading-relaxed" style={{ fontFamily: 'var(--font-body)' }}>
-          {resource.description}
-        </p>
-
-        <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
-          {/* Uploader */}
-          <div className="flex items-center gap-1.5 text-[12px] text-[#ADB5BD]"
-            style={{ fontFamily: 'var(--font-body)' }}>
-            {uploader && <img src={uploader.avatar} alt="" className="size-4 rounded-full object-cover" />}
-            Shared by {uploader?.name ?? 'Unknown'} · {resource.uploadedAt}
-          </div>
-
-          {/* Community ratings */}
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => onVote('up')}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[12px] hover:bg-[#E8F9F7] transition-colors"
-              style={{ fontFamily: 'var(--font-body)', color: upCount > 0 ? '#2BBFAA' : '#6C757D' }}
-            >
-              <ThumbsUp className="size-3.5" strokeWidth={1.75} /> {upCount}
-            </button>
-            <button
-              onClick={() => onVote('down')}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[12px] hover:bg-[#FEE2E2] transition-colors"
-              style={{ fontFamily: 'var(--font-body)', color: downCount > 0 ? '#FA5252' : '#6C757D' }}
-            >
-              <ThumbsDown className="size-3.5" strokeWidth={1.75} /> {downCount}
+            <button onClick={onConfirm}
+              className="flex-1 py-2.5 rounded-xl bg-[#FA5252] text-white text-[14px] font-semibold hover:bg-[#E03131] transition-colors"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              Delete
             </button>
           </div>
         </div>
@@ -139,17 +64,251 @@ function ResourceCard({
   );
 }
 
+// ─── Resource Card ────────────────────────────────────────────────────────────
+
+function ResourceCard({
+  resource,
+  canDelete,
+  canEdit,
+  onDelete,
+  onVote,
+  onSave,
+}: {
+  resource: Resource;
+  canDelete: boolean;
+  canEdit: boolean;
+  onDelete: () => void;
+  onVote: (vote: 'up' | 'down') => void;
+  onSave: (updated: Resource) => void;
+}) {
+  const cfg = TYPE_CONFIG[resource.type];
+  const TypeIcon = cfg.icon;
+  const upCount   = resource.communityRatings.filter(r => r.vote === 'up').length;
+  const downCount = resource.communityRatings.filter(r => r.vote === 'down').length;
+  const uploader  = getMemberById(resource.uploadedById);
+
+  const [menuOpen, setMenuOpen]     = useState(false);
+  const [isEditing, setIsEditing]   = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Inline edit state
+  const [editTitle,   setEditTitle]   = useState(resource.title);
+  const [editUrl,     setEditUrl]     = useState(resource.url);
+  const [editType,    setEditType]    = useState<ResourceType>(resource.type);
+  const [editDesc,    setEditDesc]    = useState(resource.description ?? '');
+  const [editWatched, setEditWatched] = useState(resource.watched ?? false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handler(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
+
+  function handleSave() {
+    onSave({ ...resource, title: editTitle, url: editUrl, type: editType, description: editDesc, watched: editWatched });
+    setIsEditing(false);
+  }
+
+  function handleCancelEdit() {
+    setEditTitle(resource.title);
+    setEditUrl(resource.url);
+    setEditType(resource.type);
+    setEditDesc(resource.description ?? '');
+    setEditWatched(resource.watched ?? false);
+    setIsEditing(false);
+  }
+
+  if (isEditing) {
+    const EditTypeIcon = TYPE_CONFIG[editType].icon;
+    return (
+      <div className="bg-white rounded-xl p-4 flex flex-col gap-3" style={{ boxShadow: 'var(--shadow-md)', border: '2px solid #A8E8E2' }}>
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-[14px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+            Edit resource
+          </p>
+          <button onClick={handleCancelEdit} className="text-[#ADB5BD] hover:text-[#495057]">
+            <X className="size-4" strokeWidth={1.75} />
+          </button>
+        </div>
+
+        <input
+          type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
+          placeholder="Title"
+          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+          style={{ fontFamily: 'var(--font-body)' }}
+        />
+        <input
+          type="url" value={editUrl} onChange={e => setEditUrl(e.target.value)}
+          placeholder="https://..."
+          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+          style={{ fontFamily: 'var(--font-body)' }}
+        />
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(TYPE_CONFIG) as ResourceType[]).map(t => {
+            const Icon = TYPE_CONFIG[t].icon;
+            return (
+              <button key={t} type="button" onClick={() => setEditType(t)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] border transition-colors"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  background: editType === t ? '#E8F9F7' : 'white',
+                  borderColor: editType === t ? '#A8E8E2' : '#E9ECEF',
+                  color: editType === t ? '#1FA090' : '#6C757D',
+                  fontWeight: editType === t ? 600 : 400,
+                }}>
+                <Icon className="size-3" strokeWidth={1.75} /> {TYPE_CONFIG[t].label}
+              </button>
+            );
+          })}
+        </div>
+        <textarea
+          value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={2}
+          placeholder="Short description"
+          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA] resize-none"
+          style={{ fontFamily: 'var(--font-body)' }}
+        />
+        <label className="flex items-center gap-2 text-[13px] text-[#495057] cursor-pointer"
+          style={{ fontFamily: 'var(--font-body)' }}>
+          <input type="checkbox" checked={editWatched} onChange={e => setEditWatched(e.target.checked)}
+            className="size-4 accent-[#2BBFAA]" />
+          I've watched / read it
+        </label>
+        <div className="flex gap-2 justify-end pt-1">
+          <button onClick={handleCancelEdit}
+            className="px-4 py-2 rounded-lg text-[13px] text-[#6C757D] hover:bg-[#F8F9FA] border border-[#E9ECEF] transition-colors"
+            style={{ fontFamily: 'var(--font-body)' }}>
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={!editTitle.trim() || !editUrl.trim()}
+            className="px-4 py-2 rounded-lg bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors disabled:opacity-40"
+            style={{ fontFamily: 'var(--font-body)' }}>
+            Save
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="bg-white rounded-xl p-4 flex gap-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
+        {/* Type icon */}
+        <div className="size-10 rounded-xl bg-[#F8F9FA] flex items-center justify-center shrink-0">
+          <TypeIcon className="size-5 text-[#2BBFAA]" strokeWidth={1.75} />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1">
+              <a href={resource.url} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-semibold text-[15px] text-[#212529] hover:text-[#2BBFAA] transition-colors"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                {resource.title}
+                <ExternalLink className="size-3.5 opacity-50" strokeWidth={1.75} />
+              </a>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[11px] text-[#ADB5BD] bg-[#F8F9FA] px-2 py-0.5 rounded-full"
+                  style={{ fontFamily: 'var(--font-body)' }}>
+                  {cfg.label}
+                </span>
+                {resource.watched && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-[#40C057]" style={{ fontFamily: 'var(--font-body)' }}>
+                    <CheckCircle2 className="size-3" strokeWidth={2} /> Verified by uploader
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* ⋮ menu */}
+            {(canEdit || canDelete) && (
+              <div ref={menuRef} className="relative shrink-0">
+                <button
+                  onClick={e => { e.stopPropagation(); setMenuOpen(o => !o); }}
+                  className="size-8 rounded-lg flex items-center justify-center text-[#ADB5BD] hover:text-[#212529] hover:bg-[#F8F9FA] transition-colors"
+                >
+                  <MoreVertical className="size-4" strokeWidth={1.75} />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl border border-[#E9ECEF] py-1"
+                    style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 140 }}
+                    onClick={e => e.stopPropagation()}>
+                    {canEdit && (
+                      <button
+                        onClick={() => { setIsEditing(true); setMenuOpen(false); }}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#212529] hover:bg-[#F8F9FA] text-left"
+                        style={{ fontFamily: 'var(--font-body)' }}>
+                        <Pencil className="size-4 shrink-0" strokeWidth={1.75} />
+                        Edit
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => { setShowDelete(true); setMenuOpen(false); }}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#FA5252] hover:bg-[#FFF5F5] text-left"
+                        style={{ fontFamily: 'var(--font-body)' }}>
+                        <Trash2 className="size-4 shrink-0" strokeWidth={1.75} />
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <p className="text-[13px] text-[#6C757D] mt-2 leading-relaxed" style={{ fontFamily: 'var(--font-body)' }}>
+            {resource.description}
+          </p>
+
+          <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 text-[12px] text-[#ADB5BD]"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              {uploader && <img src={uploader.avatar} alt="" className="size-4 rounded-full object-cover" />}
+              Shared by {uploader?.name ?? 'Unknown'} · {resource.uploadedAt}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => onVote('up')}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[12px] hover:bg-[#E8F9F7] transition-colors"
+                style={{ fontFamily: 'var(--font-body)', color: upCount > 0 ? '#2BBFAA' : '#6C757D' }}>
+                <ThumbsUp className="size-3.5" strokeWidth={1.75} /> {upCount}
+              </button>
+              <button onClick={() => onVote('down')}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[12px] hover:bg-[#FEE2E2] transition-colors"
+                style={{ fontFamily: 'var(--font-body)', color: downCount > 0 ? '#FA5252' : '#6C757D' }}>
+                <ThumbsDown className="size-3.5" strokeWidth={1.75} /> {downCount}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showDelete && (
+        <DeleteConfirmModal
+          title={resource.title}
+          onConfirm={() => { setShowDelete(false); onDelete(); }}
+          onCancel={() => setShowDelete(false)}
+        />
+      )}
+    </>
+  );
+}
+
 // ─── Upload Form ──────────────────────────────────────────────────────────────
 
 function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communityRatings'>) => void }) {
   const { currentUser } = useApp();
-  const [open, setOpen] = useState(false);
-  const [url, setUrl]   = useState('');
+  const [open, setOpen]   = useState(false);
+  const [url, setUrl]     = useState('');
   const [title, setTitle] = useState('');
-  const [type, setType] = useState<ResourceType>('article');
-  const [desc, setDesc] = useState('');
+  const [type, setType]   = useState<ResourceType>('article');
+  const [desc, setDesc]   = useState('');
   const [watched, setWatched] = useState(false);
-  const [rating, setRating] = useState<'up' | 'down' | null>(null);
+  const [rating, setRating]   = useState<'up' | 'down' | null>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -166,11 +325,9 @@ function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communi
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
+      <button onClick={() => setOpen(true)}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-[#A8E8E2] text-[#2BBFAA] hover:bg-[#E8F9F7] transition-colors text-[14px] font-medium"
-        style={{ fontFamily: 'var(--font-body)' }}
-      >
+        style={{ fontFamily: 'var(--font-body)' }}>
         <Plus className="size-4" strokeWidth={2} />
         Share a resource with the group
       </button>
@@ -191,40 +348,28 @@ function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communi
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-            URL *
-          </label>
-          <input
-            type="url" value={url} onChange={e => setUrl(e.target.value)} required
+          <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>URL *</label>
+          <input type="url" value={url} onChange={e => setUrl(e.target.value)} required
             placeholder="https://..."
             className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
-            style={{ fontFamily: 'var(--font-body)' }}
-          />
+            style={{ fontFamily: 'var(--font-body)' }} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-            Title *
-          </label>
-          <input
-            type="text" value={title} onChange={e => setTitle(e.target.value)} required
+          <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>Title *</label>
+          <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
             placeholder="Resource title"
             className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
-            style={{ fontFamily: 'var(--font-body)' }}
-          />
+            style={{ fontFamily: 'var(--font-body)' }} />
         </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-          Type
-        </label>
+        <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>Type</label>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(TYPE_CONFIG) as ResourceType[]).map(t => {
             const Icon = TYPE_CONFIG[t].icon;
             return (
-              <button
-                key={t} type="button"
-                onClick={() => setType(t)}
+              <button key={t} type="button" onClick={() => setType(t)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] transition-colors border"
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -232,8 +377,7 @@ function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communi
                   borderColor: type === t ? '#A8E8E2' : '#E9ECEF',
                   color: type === t ? '#1FA090' : '#6C757D',
                   fontWeight: type === t ? 600 : 400,
-                }}
-              >
+                }}>
                 <Icon className="size-3.5" strokeWidth={1.75} /> {TYPE_CONFIG[t].label}
               </button>
             );
@@ -242,27 +386,20 @@ function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communi
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-          Short description
-        </label>
-        <textarea
-          value={desc} onChange={e => setDesc(e.target.value)} rows={2}
+        <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>Short description</label>
+        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2}
           placeholder="Why are you sharing this? What's it about?"
           className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA] resize-none"
-          style={{ fontFamily: 'var(--font-body)' }}
-        />
+          style={{ fontFamily: 'var(--font-body)' }} />
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3 text-[13px] text-[#495057]"
+        <label className="flex items-center gap-2 text-[13px] text-[#495057] cursor-pointer"
           style={{ fontFamily: 'var(--font-body)' }}>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={watched} onChange={e => setWatched(e.target.checked)}
-              className="size-4 accent-[#2BBFAA]" />
-            I've watched / read it
-          </label>
-        </div>
-
+          <input type="checkbox" checked={watched} onChange={e => setWatched(e.target.checked)}
+            className="size-4 accent-[#2BBFAA]" />
+          I've watched / read it
+        </label>
         <div className="flex items-center gap-2 text-[13px]" style={{ fontFamily: 'var(--font-body)' }}>
           <span className="text-[#6C757D]">Your rating:</span>
           <button type="button" onClick={() => setRating(r => r === 'up' ? null : 'up')}
@@ -294,49 +431,40 @@ function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communi
 
 // ─── ResourcesTab ─────────────────────────────────────────────────────────────
 
-export function ResourcesTab({ bubble, isFounder }: Props) {
+export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder: boolean }) {
   const { currentUser } = useApp();
   const [resources, setResources] = useState<Resource[]>(bubble.resources);
   const [filter, setFilter] = useState<ResourceType | 'all'>('all');
-  const [editMode, setEditMode] = useState(false);
-  const [dragId, setDragId] = useState<string | null>(null);
 
   const filtered = resources.filter(r => filter === 'all' || r.type === filter);
 
   function addResource(partial: Omit<Resource, 'id' | 'communityRatings'>) {
-    setResources(rs => [{
-      ...partial,
-      id: `r-${Date.now()}`,
-      communityRatings: [],
-    }, ...rs]);
+    setResources(rs => [...rs, { ...partial, id: `r-${Date.now()}`, communityRatings: [] }]);
   }
 
   function deleteResource(id: string) {
+    const snapshot = [...resources];
     setResources(rs => rs.filter(r => r.id !== id));
-  }
-
-  function moveResource(dragged: string, target: string) {
-    if (dragged === target) return;
-    setResources(rs => {
-      const next = [...rs];
-      const from = next.findIndex(r => r.id === dragged);
-      const to = next.findIndex(r => r.id === target);
-      if (from === -1 || to === -1) return rs;
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
+    toast('Resource deleted', {
+      duration: 5000,
+      action: {
+        label: 'Undo',
+        onClick: () => setResources(snapshot),
+      },
     });
   }
 
-  function vote(resourceId: string, vote: 'up' | 'down') {
+  function saveResource(updated: Resource) {
+    setResources(rs => rs.map(r => r.id === updated.id ? updated : r));
+  }
+
+  function vote(resourceId: string, v: 'up' | 'down') {
     if (!currentUser) return;
     setResources(rs => rs.map(r => {
       if (r.id !== resourceId) return r;
       const existing = r.communityRatings.find(cr => cr.userId === currentUser.id);
       let updated = r.communityRatings.filter(cr => cr.userId !== currentUser.id);
-      if (!existing || existing.vote !== vote) {
-        updated = [...updated, { userId: currentUser.id, vote }];
-      }
+      if (!existing || existing.vote !== v) updated = [...updated, { userId: currentUser.id, vote: v }];
       return { ...r, communityRatings: updated };
     }));
   }
@@ -346,62 +474,39 @@ export function ResourcesTab({ bubble, isFounder }: Props) {
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-[18px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-            Resources
-          </h2>
-          <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-            {resources.length} shared by members
-          </p>
-        </div>
-        <button
-          onClick={() => setEditMode(e => !e)}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border text-[13px] font-medium transition-colors"
-          style={{
-            fontFamily: 'var(--font-body)',
-            background: editMode ? '#E8F9F7' : 'white',
-            borderColor: editMode ? '#A8E8E2' : '#E9ECEF',
-            color: editMode ? '#1FA090' : '#6C757D',
-          }}
-        >
-          <Pencil className="size-3.5" strokeWidth={1.75} />
-          {editMode ? 'Done editing' : 'Edit'}
-        </button>
+      <div>
+        <h2 className="text-[18px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+          Resources
+        </h2>
+        <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+          {resources.length} shared by members
+        </p>
       </div>
-
-      {/* Upload form */}
-      <UploadForm onSubmit={addResource} />
 
       {/* Type filters */}
       {allTypes.length > 1 && (
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setFilter('all')}
+          <button onClick={() => setFilter('all')}
             className="px-3 py-1.5 rounded-full text-[13px] border transition-colors"
             style={{
               fontFamily: 'var(--font-body)',
               background: filter === 'all' ? '#212529' : 'white',
               color: filter === 'all' ? 'white' : '#6C757D',
               borderColor: filter === 'all' ? '#212529' : '#E9ECEF',
-            }}
-          >
+            }}>
             All ({resources.length})
           </button>
           {allTypes.map(t => {
             const Icon = TYPE_CONFIG[t].icon;
             return (
-              <button
-                key={t}
-                onClick={() => setFilter(t)}
+              <button key={t} onClick={() => setFilter(t)}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border transition-colors"
                 style={{
                   fontFamily: 'var(--font-body)',
                   background: filter === t ? '#E8F9F7' : 'white',
                   color: filter === t ? '#1FA090' : '#6C757D',
                   borderColor: filter === t ? '#A8E8E2' : '#E9ECEF',
-                }}
-              >
+                }}>
                 <Icon className="size-3.5" strokeWidth={1.75} /> {TYPE_CONFIG[t].label}
               </button>
             );
@@ -417,34 +522,21 @@ export function ResourcesTab({ bubble, isFounder }: Props) {
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map(r => (
-            <div
+            <ResourceCard
               key={r.id}
-              draggable={editMode}
-              onDragStart={() => setDragId(r.id)}
-              onDragOver={e => { if (editMode) e.preventDefault(); }}
-              onDrop={e => {
-                e.preventDefault();
-                if (dragId !== null) moveResource(dragId, r.id);
-                setDragId(null);
-              }}
-              onDragEnd={() => setDragId(null)}
-              style={{ opacity: dragId === r.id ? 0.5 : 1 }}
-            >
-              <ResourceCard
-                resource={r}
-                canDelete={isFounder || r.uploadedById === currentUser?.id}
-                canEdit={r.uploadedById === currentUser?.id}
-                editMode={editMode}
-                onDelete={() => deleteResource(r.id)}
-                onVote={(vote) => vote_handler(r.id, vote)}
-                dragHandleProps={{ draggable: editMode }}
-              />
-            </div>
+              resource={r}
+              canDelete={isFounder || r.uploadedById === currentUser?.id}
+              canEdit={r.uploadedById === currentUser?.id}
+              onDelete={() => deleteResource(r.id)}
+              onVote={v => vote(r.id, v)}
+              onSave={saveResource}
+            />
           ))}
         </div>
       )}
+
+      {/* Add Resource — always at bottom */}
+      <UploadForm onSubmit={addResource} />
     </div>
   );
-
-  function vote_handler(id: string, v: 'up' | 'down') { vote(id, v); }
 }

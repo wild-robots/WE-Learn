@@ -117,9 +117,6 @@ function makeSessions(count: number, doneTo: number): Session[] {
         videoTitle: `Recommended Watch: ${titles[i] ?? 'Session Overview'}` },
       { id: `${i}-sb`, type: 'sandbox', title: 'Project Sandbox',
         content: 'Submit a link to your project or deliverable for this session.' },
-      { id: `${i}-ai`, type: 'ai-eval', title: 'AI Evaluation',
-        content: i < doneTo ? 'Great work! Your project demonstrates strong understanding of the core concepts. Score: 4.2/5' : '' },
-      { id: `${i}-ref`, type: 'reflection', title: 'Reflection' },
     ],
   }));
 }

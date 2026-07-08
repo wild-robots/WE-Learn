@@ -604,7 +604,7 @@ function SessionCard({
       {/* Expanded sections */}
       {expanded && !isLocked && !isEditing && (
         <div className="border-t border-[#F1F3F5]">
-          {session.sections.map(section => {
+          {session.sections.filter(s => s.type !== 'ai-eval' && s.type !== 'reflection').map(section => {
             const SectionIcon = SECTION_ICONS[section.type] ?? Pin;
             return (
               <div key={section.id} className="border-b border-[#F8F9FA] last:border-0 px-5 py-4">
@@ -767,8 +767,6 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
         { id: `s-br-${ts}`, type: 'brief', title: 'Conceptual Brief', content: '' },
         { id: `s-vd-${ts}`, type: 'video', title: 'Video Resources', videoTitle: '', videoUrl: '' },
         { id: `s-sb-${ts}`, type: 'sandbox', title: 'Project Sandbox', content: '' },
-        { id: `s-ae-${ts}`, type: 'ai-eval', title: 'AI Evaluation', content: '' },
-        { id: `s-rf-${ts}`, type: 'reflection', title: 'Reflection', content: '' },
       ],
     };
     setSessions(ss => [...ss, newSession]);
