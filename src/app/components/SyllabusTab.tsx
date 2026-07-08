@@ -355,43 +355,53 @@ function SessionCard({
         className={`flex items-start gap-3 p-4 ${!isLocked && !isEditing ? 'cursor-pointer hover:bg-neutral-50' : ''}`}
         onClick={() => !isLocked && !isEditing && setExpanded(e => !e)}
       >
-        {/* Meta + title — badge sits in same row as status/level/date tags */}
+        {/* Row 1: S-badge + title  |  Row 2: status · level · date */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            {/* Session number badge — inline with tags */}
+          {/* Row 1 — primary */}
+          <div className="flex items-center gap-2.5 mb-1.5">
             <div
-              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[12px]"
-              style={{ fontFamily: 'var(--font-display)', background: cfg.bg, color: cfg.color }}
+              className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-[13px] text-white"
+              style={{ fontFamily: 'var(--font-display)', background: '#2BBFAA' }}
             >
               {sNum}
             </div>
-            <span
-              className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-              style={{ background: cfg.bg, color: cfg.color, fontFamily: 'var(--font-body)' }}
-            >
-              <cfg.icon className="size-3" strokeWidth={2} /> {cfg.label}
-            </span>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F3F5] text-[#6C757D] shrink-0"
-              style={{ fontFamily: 'var(--font-body)' }}>
-              {session.level}
-            </span>
-            {!isEditing && (
-              <span className="text-[11px] text-[#6C757D] whitespace-nowrap" style={{ fontFamily: 'var(--font-body)' }}>
-                {session.date} · {session.duration} min · {session.xp} XP
-              </span>
-            )}
-          </div>
-
-          {isEditing ? (
-            <div className="flex flex-col gap-2 mt-1" onClick={e => e.stopPropagation()}>
-              {/* Title */}
+            {isEditing ? (
               <input
                 value={editTitle}
                 onChange={e => setEditTitle(e.target.value)}
-                className="font-semibold text-[15px] text-[#212529] w-full px-2 py-1.5 rounded-lg border border-[#2BBFAA] focus:outline-none bg-[#F8FFFE]"
+                className="flex-1 font-semibold text-[16px] text-[#212529] px-2 py-1 rounded-lg border border-[#2BBFAA] focus:outline-none bg-[#F8FFFE]"
                 style={{ fontFamily: 'var(--font-display)' }}
                 placeholder="Session title"
+                onClick={e => e.stopPropagation()}
               />
+            ) : (
+              <p className="font-bold text-[16px] text-[#212529] leading-snug" style={{ fontFamily: 'var(--font-display)' }}>
+                {session.title}
+              </p>
+            )}
+          </div>
+
+          {/* Row 2 — secondary meta */}
+          {!isEditing && (
+            <div className="flex items-center gap-2 flex-wrap pl-[2.875rem]">
+              <span
+                className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                style={{ background: cfg.bg, color: cfg.color, fontFamily: 'var(--font-body)' }}
+              >
+                <cfg.icon className="size-3" strokeWidth={2} /> {cfg.label}
+              </span>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F3F5] text-[#6C757D] shrink-0"
+                style={{ fontFamily: 'var(--font-body)' }}>
+                {session.level}
+              </span>
+              <span className="text-[11px] text-[#6C757D] whitespace-nowrap" style={{ fontFamily: 'var(--font-body)' }}>
+                {session.date} · {session.duration} min · {session.xp} XP
+              </span>
+            </div>
+          )}
+
+          {isEditing ? (
+            <div className="flex flex-col gap-2 mt-2" onClick={e => e.stopPropagation()}>
               {/* Date + Duration */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="flex flex-col gap-0.5 col-span-2">
@@ -444,14 +454,7 @@ function SessionCard({
                 </div>
               )}
             </div>
-          ) : (
-            <p
-              className="font-semibold text-[15px] text-[#212529]"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              {session.title}
-            </p>
-          )}
+          ) : null}
         </div>
 
         {/* Right controls: ⋮ | ∨ */}

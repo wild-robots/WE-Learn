@@ -372,9 +372,9 @@ export function GroupPage() {
                 </div>
               )}
               {isUserFounder && (
-                <span className="text-[11px] bg-[#E8F9F7] text-[#1FA090] border border-[#A8E8E2] px-2 py-0.5 rounded-full font-semibold"
+                <span className="inline-flex items-center gap-1 text-[11px] bg-[#E8F9F7] text-[#1FA090] border border-[#A8E8E2] px-2 py-0.5 rounded-full font-semibold"
                   style={{ fontFamily: 'var(--font-body)' }}>
-                  <Crown className="size-3 text-[#1FA090]" strokeWidth={1.75} /> You're the founder
+                  <Crown className="size-3 shrink-0" strokeWidth={1.75} /> You're the founder
                 </span>
               )}
             </div>
