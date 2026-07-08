@@ -381,24 +381,24 @@ function SessionCard({
             )}
           </div>
 
-          {/* Row 2 — secondary meta */}
-          {!isEditing && (
-            <div className="flex items-center gap-2 flex-wrap pl-[2.875rem]">
-              <span
-                className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                style={{ background: cfg.bg, color: cfg.color, fontFamily: 'var(--font-body)' }}
-              >
-                <cfg.icon className="size-3" strokeWidth={2} /> {cfg.label}
-              </span>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F3F5] text-[#6C757D] shrink-0"
-                style={{ fontFamily: 'var(--font-body)' }}>
-                {session.level}
-              </span>
-              <span className="text-[11px] text-[#6C757D] whitespace-nowrap" style={{ fontFamily: 'var(--font-body)' }}>
-                {session.date} · {session.duration} min · {session.xp} XP
-              </span>
-            </div>
-          )}
+          {/* Row 2 — secondary meta (always visible, read-only) */}
+          <div className="flex items-center gap-2 flex-wrap pl-[2.875rem] mb-1">
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+              style={{ background: cfg.bg, color: cfg.color, fontFamily: 'var(--font-body)' }}
+            >
+              <cfg.icon className="size-3" strokeWidth={2} /> {cfg.label}
+            </span>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F3F5] text-[#6C757D] shrink-0"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              {isEditing ? editLevel : session.level}
+            </span>
+            <span className="text-[11px] text-[#6C757D] whitespace-nowrap" style={{ fontFamily: 'var(--font-body)' }}>
+              {isEditing
+                ? `${editDate || session.date} · ${editDuration || session.duration} min · ${editXP || session.xp} XP`
+                : `${session.date} · ${session.duration} min · ${session.xp} XP`}
+            </span>
+          </div>
 
           {isEditing ? (
             <div className="flex flex-col gap-2 mt-2" onClick={e => e.stopPropagation()}>
