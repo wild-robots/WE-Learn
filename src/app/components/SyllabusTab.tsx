@@ -749,22 +749,23 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
   }
 
   function addSession(title: string, date: string, level: BubbleLevel) {
+    const ts = Date.now();
     const newSession: Session = {
-      id: `session-${Date.now()}`,
+      id: `session-${ts}`,
       number: sessions.length + 1,
       title,
-      status: 'locked',
+      status: 'in-progress',
       date,
       duration: 90,
       xp: 100,
       level,
       sections: [
-        { id: `s-lp-${Date.now()}`, type: 'learning-path', title: 'Learning Path' },
-        { id: `s-br-${Date.now()}`, type: 'brief', title: 'Conceptual Brief' },
-        { id: `s-vd-${Date.now()}`, type: 'video', title: 'Video Resources' },
-        { id: `s-sb-${Date.now()}`, type: 'sandbox', title: 'Project Sandbox' },
-        { id: `s-ae-${Date.now()}`, type: 'ai-eval', title: 'AI Evaluation' },
-        { id: `s-rf-${Date.now()}`, type: 'reflection', title: 'Reflection' },
+        { id: `s-lp-${ts}`, type: 'learning-path', title: 'Learning Path', content: '' },
+        { id: `s-br-${ts}`, type: 'brief', title: 'Conceptual Brief', content: '' },
+        { id: `s-vd-${ts}`, type: 'video', title: 'Video Resources', videoTitle: '', videoUrl: '' },
+        { id: `s-sb-${ts}`, type: 'sandbox', title: 'Project Sandbox', content: '' },
+        { id: `s-ae-${ts}`, type: 'ai-eval', title: 'AI Evaluation', content: '' },
+        { id: `s-rf-${ts}`, type: 'reflection', title: 'Reflection', content: '' },
       ],
     };
     setSessions(ss => [...ss, newSession]);
