@@ -380,8 +380,25 @@ export function GroupPage() {
             </div>
           </div>
 
-          {/* Join Bubble CTA */}
-          {!userJoined && (
+          {/* CTA row — Join for visitors, Share for founder */}
+          {isUserFounder ? (
+            <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+                You're the founder of this Bubble. Invite others by sharing the link.
+              </p>
+              <button
+                onClick={async () => {
+                  const url = window.location.href;
+                  await navigator.clipboard.writeText(url).catch(() => {});
+                  toast.success('Link copied to clipboard');
+                }}
+                className="flex items-center gap-1.5 shrink-0 px-5 py-2.5 rounded-xl border border-[#2BBFAA] text-[#2BBFAA] text-[14px] font-semibold hover:bg-[#E8F9F7] transition-colors"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                <Share2 className="size-4" strokeWidth={1.75} /> Share Bubble
+              </button>
+            </div>
+          ) : !userJoined ? (
             <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex items-center justify-between gap-3 flex-wrap">
               <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
                 Like what you see? Join this Bubble to participate in sessions and connect with members.
@@ -394,7 +411,7 @@ export function GroupPage() {
                 Join Bubble <ArrowRight className="size-4" strokeWidth={2} />
               </button>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
