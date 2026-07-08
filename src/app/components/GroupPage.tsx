@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search } from "lucide-react";
+import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search, MoreVertical, Pencil, Trash2, Copy } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { getBubbleById, getBubbleMembers } from "../../data/mock";
 import { SyllabusTab } from "./SyllabusTab";
@@ -9,7 +9,7 @@ import { MembersTab } from "./MembersTab";
 import { ResourcesTab } from "./ResourcesTab";
 import { JoinBubbleModal } from "./JoinBubbleModal";
 import { AuthModal } from "./AuthModal";
-import type { BubbleLevel } from "../../types";
+import type { Bubble, BubbleLevel } from "../../types";
 
 type Tab = 'syllabus' | 'members' | 'resources';
 
@@ -146,12 +146,29 @@ function AddSessionModal({ onClose, onAdd }: {
 export function GroupPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { bubbles, currentUser, isFounder, isJoined, isLoggedIn, addRecentBubble } = useApp();
+  const { bubbles, currentUser, isFounder, isJoined, isLoggedIn, addRecentBubble, updateBubble, deleteBubble, addBubble } = useApp();
 
   const [activeTab, setActiveTab]       = useState<Tab>('syllabus');
   const [showAddSession, setShowAddSession] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [bubbleMenuOpen, setBubbleMenuOpen] = useState(false);
+  const [editingBubble, setEditingBubble]   = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const bubbleMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!bubbleMenuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (bubbleMenuRef.current && !bubbleMenuRef.current.contains(e.target as Node)) {
+        setBubbleMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [bubbleMenuOpen]);
 
   // Find bubble from context (includes newly created ones)
   const bubble = bubbles.find(b => b.id === id) ?? getBubbleById(id ?? '');
@@ -272,14 +289,108 @@ export function GroupPage() {
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6">
         <div className="bg-white rounded-2xl -mt-8 relative z-10 px-6 py-5"
           style={{ boxShadow: 'var(--shadow-md)' }}>
+
+          {/* ⋮ menu anchor */}
+          {isUserFounder && (
+            <div ref={bubbleMenuRef} className="absolute top-4 right-4 z-20">
+              <button
+                onClick={() => setBubbleMenuOpen(v => !v)}
+                className="size-8 flex items-center justify-center rounded-lg text-[#ADB5BD] hover:text-[#495057] hover:bg-[#F8F9FA] transition-colors"
+              >
+                <MoreVertical className="size-4" strokeWidth={1.75} />
+              </button>
+              {bubbleMenuOpen && (
+                <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-xl border border-[#E9ECEF] overflow-hidden z-30"
+                  style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                  <button
+                    onClick={() => {
+                      setEditTitle(bubble.title);
+                      setEditDescription(bubble.description);
+                      setEditingBubble(true);
+                      setBubbleMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#212529] hover:bg-[#F8F9FA] transition-colors text-left"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    <Pencil className="size-4 shrink-0" strokeWidth={1.75} /> Edit info
+                  </button>
+                  <button
+                    onClick={() => {
+                      const newBubble: Bubble = {
+                        ...bubble,
+                        id: `bubble-${Date.now()}`,
+                        title: `${bubble.title} (copy)`,
+                        founderId: currentUser!.id,
+                        memberIds: [currentUser!.id],
+                        takenSeats: 1,
+                        status: 'open',
+                      };
+                      addBubble(newBubble);
+                      setBubbleMenuOpen(false);
+                      toast.success('Bubble duplicated');
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#212529] hover:bg-[#F8F9FA] transition-colors text-left"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    <Copy className="size-4 shrink-0" strokeWidth={1.75} /> Duplicate
+                  </button>
+                  <div className="h-px bg-[#E9ECEF] mx-3" />
+                  <button
+                    onClick={() => { setShowDeleteConfirm(true); setBubbleMenuOpen(false); }}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#FA5252] hover:bg-[#FFF5F5] transition-colors text-left"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  >
+                    <Trash2 className="size-4 shrink-0" strokeWidth={1.75} /> Delete bubble
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row sm:items-start gap-4">
             <div className="flex-1">
+              {editingBubble ? (
+                <div className="flex flex-col gap-3 mb-3">
+                  <input
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                    className="font-bold text-[20px] text-[#212529] border-b-2 border-[#2BBFAA] focus:outline-none bg-transparent pb-0.5"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  />
+                  <textarea
+                    value={editDescription}
+                    onChange={e => setEditDescription(e.target.value)}
+                    rows={2}
+                    className="text-[14px] text-[#6C757D] border border-[#2BBFAA] rounded-xl px-3 py-2 resize-none focus:outline-none"
+                    style={{ fontFamily: 'var(--font-body)' }}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        updateBubble(bubble.id, { title: editTitle.trim() || bubble.title, description: editDescription.trim() || bubble.description });
+                        setEditingBubble(false);
+                        toast.success('Bubble updated');
+                      }}
+                      className="px-4 py-1.5 rounded-lg bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >Save</button>
+                    <button
+                      onClick={() => setEditingBubble(false)}
+                      className="px-4 py-1.5 rounded-lg border border-[#E9ECEF] text-[13px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <>
               <h1 className="font-bold text-[22px] text-[#212529] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
                 {bubble.title}
               </h1>
               <p className="text-[14px] text-[#6C757D] mb-3" style={{ fontFamily: 'var(--font-body)' }}>
                 {bubble.description}
               </p>
+                </>
+              )}
               <div className="flex flex-wrap items-center gap-3 text-[13px] text-[#495057]"
                 style={{ fontFamily: 'var(--font-body)' }}>
                 <span className="flex items-center gap-1.5">
@@ -408,6 +519,44 @@ export function GroupPage() {
           onClose={() => setShowJoin(false)}
           onEnter={() => setShowJoin(false)}
         />
+      )}
+
+      {/* ── Delete Bubble Confirmation ── */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)} />
+          <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden"
+            style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+            <div className="px-6 pt-6 pb-5">
+              <div className="size-12 bg-[#FFF5F5] rounded-2xl flex items-center justify-center mb-4">
+                <Trash2 className="size-6 text-[#FA5252]" strokeWidth={1.75} />
+              </div>
+              <h3 className="font-bold text-[17px] text-[#212529] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+                Delete this Bubble?
+              </h3>
+              <p className="text-[14px] text-[#6C757D] mb-5" style={{ fontFamily: 'var(--font-body)' }}>
+                "{bubble.title}" will be permanently removed. This cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >Cancel</button>
+                <button
+                  onClick={() => {
+                    deleteBubble(bubble.id);
+                    setShowDeleteConfirm(false);
+                    toast.success('Bubble deleted');
+                    navigate('/');
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-[#FA5252] text-white text-[14px] font-semibold hover:bg-[#E03131] transition-colors"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

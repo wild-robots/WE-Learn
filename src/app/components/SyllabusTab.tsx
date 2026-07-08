@@ -6,6 +6,7 @@ import {
   Check, Star,
 } from "lucide-react";
 import type { Bubble, Session, SessionStatus, BubbleLevel } from "../../types";
+import { DatePicker } from "./DatePicker";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -351,12 +352,12 @@ function SessionCard({
     >
       {/* Header row */}
       <div
-        className={`flex items-center gap-4 p-4 ${!isLocked && !isEditing ? 'cursor-pointer hover:bg-neutral-50' : ''}`}
+        className={`flex items-start gap-3 p-4 ${!isLocked && !isEditing ? 'cursor-pointer hover:bg-neutral-50' : ''}`}
         onClick={() => !isLocked && !isEditing && setExpanded(e => !e)}
       >
-        {/* Status badge / number */}
+        {/* Session number badge */}
         <div
-          className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-[14px]"
+          className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-[13px] mt-0.5"
           style={{ fontFamily: 'var(--font-display)', background: cfg.bg, color: cfg.color }}
         >
           {sNum}
@@ -364,20 +365,20 @@ function SessionCard({
 
         {/* Meta + title */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span
-              className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
               style={{ background: cfg.bg, color: cfg.color, fontFamily: 'var(--font-body)' }}
             >
               <cfg.icon className="size-3" strokeWidth={2} /> {cfg.label}
             </span>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F3F5] text-[#6C757D]"
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F3F5] text-[#6C757D] shrink-0"
               style={{ fontFamily: 'var(--font-body)' }}>
               {session.level}
             </span>
             {!isEditing && (
-              <span className="text-[11px] text-[#ADB5BD]" style={{ fontFamily: 'var(--font-body)' }}>
-                {session.date} · 90 min · {session.xp} XP
+              <span className="text-[11px] text-[#ADB5BD] whitespace-nowrap" style={{ fontFamily: 'var(--font-body)' }}>
+                {session.date} · {session.duration} min · {session.xp} XP
               </span>
             )}
           </div>
@@ -393,16 +394,10 @@ function SessionCard({
                 placeholder="Session title"
               />
               {/* Date + Duration */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col gap-0.5">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-col gap-0.5 col-span-2">
                   <label className="text-[10px] text-[#ADB5BD] font-medium px-1" style={{ fontFamily: 'var(--font-body)' }}>Date</label>
-                  <input
-                    value={editDate}
-                    onChange={e => setEditDate(e.target.value)}
-                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                    placeholder="e.g. Apr 15, 2026"
-                  />
+                  <DatePicker value={editDate} onChange={setEditDate} />
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <label className="text-[10px] text-[#ADB5BD] font-medium px-1" style={{ fontFamily: 'var(--font-body)' }}>Duration (min)</label>
@@ -460,42 +455,39 @@ function SessionCard({
           )}
         </div>
 
-        {/* Right controls */}
-        <div className="shrink-0 flex items-center gap-2" onClick={e => isEditing && e.stopPropagation()}>
-          {/* ⋮ menu — hidden when editing */}
-          {isAuthor && !isEditing && (
-            <ThreeDotsMenu
-              isOpen={isMenuOpen}
-              isLocked={isLocked}
-              isFirst={isFirst}
-              isLast={isLast}
-              onOpen={onOpenMenu}
-              onClose={onCloseMenu}
-              onEdit={() => onStartEdit(false)}
-              onEditAI={() => onStartEdit(true)}
-              onDuplicate={onDuplicate}
-              onMoveUp={onMoveUp}
-              onMoveDown={onMoveDown}
-              onDelete={onRequestDelete}
-            />
-          )}
-
-          {/* Progress + chevron — hidden when editing */}
-          {!isEditing && (
-            <div className="flex flex-col items-end gap-1.5">
-              <span className="text-[12px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-                {progress}%
-              </span>
-              {!isLocked && (
+        {/* Right controls: ⋮ | ∨ */}
+        {!isEditing && (
+          <div className="shrink-0 flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+            {isAuthor && (
+              <ThreeDotsMenu
+                isOpen={isMenuOpen}
+                isLocked={isLocked}
+                isFirst={isFirst}
+                isLast={isLast}
+                onOpen={onOpenMenu}
+                onClose={onCloseMenu}
+                onEdit={() => onStartEdit(false)}
+                onEditAI={() => onStartEdit(true)}
+                onDuplicate={onDuplicate}
+                onMoveUp={onMoveUp}
+                onMoveDown={onMoveDown}
+                onDelete={onRequestDelete}
+              />
+            )}
+            {!isLocked && (
+              <button
+                onClick={e => { e.stopPropagation(); setExpanded(v => !v); }}
+                className="size-8 flex items-center justify-center text-[#ADB5BD] hover:text-[#495057] hover:bg-[#F8F9FA] rounded-lg transition-colors"
+              >
                 <ChevronDown
-                  className="size-4 text-[#ADB5BD] transition-transform"
+                  className="size-4 transition-transform"
                   strokeWidth={1.75}
                   style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}
                 />
-              )}
-            </div>
-          )}
-        </div>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Editable sections panel */}
@@ -853,57 +845,44 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true, onAddSessionCl
       {/* Top Banner */}
       <div className="rounded-2xl p-5 text-white"
         style={{ background: 'linear-gradient(135deg, #2BBFAA 0%, #1FA090 100%)' }}>
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
           <div className="flex-1">
-            <p className="text-white/70 text-[12px] font-medium mb-1" style={{ fontFamily: 'var(--font-body)' }}>
-              COURSE SYLLABUS
+            {/* Progress bar with % inside */}
+            <div className="relative bg-white/20 rounded-full h-4 w-full mb-2">
+              <div className="h-full rounded-full bg-white/80 transition-all duration-700" style={{ width: `${progressPct}%` }} />
+              {progressPct > 10 && (
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-[#1FA090]"
+                  style={{ fontFamily: 'var(--font-body)' }}>
+                  {progressPct}%
+                </span>
+              )}
+            </div>
+            <p className="text-[12px] text-white/80" style={{ fontFamily: 'var(--font-body)' }}>
+              {sessions.length === 0
+                ? 'No sessions yet'
+                : doneCount === 0
+                  ? `0 of ${sessions.length} sessions · Ready to start`
+                  : `${doneCount} of ${sessions.length} sessions done`}
             </p>
-            <h2 className="font-bold text-[20px] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-              {bubble.title}
-            </h2>
-            <div className="flex flex-wrap gap-3 text-[13px] text-white/80 mb-4" style={{ fontFamily: 'var(--font-body)' }}>
-              <span>{sessions.length} sessions</span>
-              <span>·</span><span>{bubble.level}</span>
-              <span>·</span><span>Every {bubble.scheduleDay} @ {bubble.scheduleTime}</span>
-            </div>
-            <div className="bg-white/20 rounded-full h-2 w-full">
-              <div className="h-full rounded-full bg-white transition-all duration-700" style={{ width: `${progressPct}%` }} />
-            </div>
-            <div className="flex justify-between mt-1.5 text-[12px] text-white/70" style={{ fontFamily: 'var(--font-body)' }}>
-              <span>{doneCount} of {sessions.length} sessions done</span>
-              <span>{progressPct}%</span>
-            </div>
           </div>
-          <div className="bg-white/15 rounded-2xl px-5 py-4 text-center shrink-0">
-            <p className="text-[28px] font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+          <div className="bg-white/15 rounded-2xl px-4 py-3 text-center shrink-0">
+            <p className="text-[24px] font-bold leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
               {earnedXP.toLocaleString()}
             </p>
-            <p className="text-white/70 text-[12px]" style={{ fontFamily: 'var(--font-body)' }}>
+            <p className="text-white/70 text-[11px]" style={{ fontFamily: 'var(--font-body)' }}>
               of {totalXP.toLocaleString()} XP
             </p>
-            <p className="text-white text-[11px] mt-1 flex items-center justify-center gap-1" style={{ fontFamily: 'var(--font-body)' }}>
+            <p className="text-white text-[10px] mt-0.5 flex items-center justify-center gap-1" style={{ fontFamily: 'var(--font-body)' }}>
               <Star className="size-3" strokeWidth={1.75} fill="white" /> XP earned
             </p>
           </div>
         </div>
       </div>
 
-      {/* Sessions header + add button */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-[16px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-          Sessions
-        </h3>
-        {isFounder && (
-          <button
-            onClick={onAddSessionClick}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#E9ECEF] text-[13px] font-medium text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
-            style={{ fontFamily: 'var(--font-body)' }}
-          >
-            <Plus className="size-3.5" strokeWidth={2} />
-            Add session
-          </button>
-        )}
-      </div>
+      {/* Sessions header */}
+      <h3 className="text-[16px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+        Sessions
+      </h3>
 
       {/* Session list */}
       <div className="flex flex-col gap-3">
@@ -929,10 +908,27 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true, onAddSessionCl
             onUpdate={updated => setSessions(ss => ss.map(s => s.id === updated.id ? updated : s))}
           />
         ))}
-        {sessions.length === 0 && (
+        {sessions.length === 0 && !isFounder && (
           <div className="text-center py-12 text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-            {isFounder ? 'No sessions yet. Add the first one!' : 'Sessions coming soon.'}
+            Sessions coming soon.
           </div>
+        )}
+        {/* Add session — dashed card */}
+        {isFounder && (
+          <button
+            onClick={onAddSessionClick}
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed text-[14px] font-medium transition-colors"
+            style={{
+              borderColor: '#2BBFAA',
+              color: '#2BBFAA',
+              fontFamily: 'var(--font-body)',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F0FDFB'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+          >
+            <Plus className="size-4" strokeWidth={2} />
+            Add Session
+          </button>
         )}
       </div>
 

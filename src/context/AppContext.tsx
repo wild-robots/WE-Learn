@@ -11,9 +11,11 @@ interface AppContextValue {
   login: () => void;   // mock: instantly logs in as MOCK_ME
   logout: () => void;
 
-  // Bubbles (mutable list — new bubbles added here)
+  // Bubbles (mutable list)
   bubbles: Bubble[];
   addBubble: (bubble: Bubble) => void;
+  updateBubble: (id: string, patch: Partial<Bubble>) => void;
+  deleteBubble: (id: string) => void;
 
   // Join / Leave
   joinBubble: (bubbleId: string) => void;
@@ -115,14 +117,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   function addBubble(bubble: Bubble) {
     setBubbles(bs => [bubble, ...bs]);
-    joinBubble(bubble.id); // creator auto-joins
+    joinBubble(bubble.id);
+  }
+
+  function updateBubble(id: string, patch: Partial<Bubble>) {
+    setBubbles(bs => bs.map(b => b.id === id ? { ...b, ...patch } : b));
+  }
+
+  function deleteBubble(id: string) {
+    setBubbles(bs => bs.filter(b => b.id !== id));
   }
 
   return (
     <AppContext.Provider value={{
       currentUser, isLoggedIn: !!currentUser,
       login, logout,
-      bubbles, addBubble,
+      bubbles, addBubble, updateBubble, deleteBubble,
       joinBubble, leaveBubble, isJoined, isFounder,
       recentBubbleIds, addRecentBubble,
     }}>
