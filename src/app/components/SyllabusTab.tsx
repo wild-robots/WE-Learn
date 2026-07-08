@@ -122,7 +122,7 @@ function ThreeDotsMenu({
     <div ref={menuRef} className="relative">
       <button
         onClick={e => { e.stopPropagation(); isOpen ? onClose() : onOpen(); }}
-        className="size-8 rounded-lg flex items-center justify-center text-[#ADB5BD] hover:text-[#495057] hover:bg-[#F8F9FA] transition-colors"
+        className="size-8 rounded-lg flex items-center justify-center text-[#4B5563] hover:text-[#212529] hover:bg-[#F8F9FA] transition-colors"
         title="Options"
         aria-label="Section options"
       >
@@ -355,17 +355,16 @@ function SessionCard({
         className={`flex items-start gap-3 p-4 ${!isLocked && !isEditing ? 'cursor-pointer hover:bg-neutral-50' : ''}`}
         onClick={() => !isLocked && !isEditing && setExpanded(e => !e)}
       >
-        {/* Session number badge */}
-        <div
-          className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-[13px] mt-0.5"
-          style={{ fontFamily: 'var(--font-display)', background: cfg.bg, color: cfg.color }}
-        >
-          {sNum}
-        </div>
-
-        {/* Meta + title */}
+        {/* Meta + title — badge sits in same row as status/level/date tags */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            {/* Session number badge — inline with tags */}
+            <div
+              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[12px]"
+              style={{ fontFamily: 'var(--font-display)', background: cfg.bg, color: cfg.color }}
+            >
+              {sNum}
+            </div>
             <span
               className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
               style={{ background: cfg.bg, color: cfg.color, fontFamily: 'var(--font-body)' }}
@@ -377,7 +376,7 @@ function SessionCard({
               {session.level}
             </span>
             {!isEditing && (
-              <span className="text-[11px] text-[#ADB5BD] whitespace-nowrap" style={{ fontFamily: 'var(--font-body)' }}>
+              <span className="text-[11px] text-[#6C757D] whitespace-nowrap" style={{ fontFamily: 'var(--font-body)' }}>
                 {session.date} · {session.duration} min · {session.xp} XP
               </span>
             )}
@@ -457,7 +456,7 @@ function SessionCard({
 
         {/* Right controls: ⋮ | ∨ */}
         {!isEditing && (
-          <div className="shrink-0 flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+          <div className="shrink-0 flex items-center gap-1" onClick={e => e.stopPropagation()}>
             {isAuthor && (
               <ThreeDotsMenu
                 isOpen={isMenuOpen}
@@ -477,7 +476,7 @@ function SessionCard({
             {!isLocked && (
               <button
                 onClick={e => { e.stopPropagation(); setExpanded(v => !v); }}
-                className="size-8 flex items-center justify-center text-[#ADB5BD] hover:text-[#495057] hover:bg-[#F8F9FA] rounded-lg transition-colors"
+                className="size-8 flex items-center justify-center text-[#4B5563] hover:text-[#212529] hover:bg-[#F8F9FA] rounded-lg transition-colors"
               >
                 <ChevronDown
                   className="size-4 transition-transform"
@@ -843,37 +842,38 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true, onAddSessionCl
   return (
     <div className="flex flex-col gap-5">
       {/* Top Banner */}
-      <div className="rounded-2xl p-5 text-white"
+      <div className="rounded-2xl px-5 pt-5 pb-4 text-white"
         style={{ background: 'linear-gradient(135deg, #2BBFAA 0%, #1FA090 100%)' }}>
-        <div className="flex items-center gap-4">
+        <div className="flex items-end gap-4">
           <div className="flex-1">
-            {/* Progress bar with % inside */}
-            <div className="relative bg-white/20 rounded-full h-4 w-full mb-2">
-              <div className="h-full rounded-full bg-white/80 transition-all duration-700" style={{ width: `${progressPct}%` }} />
-              {progressPct > 10 && (
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-[#1FA090]"
-                  style={{ fontFamily: 'var(--font-body)' }}>
+            {/* Session count + % */}
+            <div className="flex items-baseline justify-between mb-2">
+              <p className="text-[13px] font-semibold text-white" style={{ fontFamily: 'var(--font-body)' }}>
+                {sessions.length === 0
+                  ? 'No sessions yet'
+                  : doneCount === 0
+                    ? `0 of ${sessions.length} sessions · Ready to start`
+                    : `${doneCount} of ${sessions.length} sessions done`}
+              </p>
+              {sessions.length > 0 && (
+                <span className="text-[13px] font-semibold text-white ml-3 shrink-0" style={{ fontFamily: 'var(--font-body)' }}>
                   {progressPct}%
                 </span>
               )}
             </div>
-            <p className="text-[12px] text-white/80" style={{ fontFamily: 'var(--font-body)' }}>
-              {sessions.length === 0
-                ? 'No sessions yet'
-                : doneCount === 0
-                  ? `0 of ${sessions.length} sessions · Ready to start`
-                  : `${doneCount} of ${sessions.length} sessions done`}
-            </p>
+            {/* Progress bar — bottom of banner */}
+            <div className="bg-white/30 rounded-full h-2 w-full">
+              <div className="h-full rounded-full bg-white transition-all duration-700" style={{ width: `${progressPct}%` }} />
+            </div>
           </div>
-          <div className="bg-white/15 rounded-2xl px-4 py-3 text-center shrink-0">
-            <p className="text-[24px] font-bold leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
+          {/* XP box */}
+          <div className="bg-white/15 rounded-2xl px-4 py-3 text-center shrink-0 mb-0">
+            <p className="text-[11px] text-white font-semibold mb-0.5" style={{ fontFamily: 'var(--font-body)' }}>XP</p>
+            <p className="text-[20px] font-bold leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
               {earnedXP.toLocaleString()}
             </p>
-            <p className="text-white/70 text-[11px]" style={{ fontFamily: 'var(--font-body)' }}>
-              of {totalXP.toLocaleString()} XP
-            </p>
-            <p className="text-white text-[10px] mt-0.5 flex items-center justify-center gap-1" style={{ fontFamily: 'var(--font-body)' }}>
-              <Star className="size-3" strokeWidth={1.75} fill="white" /> XP earned
+            <p className="text-white/80 text-[11px]" style={{ fontFamily: 'var(--font-body)' }}>
+              / {totalXP.toLocaleString()}
             </p>
           </div>
         </div>

@@ -295,7 +295,7 @@ export function GroupPage() {
             <div ref={bubbleMenuRef} className="absolute top-4 right-4 z-20">
               <button
                 onClick={() => setBubbleMenuOpen(v => !v)}
-                className="size-8 flex items-center justify-center rounded-lg text-[#ADB5BD] hover:text-[#495057] hover:bg-[#F8F9FA] transition-colors"
+                className="size-8 flex items-center justify-center rounded-lg text-[#4B5563] hover:text-[#212529] hover:bg-[#F8F9FA] transition-colors"
               >
                 <MoreVertical className="size-4" strokeWidth={1.75} />
               </button>
@@ -451,24 +451,26 @@ export function GroupPage() {
 
       {/* ── Tabs ── */}
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 mt-4">
-        <div className="flex items-center gap-1 bg-white rounded-xl p-1 w-fit"
-          style={{ boxShadow: 'var(--shadow-sm)' }}>
+        <div className="flex items-center gap-0 border-b border-[#E9ECEF]">
           {tabs.map(tab => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[14px] transition-all"
+                className="relative flex items-center gap-1.5 px-5 py-2.5 text-[14px] transition-colors"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  background: activeTab === tab.id ? '#2BBFAA' : 'transparent',
-                  color: activeTab === tab.id ? 'white' : '#6C757D',
-                  fontWeight: activeTab === tab.id ? 600 : 400,
+                  color: isActive ? '#212529' : '#6C757D',
+                  fontWeight: isActive ? 700 : 400,
                 }}
               >
-                <Icon className="size-4" strokeWidth={1.75} />
+                <Icon className="size-4" strokeWidth={isActive ? 2 : 1.75} />
                 {tab.label}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full" style={{ background: '#2BBFAA' }} />
+                )}
               </button>
             );
           })}

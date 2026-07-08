@@ -381,14 +381,16 @@ export function LandingPage() {
         <nav className="hidden md:flex items-center gap-1">
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-1.5 rounded-full text-[14px] transition-colors"
+              className="relative px-4 py-1.5 text-[14px] transition-colors"
               style={{
                 fontFamily: 'var(--font-body)',
-                background: activeTab === tab.id ? '#F1F3F5' : 'transparent',
                 color: activeTab === tab.id ? '#212529' : '#6C757D',
-                fontWeight: activeTab === tab.id ? 500 : 400,
+                fontWeight: activeTab === tab.id ? 700 : 400,
               }}>
               {tab.label}
+              {activeTab === tab.id && (
+                <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: '#2BBFAA' }} />
+              )}
             </button>
           ))}
         </nav>
