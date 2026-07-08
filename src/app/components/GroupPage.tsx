@@ -9,7 +9,7 @@ import { MembersTab } from "./MembersTab";
 import { ResourcesTab } from "./ResourcesTab";
 import { JoinBubbleModal } from "./JoinBubbleModal";
 import { AuthModal } from "./AuthModal";
-import type { Bubble, BubbleLevel } from "../../types";
+import type { Bubble } from "../../types";
 
 type Tab = 'syllabus' | 'members' | 'resources';
 
@@ -57,90 +57,6 @@ function AvatarStackSmall({ avatars }: { avatars: string[] }) {
 
 // ─── Add Session Modal ────────────────────────────────────────────────────────
 
-function AddSessionModal({ onClose, onAdd }: {
-  onClose: () => void;
-  onAdd: (title: string, date: string, level: BubbleLevel) => void;
-}) {
-  const [title, setTitle] = useState('');
-  const [date,  setDate]  = useState('');
-  const [level, setLevel] = useState<BubbleLevel>('Intermediate');
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title.trim() || !date.trim()) return;
-    onAdd(title.trim(), date.trim(), level);
-    onClose();
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden"
-        style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
-        <div className="px-5 pt-5 pb-4 border-b border-[#E9ECEF] flex items-center justify-between">
-          <h3 className="font-bold text-[17px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-            Add a session
-          </h3>
-          <button onClick={onClose} className="text-[#ADB5BD] hover:text-[#495057] transition-colors">
-            <X className="size-5" strokeWidth={1.75} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="px-5 py-4 flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-              Session title *
-            </label>
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
-              placeholder="e.g. Introduction & Foundations"
-              className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
-              style={{ fontFamily: 'var(--font-body)' }} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-              Date *
-            </label>
-            <input type="text" value={date} onChange={e => setDate(e.target.value)} required
-              placeholder="e.g. Apr 15, 2026"
-              className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
-              style={{ fontFamily: 'var(--font-body)' }} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-              Level
-            </label>
-            <div className="flex gap-2">
-              {(['Beginner', 'Intermediate', 'Advanced'] as BubbleLevel[]).map(l => (
-                <button key={l} type="button" onClick={() => setLevel(l)}
-                  className="flex-1 py-2 rounded-xl border text-[13px] font-medium transition-all"
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    background: level === l ? '#E8F9F7' : 'white',
-                    borderColor: level === l ? '#A8E8E2' : '#E9ECEF',
-                    color: level === l ? '#1FA090' : '#6C757D',
-                  }}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
-              style={{ fontFamily: 'var(--font-body)' }}>
-              Cancel
-            </button>
-            <button type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
-              style={{ fontFamily: 'var(--font-body)' }}>
-              Add session
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 // ─── GroupPage ────────────────────────────────────────────────────────────────
 
 export function GroupPage() {
@@ -149,7 +65,6 @@ export function GroupPage() {
   const { bubbles, currentUser, isFounder, isJoined, isLoggedIn, addRecentBubble, updateBubble, deleteBubble, addBubble } = useApp();
 
   const [activeTab, setActiveTab]       = useState<Tab>('syllabus');
-  const [showAddSession, setShowAddSession] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [bubbleMenuOpen, setBubbleMenuOpen] = useState(false);
@@ -483,25 +398,11 @@ export function GroupPage() {
           <SyllabusTab
             bubble={bubble}
             isFounder={isUserFounder}
-            onAddSessionClick={() => setShowAddSession(true)}
           />
         )}
         {activeTab === 'members'   && <MembersTab   bubble={bubble} isFounder={isUserFounder} />}
         {activeTab === 'resources' && <ResourcesTab bubble={bubble} isFounder={isUserFounder} />}
       </div>
-
-      {/* ── Add Session Modal ── */}
-      {showAddSession && (
-        <AddSessionModal
-          onClose={() => setShowAddSession(false)}
-          onAdd={(title, date, level) => {
-            // SyllabusTab manages its own session state — we trigger via callback
-            // For now show a success toast; real wiring is inside SyllabusTab
-            toast.success(`Session "${title}" added!`);
-            setShowAddSession(false);
-          }}
-        />
-      )}
 
       {/* ── Auth Modal ── */}
       {showAuth && (

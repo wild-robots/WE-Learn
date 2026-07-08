@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import {
   CheckCircle2, RefreshCw, Lock, BookOpen, FileText, PlayCircle, Wrench, Bot, MessageCircle,
   Plus, Pin, MoreVertical, Pencil, Sparkles, Copy, ChevronRight, ChevronUp, ChevronDown, Trash2,
-  Check, Star,
+  Check, Star, X,
 } from "lucide-react";
 import type { Bubble, Session, SessionStatus, BubbleLevel } from "../../types";
 import { DatePicker } from "./DatePicker";
@@ -729,15 +729,15 @@ interface Props {
   bubble: Bubble;
   isFounder: boolean;
   isAuthor?: boolean;
-  onAddSessionClick?: () => void;
 }
 
-export function SyllabusTab({ bubble, isFounder, isAuthor = true, onAddSessionClick }: Props) {
+export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
   const [sessions, setSessions] = useState<Session[]>(bubble.sessions);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingWithAI, setEditingWithAI] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ session: Session; index: number } | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const doneCount = sessions.filter(s => s.status === 'done').length;
   const totalXP = sessions.reduce((sum, s) => sum + s.xp, 0);
@@ -746,6 +746,29 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true, onAddSessionCl
 
   function reflowNumbers(ss: Session[]): Session[] {
     return ss.map((s, i) => ({ ...s, number: i + 1 }));
+  }
+
+  function addSession(title: string, date: string, level: BubbleLevel) {
+    const newSession: Session = {
+      id: `session-${Date.now()}`,
+      number: sessions.length + 1,
+      title,
+      status: 'locked',
+      date,
+      duration: 90,
+      xp: 100,
+      level,
+      sections: [
+        { id: `s-lp-${Date.now()}`, type: 'learning-path', title: 'Learning Path' },
+        { id: `s-br-${Date.now()}`, type: 'brief', title: 'Conceptual Brief' },
+        { id: `s-vd-${Date.now()}`, type: 'video', title: 'Video Resources' },
+        { id: `s-sb-${Date.now()}`, type: 'sandbox', title: 'Project Sandbox' },
+        { id: `s-ae-${Date.now()}`, type: 'ai-eval', title: 'AI Evaluation' },
+        { id: `s-rf-${Date.now()}`, type: 'reflection', title: 'Reflection' },
+      ],
+    };
+    setSessions(ss => [...ss, newSession]);
+    toast.success(`Session "${title}" added`);
   }
 
   function startEdit(id: string, withAI: boolean) {
@@ -866,16 +889,18 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true, onAddSessionCl
               <div className="h-full rounded-full bg-white transition-all duration-700" style={{ width: `${progressPct}%` }} />
             </div>
           </div>
-          {/* XP box */}
-          <div className="bg-white/15 rounded-2xl px-4 py-3 text-center shrink-0 mb-0">
-            <p className="text-[11px] text-white font-semibold mb-0.5" style={{ fontFamily: 'var(--font-body)' }}>XP</p>
-            <p className="text-[20px] font-bold leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
-              {earnedXP.toLocaleString()}
-            </p>
-            <p className="text-white/80 text-[11px]" style={{ fontFamily: 'var(--font-body)' }}>
-              / {totalXP.toLocaleString()}
-            </p>
-          </div>
+          {/* XP box — hidden when no sessions */}
+          {totalXP > 0 && (
+            <div className="bg-white/15 rounded-2xl px-4 py-3 text-center shrink-0 mb-0">
+              <p className="text-[11px] text-white font-semibold mb-0.5" style={{ fontFamily: 'var(--font-body)' }}>XP</p>
+              <p className="text-[20px] font-bold leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
+                {earnedXP.toLocaleString()}
+              </p>
+              <p className="text-white/80 text-[11px]" style={{ fontFamily: 'var(--font-body)' }}>
+                / {totalXP.toLocaleString()}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -916,7 +941,7 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true, onAddSessionCl
         {/* Add session — dashed card */}
         {isFounder && (
           <button
-            onClick={onAddSessionClick}
+            onClick={() => setShowAddModal(true)}
             className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed text-[14px] font-medium transition-colors"
             style={{
               borderColor: '#2BBFAA',
@@ -940,6 +965,94 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true, onAddSessionCl
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      {/* Add session modal */}
+      {showAddModal && (
+        <AddSessionModalInline
+          onClose={() => setShowAddModal(false)}
+          onAdd={(title, date, level) => { addSession(title, date, level); setShowAddModal(false); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Add Session Modal (local) ────────────────────────────────────────────────
+
+function AddSessionModalInline({ onClose, onAdd }: {
+  onClose: () => void;
+  onAdd: (title: string, date: string, level: BubbleLevel) => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState('');
+  const [level, setLevel] = useState<BubbleLevel>('Intermediate');
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden"
+        style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+        <div className="px-5 pt-5 pb-4 border-b border-[#E9ECEF] flex items-center justify-between">
+          <h3 className="font-bold text-[17px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+            Add a session
+          </h3>
+          <button onClick={onClose} className="text-[#4B5563] hover:text-[#212529] transition-colors">
+            <X className="size-5" strokeWidth={1.75} />
+          </button>
+        </div>
+        <form onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), date || 'TBD', level); }}
+          className="px-5 py-4 flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
+              Session title *
+            </label>
+            <input
+              type="text" value={title} onChange={e => setTitle(e.target.value)} required autoFocus
+              placeholder="e.g. Introduction & Foundations"
+              className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+              style={{ fontFamily: 'var(--font-body)' }}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
+              Date
+            </label>
+            <DatePicker value={date} onChange={setDate} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
+              Level
+            </label>
+            <div className="flex gap-2">
+              {(['Beginner', 'Intermediate', 'Advanced'] as BubbleLevel[]).map(l => (
+                <button key={l} type="button" onClick={() => setLevel(l)}
+                  className="flex-1 py-2 rounded-xl border text-[13px] font-medium transition-all"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    background: level === l ? '#E8F9F7' : 'white',
+                    borderColor: level === l ? '#A8E8E2' : '#E9ECEF',
+                    color: level === l ? '#1FA090' : '#6C757D',
+                  }}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              Cancel
+            </button>
+            <button type="submit"
+              className="flex-1 py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors disabled:opacity-40"
+              style={{ fontFamily: 'var(--font-body)' }}
+              disabled={!title.trim()}>
+              Add session
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
