@@ -157,24 +157,6 @@ export function GroupPage() {
 
             <div className="flex-1" />
 
-            {/* Share */}
-            <button
-              onClick={async () => {
-                const url = window.location.href;
-                const shareData = { title: bubble.title, text: `Join my learning Bubble: ${bubble.title}`, url };
-                if (navigator.share && navigator.canShare?.(shareData)) {
-                  try { await navigator.share(shareData); } catch {}
-                } else {
-                  await navigator.clipboard.writeText(url);
-                  toast.success('Link copied to clipboard');
-                }
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E9ECEF] text-[13px] text-[#495057] hover:bg-neutral-50 hover:border-[#2BBFAA] hover:text-[#2BBFAA] transition-colors"
-              style={{ fontFamily: 'var(--font-body)' }}>
-              <Share2 className="size-4" strokeWidth={1.75} />
-              Share
-            </button>
-
             {/* User avatar */}
             {currentUser && (
               <div className="size-8 rounded-full overflow-hidden border-2 border-[#2BBFAA]">
@@ -208,20 +190,21 @@ export function GroupPage() {
           style={{ boxShadow: 'var(--shadow-md)' }}>
 
           <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-            <div className="flex-1">
+            {/* Left column */}
+            <div className="flex-1 min-w-0">
               {editingBubble ? (
                 <div className="flex flex-col gap-3 mb-3">
                   <input
                     value={editTitle}
                     onChange={e => setEditTitle(e.target.value)}
-                    className="font-bold text-[20px] text-[#212529] border-b-2 border-[#2BBFAA] focus:outline-none bg-transparent pb-0.5"
+                    className="font-bold text-[20px] text-[#212529] border-b-2 border-[#2BBFAA] focus:outline-none bg-transparent pb-0.5 w-full"
                     style={{ fontFamily: 'var(--font-display)' }}
                   />
                   <textarea
                     value={editDescription}
                     onChange={e => setEditDescription(e.target.value)}
                     rows={2}
-                    className="text-[14px] text-[#6C757D] border border-[#2BBFAA] rounded-xl px-3 py-2 resize-none focus:outline-none"
+                    className="text-[14px] text-[#6C757D] border border-[#2BBFAA] rounded-xl px-3 py-2 resize-none focus:outline-none w-full"
                     style={{ fontFamily: 'var(--font-body)' }}
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -250,39 +233,20 @@ export function GroupPage() {
                       />
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        updateBubble(bubble.id, {
-                          title: editTitle.trim() || bubble.title,
-                          description: editDescription.trim() || bubble.description,
-                          scheduleDay: editScheduleDay || bubble.scheduleDay,
-                          scheduleTime: editScheduleTime.trim() || bubble.scheduleTime,
-                        });
-                        setEditingBubble(false);
-                        toast.success('Bubble updated');
-                      }}
-                      className="px-4 py-1.5 rounded-lg bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >Save</button>
-                    <button
-                      onClick={() => setEditingBubble(false)}
-                      className="px-4 py-1.5 rounded-lg border border-[#E9ECEF] text-[13px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >Cancel</button>
-                  </div>
                 </div>
               ) : (
                 <>
-              <h1 className="font-bold text-[22px] text-[#212529] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-                {bubble.title}
-              </h1>
-              <p className="text-[14px] text-[#6C757D] mb-3" style={{ fontFamily: 'var(--font-body)' }}>
-                {bubble.description}
-              </p>
+                  <h1 className="font-bold text-[22px] text-[#212529] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+                    {bubble.title}
+                  </h1>
+                  <p className="text-[14px] text-[#6C757D] mb-3" style={{ fontFamily: 'var(--font-body)' }}>
+                    {bubble.description}
+                  </p>
                 </>
               )}
-              <div className="flex flex-wrap items-center gap-3 text-[13px] text-[#495057]"
+
+              {/* Metadata */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-[#495057]"
                 style={{ fontFamily: 'var(--font-body)' }}>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="size-4 text-[#6C757D] shrink-0" strokeWidth={1.5} />
@@ -291,84 +255,107 @@ export function GroupPage() {
                 <span className="flex items-center gap-1.5">
                   <Users className="size-4 text-[#6C757D] shrink-0" strokeWidth={1.5} />
                   {bubble.takenSeats} of {bubble.maxSeats} seats
+                  {bubble.takenSeats >= bubble.maxSeats && (
+                    <span className="ml-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-[#FEE2E2] text-[#B91C1C]">Full</span>
+                  )}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="size-4 text-[#6C757D] shrink-0" strokeWidth={1.5} />
                   90 min · {bubble.level}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Info className="size-4 text-[#6C757D] shrink-0" strokeWidth={1.5} />
-                  Public
-                </span>
+              </div>
+
+              {/* Avatar stack — below description */}
+              <div className="flex items-center gap-2 mt-3">
+                <AvatarStackSmall avatars={members.map(m => m.avatar)} />
+                {members.length > 0 && (
+                  <span className="text-[12px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+                    {members.length} {members.length === 1 ? 'member' : 'members'}
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Members + Founder + ⋮ menu */}
+            {/* Right column: [Share] [⋮] + founder badges */}
             <div className="flex flex-col items-end gap-2 shrink-0">
-              {/* ⋮ menu — always visible for founder, no absolute positioning */}
-              {isUserFounder && (
-                <div ref={bubbleMenuRef} className="relative self-end">
-                  <button
-                    onClick={() => setBubbleMenuOpen(v => !v)}
-                    className="size-8 flex items-center justify-center rounded-lg text-[#4B5563] hover:text-[#212529] hover:bg-[#F8F9FA] transition-colors"
-                  >
-                    <MoreVertical className="size-4" strokeWidth={1.75} />
-                  </button>
-                  {bubbleMenuOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-xl border border-[#E9ECEF] overflow-hidden z-30"
-                      style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-                      <button
-                        onClick={() => {
-                          setEditTitle(bubble.title);
-                          setEditDescription(bubble.description);
-                          setEditScheduleDay(bubble.scheduleDay);
-                          setEditScheduleTime(bubble.scheduleTime);
-                          setEditingBubble(true);
-                          setBubbleMenuOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#212529] hover:bg-[#F8F9FA] transition-colors text-left"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        <Pencil className="size-4 shrink-0" strokeWidth={1.75} /> Edit info
-                      </button>
-                      <button
-                        onClick={() => {
-                          const newBubble: Bubble = {
-                            ...bubble,
-                            id: `bubble-${Date.now()}`,
-                            title: `${bubble.title} (copy)`,
-                            founderId: currentUser!.id,
-                            memberIds: [currentUser!.id],
-                            takenSeats: 1,
-                            status: 'open',
-                          };
-                          addBubble(newBubble);
-                          setBubbleMenuOpen(false);
-                          toast.success('Bubble duplicated');
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#212529] hover:bg-[#F8F9FA] transition-colors text-left"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        <Copy className="size-4 shrink-0" strokeWidth={1.75} /> Duplicate
-                      </button>
-                      <div className="h-px bg-[#E9ECEF] mx-3" />
-                      <button
-                        onClick={() => { setShowDeleteConfirm(true); setBubbleMenuOpen(false); }}
-                        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#FA5252] hover:bg-[#FFF5F5] transition-colors text-left"
-                        style={{ fontFamily: 'var(--font-body)' }}
-                      >
-                        <Trash2 className="size-4 shrink-0" strokeWidth={1.75} /> Delete bubble
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-              <AvatarStackSmall avatars={members.map(m => m.avatar)} />
+              <div className="flex items-center gap-1.5">
+                {/* Share */}
+                <button
+                  onClick={async () => {
+                    const url = window.location.href;
+                    await navigator.clipboard.writeText(url).catch(() => {});
+                    toast.success('Link copied to clipboard!');
+                  }}
+                  className="flex items-center gap-1.5 min-h-[36px] px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] text-[#495057] hover:border-[#2BBFAA] hover:text-[#2BBFAA] transition-colors"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  <Share2 className="size-4" strokeWidth={1.75} />
+                  <span className="hidden sm:inline">Share</span>
+                </button>
+                {/* ⋮ menu — founder only */}
+                {isUserFounder && (
+                  <div ref={bubbleMenuRef} className="relative">
+                    <button
+                      onClick={() => setBubbleMenuOpen(v => !v)}
+                      className="size-9 flex items-center justify-center rounded-lg text-[#4B5563] hover:text-[#212529] hover:bg-[#F8F9FA] transition-colors"
+                    >
+                      <MoreVertical className="size-4" strokeWidth={1.75} />
+                    </button>
+                    {bubbleMenuOpen && (
+                      <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-xl border border-[#E9ECEF] overflow-hidden z-30"
+                        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                        <button
+                          onClick={() => {
+                            setEditTitle(bubble.title);
+                            setEditDescription(bubble.description);
+                            setEditScheduleDay(bubble.scheduleDay);
+                            setEditScheduleTime(bubble.scheduleTime);
+                            setEditingBubble(true);
+                            setBubbleMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#212529] hover:bg-[#F8F9FA] transition-colors text-left"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          <Pencil className="size-4 shrink-0" strokeWidth={1.75} /> Edit info
+                        </button>
+                        <button
+                          onClick={() => {
+                            const newBubble: Bubble = {
+                              ...bubble,
+                              id: `bubble-${Date.now()}`,
+                              title: `${bubble.title} (copy)`,
+                              founderId: currentUser!.id,
+                              memberIds: [currentUser!.id],
+                              takenSeats: 1,
+                              status: 'open',
+                            };
+                            addBubble(newBubble);
+                            setBubbleMenuOpen(false);
+                            toast.success('Bubble duplicated');
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#212529] hover:bg-[#F8F9FA] transition-colors text-left"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          <Copy className="size-4 shrink-0" strokeWidth={1.75} /> Duplicate
+                        </button>
+                        <div className="h-px bg-[#E9ECEF] mx-3" />
+                        <button
+                          onClick={() => { setShowDeleteConfirm(true); setBubbleMenuOpen(false); }}
+                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#FA5252] hover:bg-[#FFF5F5] transition-colors text-left"
+                          style={{ fontFamily: 'var(--font-body)' }}
+                        >
+                          <Trash2 className="size-4 shrink-0" strokeWidth={1.75} /> Delete bubble
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               {founder && (
                 <div className="flex items-center gap-1.5 text-[12px] text-[#6C757D]"
                   style={{ fontFamily: 'var(--font-body)' }}>
                   <img src={founder.avatar} alt={founder.name} className="size-5 rounded-full object-cover" />
-                  Founded by <strong className="text-[#495057]">{founder.name}</strong>
+                  <span className="hidden sm:inline">Founded by </span><strong className="text-[#495057]">{founder.name}</strong>
                 </div>
               )}
               {isUserFounder && (
@@ -380,32 +367,37 @@ export function GroupPage() {
             </div>
           </div>
 
-          {/* CTA row — Join for visitors, Share for founder */}
-          {isUserFounder ? (
-            <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex items-center justify-between gap-3 flex-wrap">
-              <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-                You're the founder of this Bubble. Invite others by sharing the link.
-              </p>
+          {/* Card footer: Save/Cancel (edit) or Join CTA (visitors) */}
+          {editingBubble ? (
+            <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex justify-end gap-2">
               <button
-                onClick={async () => {
-                  const url = window.location.href;
-                  await navigator.clipboard.writeText(url).catch(() => {});
-                  toast.success('Link copied to clipboard');
-                }}
-                className="flex items-center gap-1.5 shrink-0 px-5 py-2.5 rounded-xl border border-[#2BBFAA] text-[#2BBFAA] text-[14px] font-semibold hover:bg-[#E8F9F7] transition-colors"
+                onClick={() => setEditingBubble(false)}
+                className="px-4 py-2 rounded-lg border border-[#E9ECEF] text-[13px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
-              >
-                <Share2 className="size-4" strokeWidth={1.75} /> Share Bubble
-              </button>
+              >Cancel</button>
+              <button
+                onClick={() => {
+                  updateBubble(bubble.id, {
+                    title: editTitle.trim() || bubble.title,
+                    description: editDescription.trim() || bubble.description,
+                    scheduleDay: editScheduleDay || bubble.scheduleDay,
+                    scheduleTime: editScheduleTime.trim() || bubble.scheduleTime,
+                  });
+                  setEditingBubble(false);
+                  toast.success('Bubble updated');
+                }}
+                className="px-4 py-2 rounded-lg bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >Save</button>
             </div>
-          ) : !userJoined ? (
+          ) : !isUserFounder && !userJoined ? (
             <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex items-center justify-between gap-3 flex-wrap">
               <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
                 Like what you see? Join this Bubble to participate in sessions and connect with members.
               </p>
               <button
                 onClick={handleJoinClick}
-                className="flex items-center gap-1.5 shrink-0 px-5 py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
+                className="flex items-center gap-1.5 shrink-0 min-h-[44px] px-5 py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 Join Bubble <ArrowRight className="size-4" strokeWidth={2} />
@@ -417,7 +409,7 @@ export function GroupPage() {
 
       {/* ── Tabs ── */}
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 mt-4">
-        <div className="flex items-center gap-0 border-b border-[#E9ECEF]">
+        <div className="flex items-center gap-0 border-b border-[#E9ECEF] overflow-x-auto scrollbar-none">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -425,7 +417,7 @@ export function GroupPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="relative flex items-center gap-1.5 px-5 py-2.5 text-[14px] transition-colors"
+                className="relative flex items-center gap-1.5 px-4 sm:px-5 py-3 text-[14px] transition-colors shrink-0 min-h-[44px] touch-manipulation"
                 style={{
                   fontFamily: 'var(--font-body)',
                   color: isActive ? '#212529' : '#6C757D',
@@ -451,7 +443,7 @@ export function GroupPage() {
             isFounder={isUserFounder}
           />
         )}
-        {activeTab === 'members'   && <MembersTab   bubble={bubble} isFounder={isUserFounder} />}
+        {activeTab === 'members'   && <MembersTab   bubble={bubble} isFounder={isUserFounder} onJoin={handleJoinClick} />}
         {activeTab === 'resources' && <ResourcesTab bubble={bubble} isFounder={isUserFounder} />}
       </div>
 

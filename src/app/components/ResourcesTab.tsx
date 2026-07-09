@@ -300,9 +300,12 @@ function ResourceCard({
 
 // ─── Upload Form ──────────────────────────────────────────────────────────────
 
-function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communityRatings'>) => void }) {
+function UploadForm({ onSubmit, open, onOpenChange }: {
+  onSubmit: (r: Omit<Resource, 'id' | 'communityRatings'>) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { currentUser } = useApp();
-  const [open, setOpen]   = useState(false);
   const [url, setUrl]     = useState('');
   const [title, setTitle] = useState('');
   const [type, setType]   = useState<ResourceType>('article');
@@ -320,12 +323,12 @@ function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communi
       watched, personalRating: rating,
     });
     setUrl(''); setTitle(''); setDesc(''); setWatched(false); setRating(null);
-    setOpen(false);
+    onOpenChange(false);
   }
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)}
+      <button onClick={() => onOpenChange(true)}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-[#A8E8E2] text-[#2BBFAA] hover:bg-[#E8F9F7] transition-colors text-[14px] font-medium"
         style={{ fontFamily: 'var(--font-body)' }}>
         <Plus className="size-4" strokeWidth={2} />
@@ -341,7 +344,7 @@ function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communi
         <p className="font-semibold text-[16px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
           Share a resource
         </p>
-        <button type="button" onClick={() => setOpen(false)} className="text-[#ADB5BD] hover:text-[#495057]">
+        <button type="button" onClick={() => onOpenChange(false)} className="text-[#ADB5BD] hover:text-[#495057]">
           <X className="size-5" strokeWidth={1.75} />
         </button>
       </div>
@@ -414,7 +417,7 @@ function UploadForm({ onSubmit }: { onSubmit: (r: Omit<Resource, 'id' | 'communi
       </div>
 
       <div className="flex gap-3 justify-end pt-1">
-        <button type="button" onClick={() => setOpen(false)}
+        <button type="button" onClick={() => onOpenChange(false)}
           className="px-4 py-2 rounded-xl text-[13px] text-[#6C757D] hover:bg-neutral-50"
           style={{ fontFamily: 'var(--font-body)' }}>
           Cancel
@@ -435,6 +438,7 @@ export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder:
   const { currentUser } = useApp();
   const [resources, setResources] = useState<Resource[]>(bubble.resources);
   const [filter, setFilter] = useState<ResourceType | 'all'>('all');
+  const [showAddResource, setShowAddResource] = useState(false);
 
   const filtered = resources.filter(r => filter === 'all' || r.type === filter);
 
@@ -474,13 +478,23 @@ export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder:
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div>
-        <h2 className="text-[18px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-          Resources
-        </h2>
-        <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-          {resources.length} shared by members
-        </p>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-[18px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+            Resources
+          </h2>
+          <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+            {resources.length} shared by members
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAddResource(true)}
+          className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0"
+          style={{ fontFamily: 'var(--font-body)' }}
+        >
+          <Plus className="size-4" strokeWidth={1.75} />
+          Add Resource
+        </button>
       </div>
 
       {/* Type filters */}
@@ -535,8 +549,12 @@ export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder:
         </div>
       )}
 
-      {/* Add Resource — always at bottom */}
-      <UploadForm onSubmit={addResource} />
+      {/* Add Resource form — shown when triggered from header button or dashed card */}
+      <UploadForm
+        onSubmit={r => { addResource(r); setShowAddResource(false); }}
+        open={showAddResource}
+        onOpenChange={setShowAddResource}
+      />
     </div>
   );
 }

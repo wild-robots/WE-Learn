@@ -5,7 +5,7 @@ import {
   Plus, Pin, MoreVertical, Pencil, Sparkles, Copy, ChevronRight, ChevronUp, ChevronDown, Trash2,
   Check, Star, X,
 } from "lucide-react";
-import type { Bubble, Session, SessionStatus, BubbleLevel } from "../../types";
+import type { Bubble, Session, SessionStatus, BubbleLevel, VideoEntry } from "../../types";
 import { DatePicker } from "./DatePicker";
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -61,6 +61,57 @@ function MenuItem({
       <span className="flex-1">{label}</span>
       {hasSubmenu && <ChevronRight className="size-3.5 text-[#ADB5BD]" strokeWidth={1.75} />}
     </button>
+  );
+}
+
+// ─── Video list editor ────────────────────────────────────────────────────────
+
+function VideoListEditor({
+  entries,
+  onChange,
+}: {
+  entries: VideoEntry[];
+  onChange: (entries: VideoEntry[]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      {entries.map((v, i) => (
+        <div key={v.id} className="flex flex-col gap-1.5 p-3 bg-[#F8F9FA] rounded-lg border border-[#E9ECEF]">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-[11px] text-[#ADB5BD] font-medium" style={{ fontFamily: 'var(--font-body)' }}>
+              Video {i + 1}
+            </span>
+            <button
+              onClick={() => onChange(entries.filter((_, j) => j !== i))}
+              className="text-[#ADB5BD] hover:text-[#FA5252] transition-colors p-1"
+            >
+              <Trash2 className="size-3.5" strokeWidth={1.75} />
+            </button>
+          </div>
+          <input
+            value={v.title}
+            onChange={e => { const next = entries.map((x, j) => j === i ? { ...x, title: e.target.value } : x); onChange(next); }}
+            placeholder="Video title"
+            className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-white"
+            style={{ fontFamily: 'var(--font-body)' }}
+          />
+          <input
+            value={v.url}
+            onChange={e => { const next = entries.map((x, j) => j === i ? { ...x, url: e.target.value } : x); onChange(next); }}
+            placeholder="https://youtube.com/watch?v=…"
+            className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-white"
+            style={{ fontFamily: 'var(--font-body)' }}
+          />
+        </div>
+      ))}
+      <button
+        onClick={() => onChange([...entries, { id: `v-${Date.now()}`, title: '', url: '' }])}
+        className="flex items-center gap-1.5 text-[13px] text-[#2BBFAA] hover:underline w-fit"
+        style={{ fontFamily: 'var(--font-body)' }}
+      >
+        <Plus className="size-3.5" strokeWidth={2} /> Add video
+      </button>
+    </div>
   );
 }
 
@@ -538,22 +589,20 @@ function SessionCard({
                 )}
 
                 {!isReadOnly && section.type === 'video' && (
-                  <div className="flex flex-col gap-2">
-                    <input
-                      value={section.videoTitle ?? ''}
-                      onChange={e => updateSection(idx, { videoTitle: e.target.value })}
-                      placeholder="Video title"
-                      className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-[#F8F9FA]"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    />
-                    <input
-                      value={section.videoUrl ?? ''}
-                      onChange={e => updateSection(idx, { videoUrl: e.target.value })}
-                      placeholder="https://youtube.com/watch?v=…"
-                      className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-[#F8F9FA]"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    />
-                  </div>
+                  <VideoListEditor
+                    entries={
+                      section.videos?.length
+                        ? section.videos
+                        : section.videoUrl
+                          ? [{ id: 'v0', title: section.videoTitle ?? '', url: section.videoUrl }]
+                          : []
+                    }
+                    onChange={videos => updateSection(idx, {
+                      videos,
+                      videoTitle: videos[0]?.title ?? '',
+                      videoUrl: videos[0]?.url ?? '',
+                    })}
+                  />
                 )}
               </div>
             );
@@ -622,23 +671,32 @@ function SessionCard({
                 )}
 
                 {section.type === 'video' && (
-                  <div>
-                    {section.videoTitle && (
-                      <p className="text-[13px] text-[#495057] mb-2" style={{ fontFamily: 'var(--font-body)' }}>
-                        {section.videoTitle}
-                      </p>
-                    )}
-                    {section.videoUrl && (
-                      <a href={section.videoUrl} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-[13px] text-[#2BBFAA] font-medium hover:underline"
-                        style={{ fontFamily: 'var(--font-body)' }}>
-                        <svg className="size-4" fill="none" viewBox="0 0 20 20">
-                          <path d="M8 5.14v9.72L15.5 10 8 5.14z" fill="#2BBFAA" />
-                          <circle cx="10" cy="10" r="8" stroke="#2BBFAA" strokeWidth="1.5" />
-                        </svg>
-                        Watch on YouTube
-                      </a>
-                    )}
+                  <div className="flex flex-col gap-3">
+                    {(section.videos?.length
+                      ? section.videos
+                      : section.videoUrl
+                        ? [{ id: 'v0', title: section.videoTitle ?? '', url: section.videoUrl }]
+                        : []
+                    ).map((v, vi) => (
+                      <div key={v.id ?? vi}>
+                        {v.title && (
+                          <p className="text-[13px] text-[#495057] mb-1" style={{ fontFamily: 'var(--font-body)' }}>
+                            {v.title}
+                          </p>
+                        )}
+                        {v.url && (
+                          <a href={v.url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-[13px] text-[#2BBFAA] font-medium hover:underline"
+                            style={{ fontFamily: 'var(--font-body)' }}>
+                            <svg className="size-4 shrink-0" fill="none" viewBox="0 0 20 20">
+                              <path d="M8 5.14v9.72L15.5 10 8 5.14z" fill="#2BBFAA" />
+                              <circle cx="10" cy="10" r="8" stroke="#2BBFAA" strokeWidth="1.5" />
+                            </svg>
+                            Watch on YouTube
+                          </a>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -740,7 +798,6 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingWithAI, setEditingWithAI] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ session: Session; index: number } | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
 
   const doneCount = sessions.filter(s => s.status === 'done').length;
   const totalXP = sessions.reduce((sum, s) => sum + s.xp, 0);
@@ -751,26 +808,29 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
     return ss.map((s, i) => ({ ...s, number: i + 1 }));
   }
 
-  function addSession(title: string, date: string, level: BubbleLevel) {
+  function addSessionAndEdit() {
     const ts = Date.now();
+    const nowDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const newId = `session-${ts}`;
     const newSession: Session = {
-      id: `session-${ts}`,
+      id: newId,
       number: sessions.length + 1,
-      title,
+      title: 'New Session',
       status: 'in-progress',
-      date,
+      date: nowDate,
       duration: 90,
       xp: 100,
-      level,
+      level: 'Intermediate',
       sections: [
         { id: `s-lp-${ts}`, type: 'learning-path', title: 'Learning Path', content: '' },
         { id: `s-br-${ts}`, type: 'brief', title: 'Conceptual Brief', content: '' },
-        { id: `s-vd-${ts}`, type: 'video', title: 'Video Resources', videoTitle: '', videoUrl: '' },
+        { id: `s-vd-${ts}`, type: 'video', title: 'Video Resources', videos: [] },
         { id: `s-sb-${ts}`, type: 'sandbox', title: 'Project Sandbox', content: '' },
       ],
     };
     setSessions(ss => [...ss, newSession]);
-    toast.success(`Session "${title}" added`);
+    setEditingId(newId);
+    setEditingWithAI(false);
   }
 
   function startEdit(id: string, withAI: boolean) {
@@ -907,9 +967,21 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
       </div>
 
       {/* Sessions header */}
-      <h3 className="text-[16px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-        Sessions
-      </h3>
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-[16px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
+          Sessions
+        </h3>
+        {isFounder && (
+          <button
+            onClick={addSessionAndEdit}
+            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0"
+            style={{ fontFamily: 'var(--font-body)' }}
+          >
+            <Plus className="size-4" strokeWidth={1.75} />
+            Add Session
+          </button>
+        )}
+      </div>
 
       {/* Session list */}
       <div className="flex flex-col gap-3">
@@ -935,27 +1007,10 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
             onUpdate={updated => setSessions(ss => ss.map(s => s.id === updated.id ? updated : s))}
           />
         ))}
-        {sessions.length === 0 && !isFounder && (
+        {sessions.length === 0 && (
           <div className="text-center py-12 text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-            Sessions coming soon.
+            {isFounder ? 'Click "Add Session" to build your syllabus.' : 'Sessions coming soon.'}
           </div>
-        )}
-        {/* Add session — dashed card */}
-        {isFounder && (
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed text-[14px] font-medium transition-colors"
-            style={{
-              borderColor: '#2BBFAA',
-              color: '#2BBFAA',
-              fontFamily: 'var(--font-body)',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F0FDFB'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-          >
-            <Plus className="size-4" strokeWidth={2} />
-            Add Session
-          </button>
         )}
       </div>
 
@@ -968,93 +1023,7 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
         />
       )}
 
-      {/* Add session modal */}
-      {showAddModal && (
-        <AddSessionModalInline
-          onClose={() => setShowAddModal(false)}
-          onAdd={(title, date, level) => { addSession(title, date, level); setShowAddModal(false); }}
-        />
-      )}
     </div>
   );
 }
 
-// ─── Add Session Modal (local) ────────────────────────────────────────────────
-
-function AddSessionModalInline({ onClose, onAdd }: {
-  onClose: () => void;
-  onAdd: (title: string, date: string, level: BubbleLevel) => void;
-}) {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [level, setLevel] = useState<BubbleLevel>('Intermediate');
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden"
-        style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
-        <div className="px-5 pt-5 pb-4 border-b border-[#E9ECEF] flex items-center justify-between">
-          <h3 className="font-bold text-[17px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-            Add a session
-          </h3>
-          <button onClick={onClose} className="text-[#4B5563] hover:text-[#212529] transition-colors">
-            <X className="size-5" strokeWidth={1.75} />
-          </button>
-        </div>
-        <form onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), date || 'TBD', level); }}
-          className="px-5 py-4 flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-              Session title *
-            </label>
-            <input
-              type="text" value={title} onChange={e => setTitle(e.target.value)} required autoFocus
-              placeholder="e.g. Introduction & Foundations"
-              className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
-              style={{ fontFamily: 'var(--font-body)' }}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-              Date
-            </label>
-            <DatePicker value={date} onChange={setDate} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-              Level
-            </label>
-            <div className="flex gap-2">
-              {(['Beginner', 'Intermediate', 'Advanced'] as BubbleLevel[]).map(l => (
-                <button key={l} type="button" onClick={() => setLevel(l)}
-                  className="flex-1 py-2 rounded-xl border text-[13px] font-medium transition-all"
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    background: level === l ? '#E8F9F7' : 'white',
-                    borderColor: level === l ? '#A8E8E2' : '#E9ECEF',
-                    color: level === l ? '#1FA090' : '#6C757D',
-                  }}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
-              style={{ fontFamily: 'var(--font-body)' }}>
-              Cancel
-            </button>
-            <button type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors disabled:opacity-40"
-              style={{ fontFamily: 'var(--font-body)' }}
-              disabled={!title.trim()}>
-              Add session
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}

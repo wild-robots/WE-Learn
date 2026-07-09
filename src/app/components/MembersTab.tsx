@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Crown, Search, UserPlus } from "lucide-react";
+import { Crown, Search, UserPlus, ArrowRight } from "lucide-react";
 import { getBubbleMembers } from "../../data/mock";
 import { AddMemberModal } from "./AddMemberModal";
 import type { Bubble, Member } from "../../types";
@@ -7,6 +7,7 @@ import type { Bubble, Member } from "../../types";
 interface Props {
   bubble: Bubble;
   isFounder: boolean;
+  onJoin?: () => void;
 }
 
 function MemberCard({ member, isFounder, onRemove }: { member: Member; isFounder: boolean; onRemove?: () => void }) {
@@ -82,7 +83,7 @@ function MemberCard({ member, isFounder, onRemove }: { member: Member; isFounder
   );
 }
 
-export function MembersTab({ bubble, isFounder }: Props) {
+export function MembersTab({ bubble, isFounder, onJoin }: Props) {
   const [search, setSearch] = useState('');
   const [members, setMembers] = useState<Member[]>(getBubbleMembers(bubble));
   const [showAddMember, setShowAddMember] = useState(false);
@@ -112,7 +113,7 @@ export function MembersTab({ bubble, isFounder }: Props) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap justify-end">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400" strokeWidth={1.75} />
@@ -121,20 +122,32 @@ export function MembersTab({ bubble, isFounder }: Props) {
               placeholder="Search members..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 rounded-xl border border-[#E9ECEF] text-[14px] bg-white focus:outline-none focus:border-[#2BBFAA] w-52"
+              className="pl-9 pr-4 py-2 min-h-[44px] rounded-xl border border-[#E9ECEF] text-[14px] bg-white focus:outline-none focus:border-[#2BBFAA] w-44 sm:w-52"
               style={{ fontFamily: 'var(--font-body)' }}
             />
           </div>
 
-          {/* Add member */}
-          <button
-            onClick={() => setShowAddMember(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0"
-            style={{ fontFamily: 'var(--font-body)' }}
-          >
-            <UserPlus className="size-4" strokeWidth={1.75} />
-            Add Member
-          </button>
+          {/* Action button: Add Member (founder) or Join (visitor) */}
+          {isFounder ? (
+            <button
+              onClick={() => setShowAddMember(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              <UserPlus className="size-4" strokeWidth={1.75} />
+              Add Member
+            </button>
+          ) : (
+            <button
+              onClick={onJoin}
+              disabled={bubble.takenSeats >= bubble.maxSeats}
+              title={bubble.takenSeats >= bubble.maxSeats ? 'This Bubble is full' : undefined}
+              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              Join <ArrowRight className="size-4" strokeWidth={2} />
+            </button>
+          )}
         </div>
       </div>
 

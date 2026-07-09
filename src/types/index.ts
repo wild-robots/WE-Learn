@@ -45,6 +45,12 @@ export interface Bubble {
 
 export type SessionStatus = 'done' | 'in-progress' | 'locked';
 
+export interface VideoEntry {
+  id: string;
+  title: string;
+  url: string;
+}
+
 export interface SessionSection {
   id: string;
   type: 'learning-path' | 'brief' | 'video' | 'sandbox' | 'ai-eval' | 'reflection';
@@ -52,6 +58,7 @@ export interface SessionSection {
   content?: string;
   videoUrl?: string;
   videoTitle?: string;
+  videos?: VideoEntry[];
 }
 
 export interface Session {
