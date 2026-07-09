@@ -47,8 +47,9 @@ function loadFromStorage(): { userId: string | null; joinedBubbles: string[]; re
 export function AppProvider({ children }: { children: ReactNode }) {
   const stored = loadFromStorage();
 
+  // Always default to MOCK_ME in this demo — auth modal still works for join flow
   const [currentUser, setCurrentUser] = useState<User | null>(
-    stored.userId ? { ...MOCK_ME, joinedBubbles: stored.joinedBubbles } : null
+    { ...MOCK_ME, joinedBubbles: stored.joinedBubbles }
   );
   const [bubbles, setBubbles] = useState<Bubble[]>(MOCK_BUBBLES);
   const [recentBubbleIds, setRecentBubbleIds] = useState<string[]>(stored.recentBubbleIds);
@@ -112,7 +113,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   function isFounder(bubbleId: string): boolean {
     const bubble = bubbles.find(b => b.id === bubbleId);
-    return bubble?.founderId === currentUser?.id;
+    const userId = currentUser?.id ?? 'user-me';
+    return bubble?.founderId === userId;
   }
 
   function addBubble(bubble: Bubble) {
