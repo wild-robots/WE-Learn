@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search, MoreVertical, Pencil, Trash2, Copy } from "lucide-react";
+import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search, MoreVertical, Pencil, Trash2, Copy, Eye, EyeOff } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { getBubbleById, getBubbleMembers } from "../../data/mock";
 import { SyllabusTab } from "./SyllabusTab";
@@ -65,6 +65,7 @@ export function GroupPage() {
   const { bubbles, currentUser, isFounder, isJoined, isLoggedIn, addRecentBubble, updateBubble, deleteBubble, addBubble } = useApp();
 
   const [activeTab, setActiveTab]       = useState<Tab>('syllabus');
+  const [guestPreview, setGuestPreview] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [bubbleMenuOpen, setBubbleMenuOpen] = useState(false);
@@ -118,9 +119,9 @@ export function GroupPage() {
 
   const members = getBubbleMembers(bubble);
   const founder = members.find(m => m.id === bubble.founderId);
-  const isUserFounder = isFounder(bubble.id);
+  const isUserFounder = isFounder(bubble.id) && !guestPreview;
 
-  const userJoined = isJoined(bubble.id);
+  const userJoined = isJoined(bubble.id) && !guestPreview;
 
   const tabs: { id: Tab; label: string; icon: typeof BookOpen; founderOnly?: boolean }[] = [
     { id: 'syllabus',  label: 'Syllabus',  icon: BookOpen, founderOnly: false },
@@ -157,9 +158,27 @@ export function GroupPage() {
 
             <div className="flex-1" />
 
+            {/* Preview as guest toggle — founder only */}
+            {isFounder(bubble.id) && (
+              <button
+                onClick={() => setGuestPreview(v => !v)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors border ${
+                  guestPreview
+                    ? 'bg-[#FFF3CD] border-[#FAB005] text-[#856404]'
+                    : 'bg-[#F8F9FA] border-[#E9ECEF] text-[#6C757D] hover:border-[#2BBFAA] hover:text-[#2BBFAA]'
+                }`}
+                style={{ fontFamily: 'var(--font-body)' }}
+                title={guestPreview ? 'Exit guest preview' : 'Preview as guest'}
+              >
+                {guestPreview ? <EyeOff className="size-3.5" strokeWidth={1.75} /> : <Eye className="size-3.5" strokeWidth={1.75} />}
+                <span className="hidden sm:inline">{guestPreview ? 'Exit preview' : 'Preview as guest'}</span>
+              </button>
+            )}
+
             {/* User avatar */}
             {currentUser && (
-              <div className="size-8 rounded-full overflow-hidden border-2 border-[#2BBFAA]">
+              <div className="size-8 rounded-full overflow-hidden border-2"
+                style={{ borderColor: guestPreview ? '#E9ECEF' : '#2BBFAA' }}>
                 <img src={currentUser.avatar} alt={currentUser.name} className="size-full object-cover" />
               </div>
             )}
@@ -358,14 +377,16 @@ export function GroupPage() {
                   <span className="hidden sm:inline">Founded by </span><strong className="text-[#495057]">{founder.name}</strong>
                 </div>
               )}
-              {isUserFounder && (
-                <span className="inline-flex items-center gap-1 text-[11px] bg-[#E8F9F7] text-[#1FA090] border border-[#A8E8E2] px-2 py-0.5 rounded-full font-semibold"
-                  style={{ fontFamily: 'var(--font-body)' }}>
-                  <Crown className="size-3 shrink-0" strokeWidth={1.75} /> You're the founder
-                </span>
-              )}
             </div>
           </div>
+
+          {/* Founder badge — absolute bottom-right watermark, hidden while editing */}
+          {isFounder(bubble.id) && !editingBubble && (
+            <span className="absolute bottom-5 right-6 inline-flex items-center gap-1 text-[11px] bg-[#E8F9F7] text-[#1FA090] border border-[#A8E8E2] px-2 py-0.5 rounded-full font-semibold"
+              style={{ fontFamily: 'var(--font-body)' }}>
+              <Crown className="size-3 shrink-0" strokeWidth={1.75} /> You're the founder
+            </span>
+          )}
 
           {/* Card footer: Save/Cancel (edit) or Join CTA (visitors) */}
           {editingBubble ? (
