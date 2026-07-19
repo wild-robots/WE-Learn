@@ -122,7 +122,7 @@ export function MembersTab({ bubble, isFounder, onJoin }: Props) {
               placeholder="Search members..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 min-h-[44px] rounded-xl border border-[#E9ECEF] text-[14px] bg-white focus:outline-none focus:border-[#2BBFAA] w-44 sm:w-52"
+              className="pl-9 pr-4 py-2 min-h-[44px] rounded-xl border border-[#E9ECEF] text-[14px] bg-white focus:outline-none focus:border-[#00a79d] w-44 sm:w-52"
               style={{ fontFamily: 'var(--font-body)' }}
             />
           </div>
@@ -131,7 +131,7 @@ export function MembersTab({ bubble, isFounder, onJoin }: Props) {
           {isFounder ? (
             <button
               onClick={() => setShowAddMember(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0"
+              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors shrink-0"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               <UserPlus className="size-4" strokeWidth={1.75} />
@@ -142,7 +142,7 @@ export function MembersTab({ bubble, isFounder, onJoin }: Props) {
               onClick={onJoin}
               disabled={bubble.takenSeats >= bubble.maxSeats}
               title={bubble.takenSeats >= bubble.maxSeats ? 'This Bubble is full' : undefined}
-              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Join <ArrowRight className="size-4" strokeWidth={2} />

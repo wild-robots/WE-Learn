@@ -112,9 +112,9 @@ function TopicWidget({ onSelect, locked }: { onSelect: (t: string) => void; lock
       <div className="grid grid-cols-2 gap-2">
         {TOPICS.map(t => (
           <button key={t.label} onClick={() => !locked && onSelect(t.label)} disabled={locked}
-            className="flex items-start gap-2 p-3 rounded-xl border border-[#E9ECEF] text-left hover:border-[#2BBFAA] hover:bg-[#E8F9F7] transition-all disabled:opacity-50"
+            className="flex items-start gap-2 p-3 rounded-xl border border-[#E9ECEF] text-left hover:border-[#00a79d] hover:bg-[#E5F5F4] transition-all disabled:opacity-50"
             style={{ fontFamily: 'var(--font-body)' }}>
-            <t.icon className="size-5 shrink-0 text-[#2BBFAA]" strokeWidth={1.75} />
+            <t.icon className="size-5 shrink-0 text-[#00a79d]" strokeWidth={1.75} />
             <div>
               <p className="text-[12px] font-semibold text-[#212529] leading-snug">{t.label}</p>
               <span className="text-[10px] bg-[#F1F3F5] text-[#6C757D] px-1.5 py-0.5 rounded-full">{t.tag}</span>
@@ -127,13 +127,13 @@ function TopicWidget({ onSelect, locked }: { onSelect: (t: string) => void; lock
           <input
             type="text" value={custom} onChange={e => setCustom(e.target.value)}
             placeholder="Or type your own topic..."
-            className="flex-1 px-3 py-2 rounded-xl border border-[#E9ECEF] text-[13px] bg-white focus:outline-none focus:border-[#2BBFAA]"
+            className="flex-1 px-3 py-2 rounded-xl border border-[#E9ECEF] text-[13px] bg-white focus:outline-none focus:border-[#00a79d]"
             style={{ fontFamily: 'var(--font-body)' }}
             onKeyDown={e => e.key === 'Enter' && custom.trim() && onSelect(custom.trim())}
           />
           <button onClick={() => custom.trim() && onSelect(custom.trim())}
             disabled={!custom.trim()}
-            className="px-4 py-2 rounded-xl bg-[#2BBFAA] text-white text-[13px] font-medium disabled:opacity-40 hover:bg-[#1FA090] transition-colors"
+            className="px-4 py-2 rounded-xl bg-[#00a79d] text-white text-[13px] font-medium disabled:opacity-40 hover:bg-[#008f86] transition-colors"
             style={{ fontFamily: 'var(--font-body)' }}>
             Use
           </button>
@@ -148,9 +148,9 @@ function LevelWidget({ onSelect, locked }: { onSelect: (l: BubbleLevel) => void;
     <div className="flex flex-col gap-2">
       {LEVELS.map(l => (
         <button key={l.label} onClick={() => !locked && onSelect(l.label)} disabled={locked}
-          className="flex items-center gap-3 p-4 rounded-xl border border-[#E9ECEF] text-left hover:border-[#2BBFAA] hover:bg-[#E8F9F7] transition-all disabled:opacity-50"
+          className="flex items-center gap-3 p-4 rounded-xl border border-[#E9ECEF] text-left hover:border-[#00a79d] hover:bg-[#E5F5F4] transition-all disabled:opacity-50"
           style={{ fontFamily: 'var(--font-body)' }}>
-          <l.icon className="size-6 text-[#2BBFAA] shrink-0" strokeWidth={1.75} />
+          <l.icon className="size-6 text-[#00a79d] shrink-0" strokeWidth={1.75} />
           <div>
             <p className="font-semibold text-[14px] text-[#212529]">{l.label}</p>
             <p className="text-[12px] text-[#6C757D]">{l.desc}</p>
@@ -175,9 +175,9 @@ function ScheduleWidget({ onSelect, locked }: { onSelect: (day: string, time: st
               className="px-3 py-2 rounded-xl border text-[13px] font-medium transition-all disabled:opacity-50"
               style={{
                 fontFamily: 'var(--font-body)',
-                borderColor: day === d ? '#2BBFAA' : '#E9ECEF',
-                background: day === d ? '#E8F9F7' : 'white',
-                color: day === d ? '#1FA090' : '#495057',
+                borderColor: day === d ? '#00a79d' : '#E9ECEF',
+                background: day === d ? '#E5F5F4' : 'white',
+                color: day === d ? '#008f86' : '#495057',
               }}>
               {d}
             </button>
@@ -192,9 +192,9 @@ function ScheduleWidget({ onSelect, locked }: { onSelect: (day: string, time: st
               className="px-3 py-2 rounded-xl border text-[13px] font-medium transition-all disabled:opacity-50"
               style={{
                 fontFamily: 'var(--font-body)',
-                borderColor: time === t ? '#2BBFAA' : '#E9ECEF',
-                background: time === t ? '#E8F9F7' : 'white',
-                color: time === t ? '#1FA090' : '#495057',
+                borderColor: time === t ? '#00a79d' : '#E9ECEF',
+                background: time === t ? '#E5F5F4' : 'white',
+                color: time === t ? '#008f86' : '#495057',
               }}>
               {t}
             </button>
@@ -204,7 +204,7 @@ function ScheduleWidget({ onSelect, locked }: { onSelect: (day: string, time: st
       {day && time && !locked && (
         <button
           onClick={() => onSelect(FULL_DAYS[day], time)}
-          className="w-full py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
+          className="w-full py-2.5 rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors"
           style={{ fontFamily: 'var(--font-body)' }}>
           Confirm: Every {FULL_DAYS[day]} @ {time} →
         </button>
@@ -237,8 +237,8 @@ function SeatsWidget({ onSelect, locked }: { onSelect: (n: number) => void; lock
             disabled={locked}
             className="flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all disabled:opacity-50"
             style={{
-              borderColor: selected === opt.key ? '#2BBFAA' : '#E9ECEF',
-              background: selected === opt.key ? '#E8F9F7' : 'white',
+              borderColor: selected === opt.key ? '#00a79d' : '#E9ECEF',
+              background: selected === opt.key ? '#E5F5F4' : 'white',
             }}>
             <div>
               <div className="flex items-center gap-2 mb-0.5">
@@ -256,7 +256,7 @@ function SeatsWidget({ onSelect, locked }: { onSelect: (n: number) => void; lock
                 {opt.range} · {opt.desc}
               </p>
             </div>
-            <div className={`size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selected === opt.key ? 'border-[#2BBFAA] bg-[#2BBFAA]' : 'border-[#D1D5DB]'}`}>
+            <div className={`size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selected === opt.key ? 'border-[#00a79d] bg-[#00a79d]' : 'border-[#D1D5DB]'}`}>
               {selected === opt.key && <Check className="size-3 text-white" strokeWidth={2.5} />}
             </div>
           </button>
@@ -265,7 +265,7 @@ function SeatsWidget({ onSelect, locked }: { onSelect: (n: number) => void; lock
       {!locked && (
         <button
           onClick={() => onSelect(current.value)}
-          className="w-full py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
+          className="w-full py-2.5 rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors"
           style={{ fontFamily: 'var(--font-body)' }}>
           {current.label} ({current.range}) — Let's go →
         </button>
@@ -284,14 +284,14 @@ function DescriptionWidget({ onSelect, locked }: { onSelect: (desc: string) => v
         disabled={locked}
         rows={5}
         placeholder="In this Bubble, we'll explore... By the end, members will be able to..."
-        className="w-full px-3 py-3 rounded-xl border border-[#E9ECEF] text-[14px] bg-white focus:outline-none focus:border-[#2BBFAA] resize-none disabled:opacity-50"
+        className="w-full px-3 py-3 rounded-xl border border-[#E9ECEF] text-[14px] bg-white focus:outline-none focus:border-[#00a79d] resize-none disabled:opacity-50"
         style={{ fontFamily: 'var(--font-body)' }}
       />
       {!locked && (
         <button
           onClick={() => text.trim() && onSelect(text.trim())}
           disabled={!text.trim()}
-          className="w-full py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors disabled:opacity-40"
+          className="w-full py-2.5 rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors disabled:opacity-40"
           style={{ fontFamily: 'var(--font-body)' }}>
           Continue →
         </button>
@@ -338,14 +338,14 @@ function SessionsWidget({
   if (done) {
     return (
       <div className="flex flex-col gap-3">
-        <div className="bg-[#E8F9F7] rounded-xl p-4 text-[13px] text-[#1FA090]"
+        <div className="bg-[#E5F5F4] rounded-xl p-4 text-[13px] text-[#008f86]"
           style={{ fontFamily: 'var(--font-body)' }}>
-          <CheckCircle2 className="size-4 inline mr-1.5 text-[#1FA090]" strokeWidth={2} />6-session syllabus generated for <strong>{topic}</strong> ({level})!
+          <CheckCircle2 className="size-4 inline mr-1.5 text-[#008f86]" strokeWidth={2} />6-session syllabus generated for <strong>{topic}</strong> ({level})!
         </div>
         <button
           onClick={() => !locked && onConfirm('ai')}
           disabled={locked}
-          className="w-full py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-bold hover:bg-[#1FA090] transition-colors"
+          className="w-full py-2.5 rounded-xl bg-[#00a79d] text-white text-[14px] font-bold hover:bg-[#008f86] transition-colors"
           style={{ fontFamily: 'var(--font-body)' }}>
           Launch Bubble
         </button>
@@ -359,14 +359,14 @@ function SessionsWidget({
         {phases.map((p, i) => (
           <div key={i} className="flex items-center gap-2 text-[13px] text-[#495057]"
             style={{ fontFamily: 'var(--font-body)' }}>
-            <Check className="size-3.5 text-[#2BBFAA] shrink-0" strokeWidth={2.5} /> {p}
+            <Check className="size-3.5 text-[#00a79d] shrink-0" strokeWidth={2.5} /> {p}
           </div>
         ))}
         <div className="flex items-center gap-2 text-[13px] text-[#ADB5BD]"
           style={{ fontFamily: 'var(--font-body)' }}>
           <div className="flex gap-1">
             {[0,1,2].map(i => (
-              <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#2BBFAA] animate-bounce"
+              <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#00a79d] animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }} />
             ))}
           </div>
@@ -381,18 +381,18 @@ function SessionsWidget({
       <button
         onClick={handleAI}
         disabled={locked}
-        className="flex items-center gap-3 p-4 rounded-xl border-2 border-[#A8E8E2] bg-[#E8F9F7] hover:bg-[#d0f5f1] transition-colors text-left disabled:opacity-50"
+        className="flex items-center gap-3 p-4 rounded-xl border-2 border-[#7ECFCA] bg-[#E5F5F4] hover:bg-[#d0f5f1] transition-colors text-left disabled:opacity-50"
         style={{ fontFamily: 'var(--font-body)' }}>
-        <Bot className="size-6 text-[#1FA090] shrink-0" strokeWidth={1.75} />
+        <Bot className="size-6 text-[#008f86] shrink-0" strokeWidth={1.75} />
         <div>
-          <p className="font-semibold text-[14px] text-[#1FA090]">Build with AI</p>
+          <p className="font-semibold text-[14px] text-[#008f86]">Build with AI</p>
           <p className="text-[12px] text-[#6C757D]">AI generates your full syllabus in seconds</p>
         </div>
       </button>
       <button
         onClick={() => !locked && onConfirm('manual')}
         disabled={locked}
-        className="flex items-center gap-3 p-4 rounded-xl border border-[#E9ECEF] hover:border-[#2BBFAA] hover:bg-[#F8F9FA] transition-colors text-left disabled:opacity-50"
+        className="flex items-center gap-3 p-4 rounded-xl border border-[#E9ECEF] hover:border-[#00a79d] hover:bg-[#F8F9FA] transition-colors text-left disabled:opacity-50"
         style={{ fontFamily: 'var(--font-body)' }}>
         <Pencil className="size-6 text-[#495057] shrink-0" strokeWidth={1.75} />
         <div>
@@ -498,7 +498,7 @@ export function CreateBabelFlow() {
               </p>
             </div>
             <div className="h-1.5 bg-[#F1F3F5] rounded-full">
-              <div className="h-full rounded-full bg-[#2BBFAA] transition-all duration-500"
+              <div className="h-full rounded-full bg-[#00a79d] transition-all duration-500"
                 style={{ width: `${progress}%` }} />
             </div>
           </div>
@@ -511,7 +511,7 @@ export function CreateBabelFlow() {
           if (item.kind === 'ai') {
             return (
               <div key={item.id} className="flex items-start gap-3">
-                <div className="size-8 rounded-full bg-[#2BBFAA] flex items-center justify-center shrink-0">
+                <div className="size-8 rounded-full bg-[#00a79d] flex items-center justify-center shrink-0">
                   <Sparkles className="size-4 text-white" strokeWidth={1.75} />
                 </div>
                 <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 text-[14px] text-[#212529] max-w-[85%]"
@@ -524,7 +524,7 @@ export function CreateBabelFlow() {
           if (item.kind === 'user') {
             return (
               <div key={item.id} className="flex justify-end">
-                <div className="bg-[#2BBFAA] text-white rounded-2xl rounded-tr-sm px-4 py-3 text-[14px] max-w-[80%]"
+                <div className="bg-[#00a79d] text-white rounded-2xl rounded-tr-sm px-4 py-3 text-[14px] max-w-[80%]"
                   style={{ fontFamily: 'var(--font-body)' }}>
                   {item.text}
                 </div>

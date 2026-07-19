@@ -75,7 +75,7 @@ export function SmartSearchBar({ bubbles, recentBubbleIds, onSelect }: Props) {
         className="bg-white flex items-center h-[60px] w-full rounded-[20px] px-5 gap-3"
         style={{
           boxShadow: open ? '0 8px 28px -6px rgba(43,191,170,0.25)' : '0 8px 24px -6px rgba(0,0,0,0.08)',
-          border: open ? '2px solid #2BBFAA' : '2px solid #E9ECEF',
+          border: open ? '2px solid #00a79d' : '2px solid #E9ECEF',
           transition: 'all 0.2s ease',
         }}
       >

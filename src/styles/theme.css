@@ -9,10 +9,15 @@
   --font-weight-normal: 400;
 
   /* ── Brand Colors ── */
-  --primary: #2BBFAA;
-  --primary-dark: #1FA090;
-  --primary-light: #E8F9F7;
-  --primary-mid: #A8E8E2;
+  --primary: #00a79d;
+  --primary-dark: #008f86;
+  --primary-light: #E5F5F4;
+  --primary-mid: #7ECFCA;
+
+  /* ── Secondary: Navy Blue (Pantone 296 U) ── */
+  --navy: #444f5e;
+  --navy-dark: #2f3844;
+  --navy-light: #EEF0F2;
 
   /* ── Neutral Palette ── */
   --neutral-50: #F8F9FA;
@@ -46,15 +51,15 @@
   --secondary-foreground: #212529;
   --muted: #F1F3F5;
   --muted-foreground: #6C757D;
-  --accent: #E8F9F7;
-  --accent-foreground: #1FA090;
+  --accent: #E5F5F4;
+  --accent-foreground: #008f86;
   --destructive: #FA5252;
   --destructive-foreground: #ffffff;
   --border: #E9ECEF;
   --input: transparent;
   --input-background: #F8F9FA;
   --switch-background: #ADB5BD;
-  --ring: #2BBFAA;
+  --ring: #00a79d;
 
   /* ── Border Radius ── */
   --radius-sm: 6px;
@@ -68,7 +73,7 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
-  --shadow-card: 0 2px 8px rgba(43,191,170,0.10), 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-card: 0 2px 8px rgba(0,167,157,0.10), 0 1px 3px rgba(0,0,0,0.06);
 
   /* ── Charts ── */
   --chart-1: oklch(0.646 0.222 41.116);

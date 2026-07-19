@@ -109,7 +109,7 @@ function Frame() {
   return (
     <div className="content-stretch flex gap-[8px] items-center overflow-clip relative shrink-0" data-name="Frame">
       <WaterBubbleIcon />
-      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[20px] text-black">We Learn</p>
+      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[20px] text-black">WE Bubbles</p>
     </div>
   );
 }

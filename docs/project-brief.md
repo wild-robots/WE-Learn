@@ -1,7 +1,7 @@
-# We Learn — Project Brief
+# WE Bubbles — Project Brief
 
 ## 1. Product Overview
-We Learn — a community learning platform for the UX women's community WE (Women Experience Israel).
+WE Bubbles — a community learning platform for the UX women's community WE (Women Experience Israel).
 The core learning unit is called a Bubble — a learning group of 4–8 women around a shared professional topic.
 
 ## 2. Tech Stack

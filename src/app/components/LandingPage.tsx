@@ -9,29 +9,10 @@ import { BabelTransition } from "./BabelTransition";
 import { SmartSearchBar } from "./SmartSearchBar";
 import { AuthModal } from "./AuthModal";
 
-// ─── Bubble Logo Icon ─────────────────────────────────────────────────────────
+// ─── WE Logo ──────────────────────────────────────────────────────────────────
 
-function BubbleLogoIcon() {
-  return (
-    <div className="relative shrink-0 size-8">
-      <svg className="absolute block size-full" fill="none" viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r="14" fill="url(#logo-g1)" fillOpacity="0.3" />
-        <circle cx="16" cy="16" r="14" stroke="url(#logo-g2)" strokeWidth="2" />
-        <ellipse cx="16" cy="10" fill="url(#logo-g3)" fillOpacity="0.5" rx="7" ry="4" />
-        <defs>
-          <linearGradient id="logo-g1" x1="16" x2="16" y1="2" y2="30" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#2BBFAA" /><stop offset="1" stopColor="#1FA090" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="logo-g2" x1="2" x2="30" y1="16" y2="16" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#2BBFAA" /><stop offset="0.5" stopColor="#60D4C8" /><stop offset="1" stopColor="#1FA090" />
-          </linearGradient>
-          <linearGradient id="logo-g3" x1="16" x2="16" y1="6" y2="14" gradientUnits="userSpaceOnUse">
-            <stop stopColor="white" /><stop offset="1" stopColor="white" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-  );
+function WELogo({ className = "h-7 w-auto" }: { className?: string }) {
+  return <img src="/we-logo.svg" alt="WE Bubbles" className={className} />;
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -117,7 +98,7 @@ function BubbleCard({
           </span>
         </div>
         {isJoined && (
-          <div className="absolute top-2 left-2 bg-[#2BBFAA] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1"
+          <div className="absolute top-2 left-2 bg-[#00a79d] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1"
             style={{ fontFamily: 'var(--font-body)' }}>
             <Check className="size-3" strokeWidth={2.5} /> Joined
           </div>
@@ -137,7 +118,7 @@ function BubbleCard({
           className="font-semibold text-[17px] leading-snug"
           style={{
             fontFamily: 'var(--font-display)',
-            color: hovered ? '#2BBFAA' : '#212529',
+            color: hovered ? '#00a79d' : '#212529',
             transition: 'color 0.2s ease',
           }}
         >
@@ -176,8 +157,8 @@ function BubbleCard({
           className="mt-auto w-full py-2.5 rounded-xl text-[14px] font-semibold transition-all"
           style={{
             fontFamily: 'var(--font-body)',
-            background: isJoined ? '#E8F9F7' : '#F1F3F5',
-            color: isJoined ? '#1FA090' : '#495057',
+            background: isJoined ? '#E5F5F4' : '#F1F3F5',
+            color: isJoined ? '#008f86' : '#495057',
             boxShadow: hovered ? '0 4px 12px rgba(43,191,170,0.18)' : 'none',
           }}
         >
@@ -218,19 +199,19 @@ function CreateBubbleCard({ onClick }: { onClick: () => void }) {
     >
       {/* Header gradient */}
       <div className="h-40 w-full flex items-center justify-center relative overflow-hidden"
-        style={{ background: hovered ? 'linear-gradient(135deg,#c8f4ef,#a8ece4)' : 'linear-gradient(135deg,#E8F9F7,#d0f5f1)' }}>
-        <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-[#2BBFAA]/10" />
-        <div className="absolute -bottom-3 -left-3 w-16 h-16 rounded-full bg-[#2BBFAA]/15" />
+        style={{ background: hovered ? 'linear-gradient(135deg,#c8f4ef,#a8ece4)' : 'linear-gradient(135deg,#E5F5F4,#d0f5f1)' }}>
+        <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-[#00a79d]/10" />
+        <div className="absolute -bottom-3 -left-3 w-16 h-16 rounded-full bg-[#00a79d]/15" />
         <div
           className="relative z-10 w-16 h-16 rounded-2xl bg-white shadow flex items-center justify-center"
           style={{ transform: hovered ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)' }}
         >
-          <Plus className="size-8 text-[#2BBFAA]" strokeWidth={2.5} />
+          <Plus className="size-8 text-[#00a79d]" strokeWidth={2.5} />
         </div>
       </div>
 
       <div className="flex flex-col gap-3 p-4 flex-1">
-        <span className="inline-flex items-center gap-1.5 text-[11px] bg-[#E8F9F7] border border-[#A8E8E2] text-[#1FA090] px-2.5 py-1 rounded-full w-fit"
+        <span className="inline-flex items-center gap-1.5 text-[11px] bg-[#E5F5F4] border border-[#7ECFCA] text-[#008f86] px-2.5 py-1 rounded-full w-fit"
           style={{ fontFamily: 'var(--font-body)' }}>
           <Sparkles className="size-3" strokeWidth={1.75} /> AI-guided setup
         </span>
@@ -245,13 +226,13 @@ function CreateBubbleCard({ onClick }: { onClick: () => void }) {
         <div className="mt-1 space-y-1.5">
           {['AI generates your full syllabus', 'Recurring schedule & 4–8 participants', 'Live group page ready to share'].map(f => (
             <div key={f} className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#2BBFAA] shrink-0" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00a79d] shrink-0" />
               <span className="text-[12px] text-neutral-500" style={{ fontFamily: 'var(--font-body)' }}>{f}</span>
             </div>
           ))}
         </div>
 
-        <div className="mt-auto flex items-center gap-2 text-[#2BBFAA] text-[13px] font-semibold pt-2"
+        <div className="mt-auto flex items-center gap-2 text-[#00a79d] text-[13px] font-semibold pt-2"
           style={{ fontFamily: 'var(--font-body)' }}>
           <span>Get started</span>
           <ArrowRight
@@ -332,7 +313,7 @@ function AvatarMenu({ user }: { user: NonNullable<ReturnType<typeof useApp>['cur
     <div className="relative">
       <button onClick={() => setOpen(o => !o)}
         className="size-8 rounded-full overflow-hidden border-2 transition-all"
-        style={{ borderColor: open ? '#2BBFAA' : '#E9ECEF' }}>
+        style={{ borderColor: open ? '#00a79d' : '#E9ECEF' }}>
         <img src={user.avatar} alt={user.name} className="size-full object-cover" />
       </button>
       {open && <SettingsDropdown onClose={() => setOpen(false)} />}
@@ -370,11 +351,8 @@ export function LandingPage() {
       {/* ── Header ── */}
       <header className="flex items-center px-6 py-3.5 border-b border-[#E9ECEF] sticky top-0 bg-white/95 backdrop-blur z-20 gap-4">
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <BubbleLogoIcon />
-          <span className="font-bold text-[20px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-            We Learn
-          </span>
+        <div className="flex items-center">
+          <WELogo className="h-8 w-auto" />
         </div>
 
         {/* Tabs — left side, next to logo */}
@@ -389,7 +367,7 @@ export function LandingPage() {
               }}>
               {tab.label}
               {activeTab === tab.id && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: '#2BBFAA' }} />
+                <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: '#00a79d' }} />
               )}
             </button>
           ))}
@@ -411,7 +389,7 @@ export function LandingPage() {
           ) : (
             <button
               onClick={() => setShowAuth(true)}
-              className="text-[14px] font-semibold text-[#2BBFAA] hover:underline"
+              className="text-[14px] font-semibold text-[#00a79d] hover:underline"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Sign in
@@ -428,7 +406,7 @@ export function LandingPage() {
           <h1 className="font-bold text-[#212529] text-[36px] sm:text-[44px] leading-tight"
             style={{ fontFamily: 'var(--font-display)' }}>
             Find your study{' '}
-            <span style={{ color: '#2BBFAA' }}>Bubble</span>
+            <span style={{ color: '#00a79d' }}>Bubble</span>
           </h1>
           <p className="text-[#6C757D] text-[18px] sm:text-[22px]" style={{ fontFamily: 'var(--font-body)' }}>
             Join a learning group and reach your goals faster.
@@ -456,8 +434,8 @@ export function LandingPage() {
           {/* Cards */}
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center py-20 gap-4 text-center">
-              <div className="size-14 rounded-2xl bg-[#E8F9F7] flex items-center justify-center">
-                <svg className="size-7 text-[#2BBFAA]" fill="none" viewBox="0 0 24 24">
+              <div className="size-14 rounded-2xl bg-[#E5F5F4] flex items-center justify-center">
+                <svg className="size-7 text-[#00a79d]" fill="none" viewBox="0 0 24 24">
                   <path d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
                     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -471,7 +449,7 @@ export function LandingPage() {
                   : 'No bubbles available right now.'}
               </p>
               <button onClick={() => navigate('/create')}
-                className="mt-2 px-5 py-2.5 bg-[#2BBFAA] text-white rounded-xl text-[14px] font-medium hover:bg-[#1FA090] transition-colors"
+                className="mt-2 px-5 py-2.5 bg-[#00a79d] text-white rounded-xl text-[14px] font-medium hover:bg-[#008f86] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}>
                 Start a new Bubble →
               </button>

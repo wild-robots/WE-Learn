@@ -13,29 +13,10 @@ import type { Bubble } from "../../types";
 
 type Tab = 'syllabus' | 'members' | 'resources';
 
-// ─── Bubble Logo Icon ─────────────────────────────────────────────────────────
+// ─── WE Logo ──────────────────────────────────────────────────────────────────
 
-function BubbleLogoIcon() {
-  return (
-    <div className="relative shrink-0 size-7">
-      <svg className="absolute block size-full" fill="none" viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r="14" fill="url(#gp-g1)" fillOpacity="0.3" />
-        <circle cx="16" cy="16" r="14" stroke="url(#gp-g2)" strokeWidth="2" />
-        <ellipse cx="16" cy="10" fill="url(#gp-g3)" fillOpacity="0.5" rx="7" ry="4" />
-        <defs>
-          <linearGradient id="gp-g1" x1="16" x2="16" y1="2" y2="30" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#2BBFAA" /><stop offset="1" stopColor="#1FA090" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="gp-g2" x1="2" x2="30" y1="16" y2="16" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#2BBFAA" /><stop offset="0.5" stopColor="#60D4C8" /><stop offset="1" stopColor="#1FA090" />
-          </linearGradient>
-          <linearGradient id="gp-g3" x1="16" x2="16" y1="6" y2="14" gradientUnits="userSpaceOnUse">
-            <stop stopColor="white" /><stop offset="1" stopColor="white" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-  );
+function WELogo({ className = "h-7 w-auto" }: { className?: string }) {
+  return <img src="/we-logo.svg" alt="WE Bubbles" className={className} />;
 }
 
 // ─── Avatar Stack (small) ─────────────────────────────────────────────────────
@@ -100,15 +81,15 @@ export function GroupPage() {
   if (!bubble) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white">
-        <div className="size-16 bg-[#E8F9F7] rounded-2xl flex items-center justify-center">
-          <Search className="size-8 text-[#2BBFAA]" strokeWidth={1.5} />
+        <div className="size-16 bg-[#E5F5F4] rounded-2xl flex items-center justify-center">
+          <Search className="size-8 text-[#00a79d]" strokeWidth={1.5} />
         </div>
         <p className="text-[18px] font-semibold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
           Bubble not found
         </p>
         <button
           onClick={() => navigate('/')}
-          className="text-[#2BBFAA] text-[14px] hover:underline"
+          className="text-[#00a79d] text-[14px] hover:underline"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           ← Back to all Bubbles
@@ -151,10 +132,7 @@ export function GroupPage() {
             >
               <ChevronLeft className="size-4" strokeWidth={1.75} />
             </button>
-            <BubbleLogoIcon />
-            <span className="font-bold text-[16px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
-              We Learn
-            </span>
+            <WELogo className="h-6 w-auto" />
 
             <div className="flex-1" />
 
@@ -165,7 +143,7 @@ export function GroupPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors border ${
                   guestPreview
                     ? 'bg-[#FFF3CD] border-[#FAB005] text-[#856404]'
-                    : 'bg-[#F8F9FA] border-[#E9ECEF] text-[#6C757D] hover:border-[#2BBFAA] hover:text-[#2BBFAA]'
+                    : 'bg-[#F8F9FA] border-[#E9ECEF] text-[#6C757D] hover:border-[#00a79d] hover:text-[#00a79d]'
                 }`}
                 style={{ fontFamily: 'var(--font-body)' }}
                 title={guestPreview ? 'Exit guest preview' : 'Preview as guest'}
@@ -178,7 +156,7 @@ export function GroupPage() {
             {/* User avatar */}
             {currentUser && (
               <div className="size-8 rounded-full overflow-hidden border-2"
-                style={{ borderColor: guestPreview ? '#E9ECEF' : '#2BBFAA' }}>
+                style={{ borderColor: guestPreview ? '#E9ECEF' : '#00a79d' }}>
                 <img src={currentUser.avatar} alt={currentUser.name} className="size-full object-cover" />
               </div>
             )}
@@ -191,12 +169,12 @@ export function GroupPage() {
         {bubble.heroImage ? (
           <img src={bubble.heroImage} alt={bubble.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-[#2BBFAA] to-[#1FA090]" />
+          <div className="w-full h-full bg-gradient-to-r from-[#00a79d] to-[#008f86]" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         {/* Topic tag */}
         <div className="absolute top-4 left-6">
-          <span className="bg-white/90 text-[#1FA090] text-[12px] font-semibold px-3 py-1 rounded-full"
+          <span className="bg-white/90 text-[#008f86] text-[12px] font-semibold px-3 py-1 rounded-full"
             style={{ fontFamily: 'var(--font-body)' }}>
             {bubble.topic}
           </span>
@@ -216,14 +194,14 @@ export function GroupPage() {
                   <input
                     value={editTitle}
                     onChange={e => setEditTitle(e.target.value)}
-                    className="font-bold text-[20px] text-[#212529] border-b-2 border-[#2BBFAA] focus:outline-none bg-transparent pb-0.5 w-full"
+                    className="font-bold text-[20px] text-[#212529] border-b-2 border-[#00a79d] focus:outline-none bg-transparent pb-0.5 w-full"
                     style={{ fontFamily: 'var(--font-display)' }}
                   />
                   <textarea
                     value={editDescription}
                     onChange={e => setEditDescription(e.target.value)}
                     rows={2}
-                    className="text-[14px] text-[#6C757D] border border-[#2BBFAA] rounded-xl px-3 py-2 resize-none focus:outline-none w-full"
+                    className="text-[14px] text-[#6C757D] border border-[#00a79d] rounded-xl px-3 py-2 resize-none focus:outline-none w-full"
                     style={{ fontFamily: 'var(--font-body)' }}
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -232,7 +210,7 @@ export function GroupPage() {
                       <select
                         value={editScheduleDay}
                         onChange={e => setEditScheduleDay(e.target.value)}
-                        className="text-[13px] px-2 py-1.5 rounded-lg border border-[#2BBFAA] focus:outline-none bg-[#F8F9FA]"
+                        className="text-[13px] px-2 py-1.5 rounded-lg border border-[#00a79d] focus:outline-none bg-[#F8F9FA]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
@@ -247,7 +225,7 @@ export function GroupPage() {
                         value={editScheduleTime}
                         onChange={e => setEditScheduleTime(e.target.value)}
                         placeholder="7:00 PM"
-                        className="text-[13px] px-2 py-1.5 rounded-lg border border-[#2BBFAA] focus:outline-none bg-[#F8F9FA]"
+                        className="text-[13px] px-2 py-1.5 rounded-lg border border-[#00a79d] focus:outline-none bg-[#F8F9FA]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       />
                     </div>
@@ -305,7 +283,7 @@ export function GroupPage() {
                     await navigator.clipboard.writeText(url).catch(() => {});
                     toast.success('Link copied to clipboard!');
                   }}
-                  className="flex items-center gap-1.5 min-h-[36px] px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] text-[#495057] hover:border-[#2BBFAA] hover:text-[#2BBFAA] transition-colors"
+                  className="flex items-center gap-1.5 min-h-[36px] px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] text-[#495057] hover:border-[#00a79d] hover:text-[#00a79d] transition-colors"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   <Share2 className="size-4" strokeWidth={1.75} />
@@ -382,7 +360,7 @@ export function GroupPage() {
 
           {/* Founder badge — absolute bottom-right watermark, hidden while editing */}
           {isFounder(bubble.id) && !editingBubble && (
-            <span className="absolute bottom-5 right-6 inline-flex items-center gap-1 text-[11px] bg-[#E8F9F7] text-[#1FA090] border border-[#A8E8E2] px-2 py-0.5 rounded-full font-semibold"
+            <span className="absolute bottom-5 right-6 inline-flex items-center gap-1 text-[11px] bg-[#E5F5F4] text-[#008f86] border border-[#7ECFCA] px-2 py-0.5 rounded-full font-semibold"
               style={{ fontFamily: 'var(--font-body)' }}>
               <Crown className="size-3 shrink-0" strokeWidth={1.75} /> You're the founder
             </span>
@@ -407,7 +385,7 @@ export function GroupPage() {
                   setEditingBubble(false);
                   toast.success('Bubble updated');
                 }}
-                className="px-4 py-2 rounded-lg bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors"
+                className="px-4 py-2 rounded-lg bg-[#00a79d] text-white text-[13px] font-semibold hover:bg-[#008f86] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >Save</button>
             </div>
@@ -418,7 +396,7 @@ export function GroupPage() {
               </p>
               <button
                 onClick={handleJoinClick}
-                className="flex items-center gap-1.5 shrink-0 min-h-[44px] px-5 py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
+                className="flex items-center gap-1.5 shrink-0 min-h-[44px] px-5 py-2.5 rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 Join Bubble <ArrowRight className="size-4" strokeWidth={2} />
@@ -448,7 +426,7 @@ export function GroupPage() {
                 <Icon className="size-4" strokeWidth={isActive ? 2 : 1.75} />
                 {tab.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full" style={{ background: '#2BBFAA' }} />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full" style={{ background: '#00a79d' }} />
                 )}
               </button>
             );

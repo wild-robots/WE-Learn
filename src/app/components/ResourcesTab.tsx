@@ -125,7 +125,7 @@ function ResourceCard({
   if (isEditing) {
     const EditTypeIcon = TYPE_CONFIG[editType].icon;
     return (
-      <div className="bg-white rounded-xl p-4 flex flex-col gap-3" style={{ boxShadow: 'var(--shadow-md)', border: '2px solid #A8E8E2' }}>
+      <div className="bg-white rounded-xl p-4 flex flex-col gap-3" style={{ boxShadow: 'var(--shadow-md)', border: '2px solid #7ECFCA' }}>
         <div className="flex items-center justify-between">
           <p className="font-semibold text-[14px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
             Edit resource
@@ -138,13 +138,13 @@ function ResourceCard({
         <input
           type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
           placeholder="Title"
-          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d]"
           style={{ fontFamily: 'var(--font-body)' }}
         />
         <input
           type="url" value={editUrl} onChange={e => setEditUrl(e.target.value)}
           placeholder="https://..."
-          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d]"
           style={{ fontFamily: 'var(--font-body)' }}
         />
         <div className="flex flex-wrap gap-2">
@@ -155,9 +155,9 @@ function ResourceCard({
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] border transition-colors"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  background: editType === t ? '#E8F9F7' : 'white',
-                  borderColor: editType === t ? '#A8E8E2' : '#E9ECEF',
-                  color: editType === t ? '#1FA090' : '#6C757D',
+                  background: editType === t ? '#E5F5F4' : 'white',
+                  borderColor: editType === t ? '#7ECFCA' : '#E9ECEF',
+                  color: editType === t ? '#008f86' : '#6C757D',
                   fontWeight: editType === t ? 600 : 400,
                 }}>
                 <Icon className="size-3" strokeWidth={1.75} /> {TYPE_CONFIG[t].label}
@@ -168,13 +168,13 @@ function ResourceCard({
         <textarea
           value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={2}
           placeholder="Short description"
-          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA] resize-none"
+          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d] resize-none"
           style={{ fontFamily: 'var(--font-body)' }}
         />
         <label className="flex items-center gap-2 text-[13px] text-[#495057] cursor-pointer"
           style={{ fontFamily: 'var(--font-body)' }}>
           <input type="checkbox" checked={editWatched} onChange={e => setEditWatched(e.target.checked)}
-            className="size-4 accent-[#2BBFAA]" />
+            className="size-4 accent-[#00a79d]" />
           I've watched / read it
         </label>
         <div className="flex gap-2 justify-end pt-1">
@@ -184,7 +184,7 @@ function ResourceCard({
             Cancel
           </button>
           <button onClick={handleSave} disabled={!editTitle.trim() || !editUrl.trim()}
-            className="px-4 py-2 rounded-lg bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors disabled:opacity-40"
+            className="px-4 py-2 rounded-lg bg-[#00a79d] text-white text-[13px] font-semibold hover:bg-[#008f86] transition-colors disabled:opacity-40"
             style={{ fontFamily: 'var(--font-body)' }}>
             Save
           </button>
@@ -198,7 +198,7 @@ function ResourceCard({
       <div className="bg-white rounded-xl p-4 flex gap-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
         {/* Type icon */}
         <div className="size-10 rounded-xl bg-[#F8F9FA] flex items-center justify-center shrink-0">
-          <TypeIcon className="size-5 text-[#2BBFAA]" strokeWidth={1.75} />
+          <TypeIcon className="size-5 text-[#00a79d]" strokeWidth={1.75} />
         </div>
 
         {/* Content */}
@@ -206,7 +206,7 @@ function ResourceCard({
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
               <a href={resource.url} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-semibold text-[15px] text-[#212529] hover:text-[#2BBFAA] transition-colors"
+                className="inline-flex items-center gap-1 font-semibold text-[15px] text-[#212529] hover:text-[#00a79d] transition-colors"
                 style={{ fontFamily: 'var(--font-display)' }}>
                 {resource.title}
                 <ExternalLink className="size-3.5 opacity-50" strokeWidth={1.75} />
@@ -273,8 +273,8 @@ function ResourceCard({
             </div>
             <div className="flex items-center gap-1.5">
               <button onClick={() => onVote('up')}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[12px] hover:bg-[#E8F9F7] transition-colors"
-                style={{ fontFamily: 'var(--font-body)', color: upCount > 0 ? '#2BBFAA' : '#6C757D' }}>
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[12px] hover:bg-[#E5F5F4] transition-colors"
+                style={{ fontFamily: 'var(--font-body)', color: upCount > 0 ? '#00a79d' : '#6C757D' }}>
                 <ThumbsUp className="size-3.5" strokeWidth={1.75} /> {upCount}
               </button>
               <button onClick={() => onVote('down')}
@@ -329,7 +329,7 @@ function UploadForm({ onSubmit, open, onOpenChange }: {
   if (!open) {
     return (
       <button onClick={() => onOpenChange(true)}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-[#A8E8E2] text-[#2BBFAA] hover:bg-[#E8F9F7] transition-colors text-[14px] font-medium"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-[#7ECFCA] text-[#00a79d] hover:bg-[#E5F5F4] transition-colors text-[14px] font-medium"
         style={{ fontFamily: 'var(--font-body)' }}>
         <Plus className="size-4" strokeWidth={2} />
         Share a resource with the group
@@ -354,14 +354,14 @@ function UploadForm({ onSubmit, open, onOpenChange }: {
           <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>URL *</label>
           <input type="url" value={url} onChange={e => setUrl(e.target.value)} required
             placeholder="https://..."
-            className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+            className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d]"
             style={{ fontFamily: 'var(--font-body)' }} />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>Title *</label>
           <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
             placeholder="Resource title"
-            className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+            className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d]"
             style={{ fontFamily: 'var(--font-body)' }} />
         </div>
       </div>
@@ -376,9 +376,9 @@ function UploadForm({ onSubmit, open, onOpenChange }: {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] transition-colors border"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  background: type === t ? '#E8F9F7' : 'white',
-                  borderColor: type === t ? '#A8E8E2' : '#E9ECEF',
-                  color: type === t ? '#1FA090' : '#6C757D',
+                  background: type === t ? '#E5F5F4' : 'white',
+                  borderColor: type === t ? '#7ECFCA' : '#E9ECEF',
+                  color: type === t ? '#008f86' : '#6C757D',
                   fontWeight: type === t ? 600 : 400,
                 }}>
                 <Icon className="size-3.5" strokeWidth={1.75} /> {TYPE_CONFIG[t].label}
@@ -392,7 +392,7 @@ function UploadForm({ onSubmit, open, onOpenChange }: {
         <label className="text-[13px] font-medium text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>Short description</label>
         <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2}
           placeholder="Why are you sharing this? What's it about?"
-          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA] resize-none"
+          className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d] resize-none"
           style={{ fontFamily: 'var(--font-body)' }} />
       </div>
 
@@ -400,13 +400,13 @@ function UploadForm({ onSubmit, open, onOpenChange }: {
         <label className="flex items-center gap-2 text-[13px] text-[#495057] cursor-pointer"
           style={{ fontFamily: 'var(--font-body)' }}>
           <input type="checkbox" checked={watched} onChange={e => setWatched(e.target.checked)}
-            className="size-4 accent-[#2BBFAA]" />
+            className="size-4 accent-[#00a79d]" />
           I've watched / read it
         </label>
         <div className="flex items-center gap-2 text-[13px]" style={{ fontFamily: 'var(--font-body)' }}>
           <span className="text-[#6C757D]">Your rating:</span>
           <button type="button" onClick={() => setRating(r => r === 'up' ? null : 'up')}
-            className={`px-3 py-1.5 rounded-full border transition-colors ${rating === 'up' ? 'bg-[#E8F9F7] border-[#A8E8E2] text-[#2BBFAA]' : 'border-[#E9ECEF] text-[#6C757D]'}`}>
+            className={`px-3 py-1.5 rounded-full border transition-colors ${rating === 'up' ? 'bg-[#E5F5F4] border-[#7ECFCA] text-[#00a79d]' : 'border-[#E9ECEF] text-[#6C757D]'}`}>
             <ThumbsUp className="size-3.5" strokeWidth={1.75} />
           </button>
           <button type="button" onClick={() => setRating(r => r === 'down' ? null : 'down')}
@@ -423,7 +423,7 @@ function UploadForm({ onSubmit, open, onOpenChange }: {
           Cancel
         </button>
         <button type="submit"
-          className="px-5 py-2 rounded-xl bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors"
+          className="px-5 py-2 rounded-xl bg-[#00a79d] text-white text-[13px] font-semibold hover:bg-[#008f86] transition-colors"
           style={{ fontFamily: 'var(--font-body)' }}>
           Share resource
         </button>
@@ -489,7 +489,7 @@ export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder:
         </div>
         <button
           onClick={() => setShowAddResource(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0"
+          className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors shrink-0"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           <Plus className="size-4" strokeWidth={1.75} />
@@ -517,9 +517,9 @@ export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder:
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border transition-colors"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  background: filter === t ? '#E8F9F7' : 'white',
-                  color: filter === t ? '#1FA090' : '#6C757D',
-                  borderColor: filter === t ? '#A8E8E2' : '#E9ECEF',
+                  background: filter === t ? '#E5F5F4' : 'white',
+                  color: filter === t ? '#008f86' : '#6C757D',
+                  borderColor: filter === t ? '#7ECFCA' : '#E9ECEF',
                 }}>
                 <Icon className="size-3.5" strokeWidth={1.75} /> {TYPE_CONFIG[t].label}
               </button>

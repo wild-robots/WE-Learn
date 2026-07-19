@@ -284,7 +284,7 @@ export function CenterAssistant({ onNavigate }: CenterAssistantProps) {
               <div className="flex items-center gap-3">
                 <BotAvatar size={32} />
                 <div>
-                  <p style={{ color: "#1c3835", fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>We Learn Assistant</p>
+                  <p style={{ color: "#1c3835", fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>WE Bubbles Assistant</p>
                   <p style={{ color: "#789693", fontSize: 11, lineHeight: 1.4 }}>Powered by Enlighten AI</p>
                 </div>
               </div>
@@ -334,7 +334,7 @@ export function CenterAssistant({ onNavigate }: CenterAssistantProps) {
                         maxWidth: "85%",
                       }}
                     >
-                      Hey! 👋 I'm your <strong>We Learn Assistant</strong>. I can help you find a Babel, explore topics, connect with groups, or guide you through creating your own learning experience.
+                      Hey! 👋 I'm your <strong>WE Bubbles Assistant</strong>. I can help you find a Babel, explore topics, connect with groups, or guide you through creating your own learning experience.
                     </div>
                   </div>
 
@@ -518,7 +518,7 @@ export function CenterAssistant({ onNavigate }: CenterAssistantProps) {
                 className="text-center mt-2.5 opacity-40"
                 style={{ color: "#789693", fontSize: 10, letterSpacing: "0.2px" }}
               >
-                Powered by Enlighten AI • We Learn Assistant v1.2
+                Powered by Enlighten AI • WE Bubbles Assistant v1.2
               </p>
             </div>
           </div>

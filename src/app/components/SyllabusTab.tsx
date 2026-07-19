@@ -92,21 +92,21 @@ function VideoListEditor({
             value={v.title}
             onChange={e => { const next = entries.map((x, j) => j === i ? { ...x, title: e.target.value } : x); onChange(next); }}
             placeholder="Video title"
-            className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-white"
+            className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#00a79d] text-[13px] bg-white"
             style={{ fontFamily: 'var(--font-body)' }}
           />
           <input
             value={v.url}
             onChange={e => { const next = entries.map((x, j) => j === i ? { ...x, url: e.target.value } : x); onChange(next); }}
             placeholder="https://youtube.com/watch?v=…"
-            className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-white"
+            className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#00a79d] text-[13px] bg-white"
             style={{ fontFamily: 'var(--font-body)' }}
           />
         </div>
       ))}
       <button
         onClick={() => onChange([...entries, { id: `v-${Date.now()}`, title: '', url: '' }])}
-        className="flex items-center gap-1.5 text-[13px] text-[#2BBFAA] hover:underline w-fit"
+        className="flex items-center gap-1.5 text-[13px] text-[#00a79d] hover:underline w-fit"
         style={{ fontFamily: 'var(--font-body)' }}
       >
         <Plus className="size-3.5" strokeWidth={2} /> Add video
@@ -387,7 +387,7 @@ function SessionCard({
   const progress = session.status === 'done' ? 100 : session.status === 'in-progress' ? 45 : 0;
 
   const cardBorder = isEditing
-    ? '2px solid #2BBFAA'
+    ? '2px solid #00a79d'
     : '1px solid #E9ECEF';
 
   return (
@@ -412,7 +412,7 @@ function SessionCard({
           <div className="flex items-center gap-2.5 mb-1.5">
             <div
               className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-[13px] text-white"
-              style={{ fontFamily: 'var(--font-display)', background: '#2BBFAA' }}
+              style={{ fontFamily: 'var(--font-display)', background: '#00a79d' }}
             >
               {sNum}
             </div>
@@ -420,7 +420,7 @@ function SessionCard({
               <input
                 value={editTitle}
                 onChange={e => setEditTitle(e.target.value)}
-                className="flex-1 font-semibold text-[16px] text-[#212529] px-2 py-1 rounded-lg border border-[#2BBFAA] focus:outline-none bg-[#F8FFFE]"
+                className="flex-1 font-semibold text-[16px] text-[#212529] px-2 py-1 rounded-lg border border-[#00a79d] focus:outline-none bg-[#F8FFFE]"
                 style={{ fontFamily: 'var(--font-display)' }}
                 placeholder="Session title"
                 onClick={e => e.stopPropagation()}
@@ -465,7 +465,7 @@ function SessionCard({
                     type="number" min="1"
                     value={editDuration}
                     onChange={e => setEditDuration(e.target.value)}
-                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
+                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#00a79d] bg-[#F8F9FA]"
                     style={{ fontFamily: 'var(--font-body)' }}
                   />
                 </div>
@@ -478,7 +478,7 @@ function SessionCard({
                     type="number" min="0"
                     value={editXP}
                     onChange={e => setEditXP(e.target.value)}
-                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
+                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#00a79d] bg-[#F8F9FA]"
                     style={{ fontFamily: 'var(--font-body)' }}
                   />
                 </div>
@@ -487,7 +487,7 @@ function SessionCard({
                   <select
                     value={editLevel}
                     onChange={e => setEditLevel(e.target.value as BubbleLevel)}
-                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
+                    className="text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#00a79d] bg-[#F8F9FA]"
                     style={{ fontFamily: 'var(--font-body)' }}
                   >
                     <option>Beginner</option>
@@ -556,7 +556,7 @@ function SessionCard({
                 className={`px-5 py-3.5 border-b border-[#F8F9FA] last:border-0 ${isReadOnly ? 'opacity-40' : ''}`}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <SectionIcon className={`size-4 shrink-0 ${isReadOnly ? 'text-[#ADB5BD]' : 'text-[#2BBFAA]'}`} strokeWidth={1.75} />
+                  <SectionIcon className={`size-4 shrink-0 ${isReadOnly ? 'text-[#ADB5BD]' : 'text-[#00a79d]'}`} strokeWidth={1.75} />
                   <p className="text-[13px] font-semibold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
                     {section.title}
                   </p>
@@ -583,7 +583,7 @@ function SessionCard({
                         ? 'Describe the project task for this session…'
                         : 'Enter content…'
                     }
-                    className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] text-[13px] bg-[#F8F9FA] resize-none"
+                    className="w-full px-3 py-2 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#00a79d] text-[13px] bg-[#F8F9FA] resize-none"
                     style={{ fontFamily: 'var(--font-body)' }}
                   />
                 )}
@@ -632,7 +632,7 @@ function SessionCard({
               level:    editLevel,
               sections: editSections,
             })}
-            className="px-4 py-2 rounded-xl bg-[#2BBFAA] text-white text-[13px] font-semibold hover:bg-[#1FA090] transition-colors"
+            className="px-4 py-2 rounded-xl bg-[#00a79d] text-white text-[13px] font-semibold hover:bg-[#008f86] transition-colors"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             Save
@@ -645,7 +645,7 @@ function SessionCard({
         <div className="h-1 bg-[#F1F3F5]">
           <div
             className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${progress}%`, background: '#2BBFAA' }}
+            style={{ width: `${progress}%`, background: '#00a79d' }}
           />
         </div>
       )}
@@ -658,7 +658,7 @@ function SessionCard({
             return (
               <div key={section.id} className="border-b border-[#F8F9FA] last:border-0 px-5 py-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <SectionIcon className="size-4 text-[#2BBFAA]" strokeWidth={1.75} />
+                  <SectionIcon className="size-4 text-[#00a79d]" strokeWidth={1.75} />
                   <p className="font-semibold text-[14px] text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
                     {section.title}
                   </p>
@@ -686,11 +686,11 @@ function SessionCard({
                         )}
                         {v.url && (
                           <a href={v.url} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-[13px] text-[#2BBFAA] font-medium hover:underline"
+                            className="inline-flex items-center gap-2 text-[13px] text-[#00a79d] font-medium hover:underline"
                             style={{ fontFamily: 'var(--font-body)' }}>
                             <svg className="size-4 shrink-0" fill="none" viewBox="0 0 20 20">
-                              <path d="M8 5.14v9.72L15.5 10 8 5.14z" fill="#2BBFAA" />
-                              <circle cx="10" cy="10" r="8" stroke="#2BBFAA" strokeWidth="1.5" />
+                              <path d="M8 5.14v9.72L15.5 10 8 5.14z" fill="#00a79d" />
+                              <circle cx="10" cy="10" r="8" stroke="#00a79d" strokeWidth="1.5" />
                             </svg>
                             Watch on YouTube
                           </a>
@@ -711,12 +711,12 @@ function SessionCard({
                       <input
                         type="url" value={projectUrl} onChange={e => setProjectUrl(e.target.value)}
                         placeholder="https://your-project-url.com"
-                        className="flex-1 px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+                        className="flex-1 px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d]"
                         style={{ fontFamily: 'var(--font-body)' }}
                       />
                       <button
                         onClick={() => { setSavedProject(true); onUpdate({ ...session, projectUrl }); }}
-                        className="px-4 py-2 rounded-lg bg-[#2BBFAA] text-white text-[13px] font-medium hover:bg-[#1FA090] transition-colors"
+                        className="px-4 py-2 rounded-lg bg-[#00a79d] text-white text-[13px] font-medium hover:bg-[#008f86] transition-colors"
                         style={{ fontFamily: 'var(--font-body)' }}>
                         {savedProject ? <><Check className="size-3.5 inline" strokeWidth={2.5} /> Saved</> : 'Submit'}
                       </button>
@@ -726,7 +726,7 @@ function SessionCard({
 
                 {section.type === 'ai-eval' && (
                   section.content ? (
-                    <div className="flex items-start gap-2 bg-[#E8F9F7] rounded-xl p-3 text-[13px] text-[#1FA090]"
+                    <div className="flex items-start gap-2 bg-[#E5F5F4] rounded-xl p-3 text-[13px] text-[#008f86]"
                       style={{ fontFamily: 'var(--font-body)' }}>
                       <Bot className="size-4 shrink-0 mt-0.5" strokeWidth={1.75} />
                       {section.content}
@@ -750,8 +750,8 @@ function SessionCard({
                             className="size-9 rounded-full border text-[14px] font-semibold transition-all"
                             style={{
                               fontFamily: 'var(--font-body)',
-                              background: confidence >= n ? '#2BBFAA' : 'white',
-                              borderColor: confidence >= n ? '#2BBFAA' : '#E9ECEF',
+                              background: confidence >= n ? '#00a79d' : 'white',
+                              borderColor: confidence >= n ? '#00a79d' : '#E9ECEF',
                               color: confidence >= n ? 'white' : '#ADB5BD',
                             }}>
                             {n}
@@ -764,12 +764,12 @@ function SessionCard({
                       value={reflectionNote}
                       onChange={e => setNote(e.target.value)}
                       placeholder="What challenged you most? What did you learn?"
-                      className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA] resize-none"
+                      className="px-3 py-2 rounded-lg border border-[#E9ECEF] text-[13px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d] resize-none"
                       style={{ fontFamily: 'var(--font-body)' }}
                     />
                     <button
                       onClick={() => { setSavedReflect(true); onUpdate({ ...session, reflectionNote, confidenceRating: confidence }); }}
-                      className="self-end px-4 py-2 rounded-lg bg-[#2BBFAA] text-white text-[13px] font-medium hover:bg-[#1FA090] transition-colors"
+                      className="self-end px-4 py-2 rounded-lg bg-[#00a79d] text-white text-[13px] font-medium hover:bg-[#008f86] transition-colors"
                       style={{ fontFamily: 'var(--font-body)' }}>
                       {savedReflect ? <><Check className="size-3.5 inline" strokeWidth={2.5} /> Saved</> : 'Save reflection'}
                     </button>
@@ -928,7 +928,7 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
     <div className="flex flex-col gap-5">
       {/* Top Banner */}
       <div className="rounded-2xl px-5 pt-5 pb-4 text-white"
-        style={{ background: 'linear-gradient(135deg, #2BBFAA 0%, #1FA090 100%)' }}>
+        style={{ background: 'linear-gradient(135deg, #00a79d 0%, #008f86 100%)' }}>
         <div className="flex items-end gap-4">
           <div className="flex-1">
             {/* Session count + % */}
@@ -974,7 +974,7 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
         {isFounder && (
           <button
             onClick={addSessionAndEdit}
-            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors shrink-0"
+            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors shrink-0"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             <Plus className="size-4" strokeWidth={1.75} />

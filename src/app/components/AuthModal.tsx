@@ -35,17 +35,17 @@ export function AuthModal({ onClose, onSuccess }: Props) {
         {/* Content */}
         <div className="px-6 pt-8 pb-6 flex flex-col items-center gap-5 text-center">
           {/* Logo */}
-          <div className="size-16 rounded-2xl bg-[#E8F9F7] flex items-center justify-center">
+          <div className="size-16 rounded-2xl bg-[#E5F5F4] flex items-center justify-center">
             <svg className="size-9" fill="none" viewBox="0 0 32 32">
               <circle cx="16" cy="16" r="13" fill="url(#am-g1)" fillOpacity="0.3" />
               <circle cx="16" cy="16" r="13" stroke="url(#am-g2)" strokeWidth="2" />
               <ellipse cx="16" cy="10" fill="url(#am-g3)" fillOpacity="0.5" rx="6" ry="3.5" />
               <defs>
                 <linearGradient id="am-g1" x1="16" x2="16" y1="3" y2="29" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#2BBFAA" /><stop offset="1" stopColor="#1FA090" stopOpacity="0" />
+                  <stop stopColor="#00a79d" /><stop offset="1" stopColor="#008f86" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id="am-g2" x1="3" x2="29" y1="16" y2="16" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#2BBFAA" /><stop offset="1" stopColor="#1FA090" />
+                  <stop stopColor="#00a79d" /><stop offset="1" stopColor="#008f86" />
                 </linearGradient>
                 <linearGradient id="am-g3" x1="16" x2="16" y1="6" y2="14" gradientUnits="userSpaceOnUse">
                   <stop stopColor="white" /><stop offset="1" stopColor="white" stopOpacity="0" />
@@ -56,7 +56,7 @@ export function AuthModal({ onClose, onSuccess }: Props) {
 
           <div>
             <h2 className="font-bold text-[20px] text-[#212529] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-              Welcome to We Learn
+              Welcome to WE Bubbles
             </h2>
             <p className="text-[14px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
               Sign in to join Bubbles, track your progress, and connect with your learning community.

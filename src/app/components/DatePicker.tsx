@@ -73,7 +73,7 @@ export function DatePicker({ value, onChange, selectClassName = '' }: Props) {
     onChange(formatDate(month, clampedDay, y));
   }
 
-  const base = `text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA] ${selectClassName}`;
+  const base = `text-[13px] px-2 py-1.5 rounded-lg border border-[#E9ECEF] focus:outline-none focus:border-[#00a79d] bg-[#F8F9FA] ${selectClassName}`;
 
   return (
     <div className="flex items-center gap-2 flex-wrap">

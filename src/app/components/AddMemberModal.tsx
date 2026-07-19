@@ -34,7 +34,7 @@ export function AddMemberModal({ bubbleTitle, onClose }: Props) {
         style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
         <div className="px-5 pt-5 pb-4 border-b border-[#E9ECEF] flex items-center justify-between">
           <h3 className="font-bold text-[17px] text-[#212529] flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-            <UserPlus className="size-5 text-[#2BBFAA]" strokeWidth={1.75} />
+            <UserPlus className="size-5 text-[#00a79d]" strokeWidth={1.75} />
             Add a member
           </h3>
           <button onClick={onClose} className="text-[#ADB5BD] hover:text-[#495057] transition-colors">
@@ -48,7 +48,7 @@ export function AddMemberModal({ bubbleTitle, onClose }: Props) {
           </p>
 
           {sent ? (
-            <div className="bg-[#E8F9F7] rounded-xl p-3 text-[13px] text-[#1FA090]" style={{ fontFamily: 'var(--font-body)' }}>
+            <div className="bg-[#E5F5F4] rounded-xl p-3 text-[13px] text-[#008f86]" style={{ fontFamily: 'var(--font-body)' }}>
               ✓ Invite sent to <strong>{email}</strong>!
             </div>
           ) : (
@@ -60,12 +60,12 @@ export function AddMemberModal({ bubbleTitle, onClose }: Props) {
                 <input
                   type="email" value={email} onChange={e => setEmail(e.target.value)} required
                   placeholder="friend@example.com"
-                  className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#2BBFAA]"
+                  className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] text-[14px] bg-[#F8F9FA] focus:outline-none focus:border-[#00a79d]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 />
               </div>
               <button type="submit"
-                className="py-2.5 rounded-xl bg-[#2BBFAA] text-white text-[14px] font-semibold hover:bg-[#1FA090] transition-colors"
+                className="py-2.5 rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}>
                 Send invite
               </button>
@@ -87,7 +87,7 @@ export function AddMemberModal({ bubbleTitle, onClose }: Props) {
               <button onClick={handleCopy} type="button"
                 className="shrink-0 px-3 py-2.5 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] transition-colors"
                 title="Copy link">
-                {copied ? <Check className="size-4 text-[#2BBFAA]" strokeWidth={1.75} /> : <Copy className="size-4 text-[#6C757D]" strokeWidth={1.75} />}
+                {copied ? <Check className="size-4 text-[#00a79d]" strokeWidth={1.75} /> : <Copy className="size-4 text-[#6C757D]" strokeWidth={1.75} />}
               </button>
             </div>
           </div>

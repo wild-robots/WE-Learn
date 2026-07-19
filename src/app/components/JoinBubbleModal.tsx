@@ -96,9 +96,9 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
           {step === 'auth' && (
             <div className="flex flex-col gap-4">
               <div className="text-center py-2">
-                <div className="size-14 bg-[#E8F9F7] rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <div className="size-14 bg-[#E5F5F4] rounded-2xl flex items-center justify-center mx-auto mb-3">
                   <svg className="size-7" fill="none" viewBox="0 0 24 24">
-                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke="#2BBFAA" strokeWidth="1.5" strokeLinecap="round" />
+                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke="#00a79d" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                 </div>
                 <p className="text-[16px] font-semibold text-[#212529] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
@@ -139,7 +139,7 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
               <div className="flex gap-3">
                 <button
                   onClick={() => handleSchedule(true)}
-                  className="flex-1 py-3 rounded-xl bg-[#E8F9F7] text-[#1FA090] font-semibold text-[14px] hover:bg-[#d0f5f1] transition-colors"
+                  className="flex-1 py-3 rounded-xl bg-[#E5F5F4] text-[#008f86] font-semibold text-[14px] hover:bg-[#d0f5f1] transition-colors"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   Yes, works for me
@@ -171,7 +171,7 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
                       </div>
                       <button
                         onClick={onClose}
-                        className="text-[13px] text-[#2BBFAA] font-semibold hover:underline shrink-0"
+                        className="text-[13px] text-[#00a79d] font-semibold hover:underline shrink-0"
                         style={{ fontFamily: 'var(--font-body)' }}
                       >
                         View →
@@ -211,7 +211,7 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
                   value={hours}
                   onChange={e => setHours(e.target.value)}
                   placeholder="e.g. 2"
-                  className="flex-1 px-4 py-3 rounded-xl border border-[#E9ECEF] text-[15px] focus:outline-none focus:border-[#2BBFAA] bg-[#F8F9FA]"
+                  className="flex-1 px-4 py-3 rounded-xl border border-[#E9ECEF] text-[15px] focus:outline-none focus:border-[#00a79d] bg-[#F8F9FA]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 />
                 <span className="flex items-center text-[14px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
@@ -234,7 +234,7 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
                 className="w-full py-3 rounded-xl font-semibold text-[14px] transition-all disabled:opacity-40"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  background: '#2BBFAA',
+                  background: '#00a79d',
                   color: 'white',
                 }}
               >
@@ -273,9 +273,9 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
                     className="w-full py-3 rounded-xl border text-[14px] font-semibold transition-colors"
                     style={{
                       fontFamily: 'var(--font-body)',
-                      background: l === bubble.level ? '#E8F9F7' : 'white',
-                      borderColor: l === bubble.level ? '#A8E8E2' : '#E9ECEF',
-                      color: l === bubble.level ? '#1FA090' : '#495057',
+                      background: l === bubble.level ? '#E5F5F4' : 'white',
+                      borderColor: l === bubble.level ? '#7ECFCA' : '#E9ECEF',
+                      color: l === bubble.level ? '#008f86' : '#495057',
                     }}
                   >
                     {l}
@@ -299,7 +299,7 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
               </p>
               <button
                 onClick={onClose}
-                className="w-full py-3 rounded-xl border border-[#2BBFAA] text-[#2BBFAA] font-semibold text-[14px] hover:bg-[#E8F9F7] transition-colors"
+                className="w-full py-3 rounded-xl border border-[#00a79d] text-[#00a79d] font-semibold text-[14px] hover:bg-[#E5F5F4] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 Join Waitlist
@@ -310,8 +310,8 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
           {/* ── Step: Confirm ── */}
           {step === 'confirm' && (
             <div className="flex flex-col gap-4">
-              <div className="bg-[#E8F9F7] rounded-xl p-4">
-                <p className="text-[14px] font-semibold text-[#1FA090] mb-2 flex items-center gap-1.5" style={{ fontFamily: 'var(--font-display)' }}>
+              <div className="bg-[#E5F5F4] rounded-xl p-4">
+                <p className="text-[14px] font-semibold text-[#008f86] mb-2 flex items-center gap-1.5" style={{ fontFamily: 'var(--font-display)' }}>
                   <CheckCircle2 className="size-4 shrink-0" strokeWidth={2} /> You're a great fit!
                 </p>
                 <p className="text-[13px] text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
@@ -324,7 +324,7 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
                     'Showing up prepared and contributing to the group',
                   ].map(c => (
                     <li key={c} className="flex items-start gap-2 text-[13px] text-[#495057]" style={{ fontFamily: 'var(--font-body)' }}>
-                      <Check className="size-3.5 text-[#2BBFAA] mt-0.5 shrink-0" strokeWidth={2.5} />
+                      <Check className="size-3.5 text-[#00a79d] mt-0.5 shrink-0" strokeWidth={2.5} />
                       {c}
                     </li>
                   ))}
@@ -338,8 +338,8 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
               )}
               <button
                 onClick={handleConfirm}
-                className="w-full py-3 rounded-xl font-bold text-[15px] text-white transition-all hover:bg-[#1FA090]"
-                style={{ background: '#2BBFAA', fontFamily: 'var(--font-body)' }}
+                className="w-full py-3 rounded-xl font-bold text-[15px] text-white transition-all hover:bg-[#008f86]"
+                style={{ background: '#00a79d', fontFamily: 'var(--font-body)' }}
               >
                 I'm in — Join Bubble
               </button>
@@ -356,8 +356,8 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
           {/* ── Step: Done ── */}
           {step === 'done' && (
             <div className="flex flex-col items-center gap-4 py-4 text-center">
-              <div className="size-16 bg-[#E8F9F7] rounded-2xl flex items-center justify-center">
-                <PartyPopper className="size-8 text-[#2BBFAA]" strokeWidth={1.5} />
+              <div className="size-16 bg-[#E5F5F4] rounded-2xl flex items-center justify-center">
+                <PartyPopper className="size-8 text-[#00a79d]" strokeWidth={1.5} />
               </div>
               <p className="text-[18px] font-bold text-[#212529]" style={{ fontFamily: 'var(--font-display)' }}>
                 Welcome to the Bubble!
@@ -367,8 +367,8 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
               </p>
               <button
                 onClick={onEnter}
-                className="w-full py-3 rounded-xl font-bold text-[15px] text-white hover:bg-[#1FA090] transition-colors"
-                style={{ background: '#2BBFAA', fontFamily: 'var(--font-body)' }}
+                className="w-full py-3 rounded-xl font-bold text-[15px] text-white hover:bg-[#008f86] transition-colors"
+                style={{ background: '#00a79d', fontFamily: 'var(--font-body)' }}
               >
                 Enter Bubble →
               </button>

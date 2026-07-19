@@ -2111,7 +2111,7 @@ function Span37() {
   return (
     <div className="flex-[1_0_0] h-[22.5px] min-h-px min-w-px relative" data-name="span">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
-        <p className="-translate-x-1/2 absolute font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[22.5px] left-[34px] not-italic text-[#101828] text-[15px] text-center top-[-1px]">We Learn</p>
+        <p className="-translate-x-1/2 absolute font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[22.5px] left-[34px] not-italic text-[#101828] text-[15px] text-center top-[-1px]">WE Bubbles</p>
       </div>
     </div>
   );
@@ -2197,9 +2197,9 @@ function Header() {
   );
 }
 
-export default function WeLearnV() {
+export default function WEBubblesV() {
   return (
-    <div className="bg-white relative size-full" data-name="We Learn - V001">
+    <div className="bg-white relative size-full" data-name="WE Bubbles - V001">
       <Body />
       <Aside />
       <Header />
