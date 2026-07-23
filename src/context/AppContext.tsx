@@ -47,10 +47,14 @@ function loadFromStorage(): { userId: string | null; joinedBubbles: string[]; re
 export function AppProvider({ children }: { children: ReactNode }) {
   const stored = loadFromStorage();
 
-  // Always default to MOCK_ME in this demo — auth modal still works for join flow
-  const [currentUser, setCurrentUser] = useState<User | null>(
-    { ...MOCK_ME, joinedBubbles: stored.joinedBubbles }
-  );
+  // Always default to MOCK_ME. Merge stored joins with seed data so both
+  // pre-seeded memberships (MOCK_ME.joinedBubbles) and any joins the user
+  // completed in a prior session (stored.joinedBubbles) are reflected.
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const seedJoins = MOCK_ME.joinedBubbles;
+    const storedJoins = stored.joinedBubbles;
+    return { ...MOCK_ME, joinedBubbles: [...new Set([...seedJoins, ...storedJoins])] };
+  });
   const [bubbles, setBubbles] = useState<Bubble[]>(MOCK_BUBBLES);
   const [recentBubbleIds, setRecentBubbleIds] = useState<string[]>(stored.recentBubbleIds);
 

@@ -18,9 +18,10 @@ const HERO_IMAGES = {
   ai:       'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&fit=crop',
   ux:       'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=600&fit=crop',
   research: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&fit=crop',
-  product:  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&fit=crop',
+  product:  'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&fit=crop',
+  strategy: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&fit=crop',
   design:   'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&fit=crop',
-  systems:  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&fit=crop',
+  systems:  'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&fit=crop',
 };
 
 // ─── Current User (mock "me") ─────────────────────────────────────────────────
@@ -238,7 +239,7 @@ export const MOCK_BUBBLES: Bubble[] = [
     startDate: 'Mar 19, 2026',
     founderId: 'user-tamar',
     memberIds: ['user-tamar', 'user-noa'],
-    heroImage: HERO_IMAGES.product,
+    heroImage: HERO_IMAGES.strategy,
     sessions: makeSessions(6, 0),
     resources: makeResources('user-tamar'),
   },

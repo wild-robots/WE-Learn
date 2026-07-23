@@ -351,8 +351,11 @@ export function LandingPage() {
       {/* ── Header ── */}
       <header className="flex items-center px-6 py-3.5 border-b border-[#E9ECEF] sticky top-0 bg-white/95 backdrop-blur z-20 gap-4">
         {/* Logo */}
-        <div className="flex items-center">
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
           <WELogo className="h-8 w-auto" />
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: '16px', color: '#495057', lineHeight: 1, paddingBottom: '2px' }}>
+            WE Bubbles
+          </span>
         </div>
 
         {/* Tabs — left side, next to logo */}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search, MoreVertical, Pencil, Trash2, Copy, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search, MoreVertical, Pencil, Trash2, Copy, Eye, EyeOff, Check } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { getBubbleById, getBubbleMembers } from "../../data/mock";
 import { SyllabusTab } from "./SyllabusTab";
@@ -48,6 +48,7 @@ export function GroupPage() {
   const [activeTab, setActiveTab]       = useState<Tab>('syllabus');
   const [guestPreview, setGuestPreview] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [bubbleMenuOpen, setBubbleMenuOpen] = useState(false);
   const [editingBubble, setEditingBubble]   = useState(false);
@@ -102,7 +103,8 @@ export function GroupPage() {
   const founder = members.find(m => m.id === bubble.founderId);
   const isUserFounder = isFounder(bubble.id) && !guestPreview;
 
-  const userJoined = isJoined(bubble.id) && !guestPreview;
+  const userId = currentUser?.id ?? 'user-me';
+  const userJoined = (hasJoined || isJoined(bubble.id) || bubble.memberIds.includes(userId)) && !guestPreview;
 
   const tabs: { id: Tab; label: string; icon: typeof BookOpen; founderOnly?: boolean }[] = [
     { id: 'syllabus',  label: 'Syllabus',  icon: BookOpen, founderOnly: false },
@@ -358,15 +360,7 @@ export function GroupPage() {
             </div>
           </div>
 
-          {/* Founder badge — absolute bottom-right watermark, hidden while editing */}
-          {isFounder(bubble.id) && !editingBubble && (
-            <span className="absolute bottom-5 right-6 inline-flex items-center gap-1 text-[11px] bg-[#E5F5F4] text-[#008f86] border border-[#7ECFCA] px-2 py-0.5 rounded-full font-semibold"
-              style={{ fontFamily: 'var(--font-body)' }}>
-              <Crown className="size-3 shrink-0" strokeWidth={1.75} /> You're the founder
-            </span>
-          )}
-
-          {/* Card footer: Save/Cancel (edit) or Join CTA (visitors) */}
+          {/* Card footer: Save/Cancel (edit) | Join CTA (visitor) | Founder badge (founder) */}
           {editingBubble ? (
             <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex justify-end gap-2">
               <button
@@ -400,6 +394,23 @@ export function GroupPage() {
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 Join Bubble <ArrowRight className="size-4" strokeWidth={2} />
+              </button>
+            </div>
+          ) : isUserFounder ? (
+            <div className="mt-4 pt-3 border-t border-[#F1F3F5] flex justify-end">
+              <span className="inline-flex items-center gap-1 text-[11px] bg-[#E5F5F4] text-[#008f86] border border-[#7ECFCA] px-2 py-0.5 rounded-full font-semibold"
+                style={{ fontFamily: 'var(--font-body)' }}>
+                <Crown className="size-3 shrink-0" strokeWidth={1.75} /> You're the founder
+              </span>
+            </div>
+          ) : userJoined ? (
+            <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex justify-end">
+              <button
+                disabled
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-[#7ECFCA] bg-[#E5F5F4] text-[#008f86] text-[14px] font-semibold cursor-default select-none"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                <Check className="size-4" strokeWidth={2.5} /> Joined
               </button>
             </div>
           ) : null}
@@ -462,7 +473,7 @@ export function GroupPage() {
         <JoinBubbleModal
           bubble={bubble}
           onClose={() => setShowJoin(false)}
-          onEnter={() => setShowJoin(false)}
+          onEnter={() => { setHasJoined(true); setShowJoin(false); }}
         />
       )}
 
