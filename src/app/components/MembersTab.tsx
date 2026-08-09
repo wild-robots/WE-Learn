@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Crown, Search, UserPlus, ArrowRight } from "lucide-react";
-import { getBubbleMembers } from "../../data/mock";
+import { getBubbleMembers } from "../../data/display";
+import { removeMember as removeMemberApi } from "../../data/api";
+import { useApp } from "../../context/AppContext";
 import { AddMemberModal } from "./AddMemberModal";
 import type { Bubble, Member } from "../../types";
 
@@ -84,9 +87,15 @@ function MemberCard({ member, isFounder, onRemove }: { member: Member; isFounder
 }
 
 export function MembersTab({ bubble, isFounder, onJoin }: Props) {
+  const { refreshBubbles } = useApp();
   const [search, setSearch] = useState('');
   const [members, setMembers] = useState<Member[]>(getBubbleMembers(bubble));
   const [showAddMember, setShowAddMember] = useState(false);
+
+  // Keep in sync when the member list arrives/changes from the database
+  useEffect(() => {
+    setMembers(getBubbleMembers(bubble));
+  }, [bubble.members]);
 
   const filtered = members.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -94,7 +103,14 @@ export function MembersTab({ bubble, isFounder, onJoin }: Props) {
   );
 
   function removeMember(id: string) {
+    const snapshot = members;
     setMembers(ms => ms.filter(m => m.id !== id));
+    removeMemberApi(bubble.id, id)
+      .then(() => { toast.success('Member removed'); refreshBubbles(); })
+      .catch(() => {
+        setMembers(snapshot);
+        toast.error('Could not remove this member');
+      });
   }
 
   const founders = filtered.filter(m => m.role === 'founder');

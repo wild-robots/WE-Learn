@@ -1,6 +1,9 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import {
+  createContext, useContext, useState, useEffect, useCallback, type ReactNode,
+} from 'react';
 import type { User, Bubble } from '../types';
-import { MOCK_ME, MOCK_BUBBLES } from '../data/mock';
+import { supabase } from '../lib/supabase';
+import * as api from '../data/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -8,18 +11,22 @@ interface AppContextValue {
   // Auth
   currentUser: User | null;
   isLoggedIn: boolean;
-  login: () => void;   // mock: instantly logs in as MOCK_ME
-  logout: () => void;
+  authReady: boolean;               // false until the initial session check completes
+  login: () => void;                // starts the Google sign-in redirect
+  logout: () => Promise<void>;
 
-  // Bubbles (mutable list)
+  // Bubbles
   bubbles: Bubble[];
-  addBubble: (bubble: Bubble) => void;
+  bubblesLoading: boolean;
+  refreshBubbles: () => Promise<void>;
+  loadBubbleDetail: (bubbleId: string) => Promise<void>;
+  createBubble: (input: api.CreateBubbleInput) => Promise<string>;
   updateBubble: (id: string, patch: Partial<Bubble>) => void;
   deleteBubble: (id: string) => void;
 
   // Join / Leave
-  joinBubble: (bubbleId: string) => void;
-  leaveBubble: (bubbleId: string) => void;
+  joinBubble: (bubbleId: string) => Promise<'joined' | 'waitlisted'>;
+  leaveBubble: (bubbleId: string) => Promise<void>;
   isJoined: (bubbleId: string) => boolean;
   isFounder: (bubbleId: string) => boolean;
 
@@ -28,87 +35,149 @@ interface AppContextValue {
   addRecentBubble: (bubbleId: string) => void;
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
-
 const AppContext = createContext<AppContextValue | null>(null);
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'welearn_state';
-
-function loadFromStorage(): { userId: string | null; joinedBubbles: string[]; recentBubbleIds: string[] } {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { recentBubbleIds: [], ...JSON.parse(raw) };
-  } catch {}
-  return { userId: null, joinedBubbles: [], recentBubbleIds: [] };
-}
+const RECENT_KEY = 'welearn_recent';
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const stored = loadFromStorage();
-
-  // Always default to MOCK_ME. Merge stored joins with seed data so both
-  // pre-seeded memberships (MOCK_ME.joinedBubbles) and any joins the user
-  // completed in a prior session (stored.joinedBubbles) are reflected.
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const seedJoins = MOCK_ME.joinedBubbles;
-    const storedJoins = stored.joinedBubbles;
-    return { ...MOCK_ME, joinedBubbles: [...new Set([...seedJoins, ...storedJoins])] };
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const [bubblesLoading, setBubblesLoading] = useState(true);
+  const [recentBubbleIds, setRecentBubbleIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]'); } catch { return []; }
   });
-  const [bubbles, setBubbles] = useState<Bubble[]>(MOCK_BUBBLES);
-  const [recentBubbleIds, setRecentBubbleIds] = useState<string[]>(stored.recentBubbleIds);
 
-  // Persist to localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      userId: currentUser?.id ?? null,
-      joinedBubbles: currentUser?.joinedBubbles ?? [],
-      recentBubbleIds,
-    }));
-  }, [currentUser, recentBubbleIds]);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(recentBubbleIds));
+  }, [recentBubbleIds]);
 
-  function addRecentBubble(bubbleId: string) {
-    setRecentBubbleIds(ids => [bubbleId, ...ids.filter(id => id !== bubbleId)].slice(0, 5));
-  }
+  const refreshBubbles = useCallback(async (signedIn?: boolean) => {
+    setBubblesLoading(true);
+    try {
+      const authed = signedIn ?? !!(await supabase.auth.getSession()).data.session;
+      const fresh = await api.fetchBubbles(authed);
+      // Preserve already-loaded details (sessions/resources) across refreshes.
+      setBubbles(prev => fresh.map(b => {
+        const old = prev.find(p => p.id === b.id);
+        return old?.detailLoaded
+          ? { ...b, sessions: old.sessions, resources: old.resources, detailLoaded: true }
+          : b;
+      }));
+    } catch (err) {
+      console.error('Failed to load bubbles', err);
+    } finally {
+      setBubblesLoading(false);
+    }
+  }, []);
+
+  // ─── Auth lifecycle ────────────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+
+    async function syncUser(signedIn: boolean) {
+      const user = signedIn ? await api.fetchCurrentUser() : null;
+      if (cancelled) return;
+      setCurrentUser(user);
+      setAuthReady(true);
+      refreshBubbles(signedIn);
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => syncUser(!!session));
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        supabase.auth.getSession().then(({ data: { session } }) => syncUser(!!session));
+      }
+    });
+
+    return () => { cancelled = true; subscription.unsubscribe(); };
+  }, [refreshBubbles]);
+
+  // ─── Auth actions ──────────────────────────────────────────────────────────
 
   function login() {
-    setCurrentUser({ ...MOCK_ME, joinedBubbles: stored.joinedBubbles });
+    // Redirects the browser to Google; the page navigates away and back.
+    api.signInWithGoogle().catch(err => console.error('Sign-in failed', err));
   }
 
-  function logout() {
+  async function logout() {
+    await api.signOut();
     setCurrentUser(null);
+    refreshBubbles(false);
   }
 
-  function joinBubble(bubbleId: string) {
-    if (!currentUser) return;
-    // Update user's joined list
-    setCurrentUser(u => u ? { ...u, joinedBubbles: [...new Set([...u.joinedBubbles, bubbleId])] } : u);
-    // Update bubble's member count + memberIds
-    setBubbles(bs => bs.map(b => {
-      if (b.id !== bubbleId) return b;
-      const already = b.memberIds.includes(currentUser.id);
-      if (already) return b;
-      return {
-        ...b,
-        memberIds: [...b.memberIds, currentUser.id],
-        takenSeats: Math.min(b.takenSeats + 1, b.maxSeats),
-        status: b.takenSeats + 1 >= b.maxSeats ? 'full' : b.status,
-      };
-    }));
+  // ─── Bubble data ───────────────────────────────────────────────────────────
+
+  const loadBubbleDetail = useCallback(async (bubbleId: string) => {
+    try {
+      const { sessions, resources } = await api.fetchBubbleDetail(bubbleId);
+      setBubbles(bs => bs.map(b =>
+        b.id === bubbleId ? { ...b, sessions, resources, detailLoaded: true } : b,
+      ));
+    } catch (err) {
+      // Signed-out visitors can't read syllabus/resources — that's by design.
+      console.warn('Bubble detail unavailable', err);
+    }
+  }, []);
+
+  async function createBubble(input: api.CreateBubbleInput): Promise<string> {
+    const id = await api.createBubble(input);
+    // Reload so the new bubble (and my membership in it) appears everywhere.
+    await Promise.all([
+      refreshBubbles(true),
+      api.fetchCurrentUser().then(u => setCurrentUser(u)),
+    ]);
+    return id;
   }
 
-  function leaveBubble(bubbleId: string) {
-    if (!currentUser) return;
-    setCurrentUser(u => u ? { ...u, joinedBubbles: u.joinedBubbles.filter(id => id !== bubbleId) } : u);
-    setBubbles(bs => bs.map(b => {
-      if (b.id !== bubbleId) return b;
-      return {
-        ...b,
-        memberIds: b.memberIds.filter(id => id !== currentUser.id),
-        takenSeats: Math.max(b.takenSeats - 1, 0),
-        status: b.status === 'full' ? 'open' : b.status,
-      };
-    }));
+  function updateBubble(id: string, patch: Partial<Bubble>) {
+    // Optimistic local update…
+    setBubbles(bs => bs.map(b => (b.id === id ? { ...b, ...patch } : b)));
+    // …then persist the editable fields. RLS guarantees only the founder succeeds.
+    api.updateBubbleRow(id, {
+      title: patch.title,
+      description: patch.description,
+      scheduleDay: patch.scheduleDay,
+      scheduleTime: patch.scheduleTime,
+      status: patch.status,
+      maxSeats: patch.maxSeats,
+      heroImage: patch.heroImage,
+    }).catch(err => {
+      console.error('Failed to save bubble', err);
+      refreshBubbles(); // roll back to server truth
+    });
+  }
+
+  function deleteBubble(id: string) {
+    setBubbles(bs => bs.filter(b => b.id !== id));
+    api.deleteBubbleRow(id).catch(err => {
+      console.error('Failed to delete bubble', err);
+      refreshBubbles();
+    });
+  }
+
+  // ─── Membership ────────────────────────────────────────────────────────────
+
+  async function joinBubble(bubbleId: string): Promise<'joined' | 'waitlisted'> {
+    const outcome = await api.joinBubbleRpc(bubbleId);
+    if (outcome === 'joined') {
+      setCurrentUser(u => u
+        ? { ...u, joinedBubbles: [...new Set([...u.joinedBubbles, bubbleId])] }
+        : u);
+    }
+    refreshBubbles(true);
+    return outcome;
+  }
+
+  async function leaveBubble(bubbleId: string) {
+    await api.leaveBubbleApi(bubbleId);
+    setCurrentUser(u => u
+      ? { ...u, joinedBubbles: u.joinedBubbles.filter(id => id !== bubbleId) }
+      : u);
+    refreshBubbles(true);
   }
 
   function isJoined(bubbleId: string): boolean {
@@ -116,29 +185,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   function isFounder(bubbleId: string): boolean {
+    if (!currentUser) return false;
     const bubble = bubbles.find(b => b.id === bubbleId);
-    const userId = currentUser?.id ?? 'user-me';
-    return bubble?.founderId === userId;
+    return bubble?.founderId === currentUser.id;
   }
 
-  function addBubble(bubble: Bubble) {
-    setBubbles(bs => [bubble, ...bs]);
-    joinBubble(bubble.id);
-  }
-
-  function updateBubble(id: string, patch: Partial<Bubble>) {
-    setBubbles(bs => bs.map(b => b.id === id ? { ...b, ...patch } : b));
-  }
-
-  function deleteBubble(id: string) {
-    setBubbles(bs => bs.filter(b => b.id !== id));
+  function addRecentBubble(bubbleId: string) {
+    setRecentBubbleIds(ids => [bubbleId, ...ids.filter(id => id !== bubbleId)].slice(0, 5));
   }
 
   return (
     <AppContext.Provider value={{
-      currentUser, isLoggedIn: !!currentUser,
+      currentUser, isLoggedIn: !!currentUser, authReady,
       login, logout,
-      bubbles, addBubble, updateBubble, deleteBubble,
+      bubbles, bubblesLoading, refreshBubbles: () => refreshBubbles(),
+      loadBubbleDetail, createBubble, updateBubble, deleteBubble,
       joinBubble, leaveBubble, isJoined, isFounder,
       recentBubbleIds, addRecentBubble,
     }}>

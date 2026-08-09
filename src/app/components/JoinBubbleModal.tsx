@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { X, XCircle, Check, CheckCircle2, PartyPopper, AlertTriangle, Info } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import type { Bubble } from "../../types";
-import { MOCK_BUBBLES } from "../../data/mock";
 
 type Step = 'auth' | 'schedule' | 'hours' | 'experience' | 'confirm' | 'full' | 'done';
 type ExperienceLevel = 'Beginner' | 'Intermediate' | 'Advanced';
@@ -20,11 +20,12 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
   const [hours, setHours] = useState<string>('');
   const [experience, setExperience] = useState<ExperienceLevel | null>(null);
 
+  const [joining, setJoining] = useState(false);
   const isFull = bubble.takenSeats >= bubble.maxSeats;
 
   function handleLogin() {
+    // Redirects to Google sign-in; the page navigates away and comes back signed in.
     login();
-    setStep(isFull ? 'full' : 'schedule');
   }
 
   function handleSchedule(ok: boolean) {
@@ -52,8 +53,25 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
   }
 
   function handleConfirm() {
-    joinBubble(bubble.id);
-    setStep('done');
+    if (joining) return;
+    setJoining(true);
+    joinBubble(bubble.id)
+      .then(outcome => setStep(outcome === 'joined' ? 'done' : 'full'))
+      .catch(() => toast.error('Could not join right now — please try again.'))
+      .finally(() => setJoining(false));
+  }
+
+  function handleWaitlist() {
+    if (joining) return;
+    setJoining(true);
+    joinBubble(bubble.id)
+      .then(outcome => {
+        if (outcome === 'waitlisted') toast.success("You're on the waitlist — we'll let you know when a spot opens.");
+        else setStep('done'); // a seat opened up in the meantime!
+        if (outcome === 'waitlisted') onClose();
+      })
+      .catch(() => toast.error('Could not join the waitlist — please try again.'))
+      .finally(() => setJoining(false));
   }
 
   // Find alternative bubble on same topic
@@ -298,11 +316,12 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
                 All {bubble.maxSeats} spots are taken. You can join the waitlist and we'll notify you when a spot opens.
               </p>
               <button
-                onClick={onClose}
-                className="w-full py-3 rounded-xl border border-[#00a79d] text-[#00a79d] font-semibold text-[14px] hover:bg-[#E5F5F4] transition-colors"
+                onClick={handleWaitlist}
+                disabled={joining}
+                className="w-full py-3 rounded-xl border border-[#00a79d] text-[#00a79d] font-semibold text-[14px] hover:bg-[#E5F5F4] transition-colors disabled:opacity-50"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
-                Join Waitlist
+                {joining ? 'Joining…' : 'Join Waitlist'}
               </button>
             </div>
           )}
@@ -338,10 +357,11 @@ export function JoinBubbleModal({ bubble, onClose, onEnter }: Props) {
               )}
               <button
                 onClick={handleConfirm}
-                className="w-full py-3 rounded-xl font-bold text-[15px] text-white transition-all hover:bg-[#008f86]"
+                disabled={joining}
+                className="w-full py-3 rounded-xl font-bold text-[15px] text-white transition-all hover:bg-[#008f86] disabled:opacity-50"
                 style={{ background: '#00a79d', fontFamily: 'var(--font-body)' }}
               >
-                I'm in — Join Bubble
+                {joining ? 'Joining…' : "I'm in — Join Bubble"}
               </button>
               <button
                 onClick={onClose}

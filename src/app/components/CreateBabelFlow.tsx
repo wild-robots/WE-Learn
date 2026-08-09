@@ -408,7 +408,7 @@ function SessionsWidget({
 
 export function CreateBabelFlow() {
   const navigate = useNavigate();
-  const { addBubble, currentUser } = useApp();
+  const { createBubble, currentUser } = useApp();
   const [data, setData] = useState<Partial<BubbleData>>({});
   const [currentStep, setCurrentStep] = useState<StepKey>('topic');
   const [feed, setFeed] = useState<FeedItem[]>([
@@ -455,26 +455,37 @@ export function CreateBabelFlow() {
 
   function handleLaunch(finalData: BubbleData) {
     setShowTransition(true);
-    const sessions = generateMockSessions(finalData.topic, finalData.level);
-    const newBubble: Bubble = {
-      id: `bubble-${Date.now()}`,
+    const sessions = finalData.syllabusMode === 'ai'
+      ? generateMockSessions(finalData.topic, finalData.level)
+      : [];
+
+    createBubble({
       title: finalData.topic,
       topic: finalData.topic,
       description: finalData.description,
       level: finalData.level,
-      status: 'open',
       maxSeats: finalData.seats,
-      takenSeats: 1,
       scheduleDay: finalData.day,
       scheduleTime: finalData.time,
-      startDate: 'Mar 18, 2026',
-      founderId: currentUser?.id ?? 'user-me',
-      memberIds: [currentUser?.id ?? 'user-me'],
-      sessions: finalData.syllabusMode === 'ai' ? sessions : [],
-      resources: [],
-    };
-    addBubble(newBubble);
-    setTimeout(() => navigate(`/group/${newBubble.id}`), 1800);
+      sessions: sessions.map(s => ({
+        number: s.number,
+        title: s.title,
+        level: s.level,
+        sections: s.sections.map(sec => ({
+          type: sec.type,
+          title: sec.title,
+          content: sec.content,
+          videos: sec.videos ?? (sec.videoUrl
+            ? [{ id: `${sec.id}-v1`, title: sec.videoTitle ?? sec.title, url: sec.videoUrl }]
+            : []),
+        })),
+      })),
+    })
+      .then(newId => setTimeout(() => navigate(`/group/${newId}`), 1200))
+      .catch(err => {
+        console.error('Failed to create bubble', err);
+        setShowTransition(false);
+      });
   }
 
   const stepIndex = STEP_ORDER.indexOf(currentStep);

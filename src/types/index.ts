@@ -36,9 +36,11 @@ export interface Bubble {
   startDate: string;      // "Mar 14, 2026"
   founderId: string;
   memberIds: string[];
+  members?: Member[];     // populated from the database when signed in
   sessions: Session[];
   resources: Resource[];
   heroImage?: string;
+  detailLoaded?: boolean; // true once sessions/resources have been fetched
 }
 
 // ─── Session ──────────────────────────────────────────────────────────────────

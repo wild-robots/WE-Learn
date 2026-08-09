@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search, MoreVertical, Pencil, Trash2, Copy, Eye, EyeOff, Check } from "lucide-react";
 import { useApp } from "../../context/AppContext";
-import { getBubbleById, getBubbleMembers } from "../../data/mock";
+import { getBubbleMembers } from "../../data/display";
 import { SyllabusTab } from "./SyllabusTab";
 import { MembersTab } from "./MembersTab";
 import { ResourcesTab } from "./ResourcesTab";
@@ -43,7 +43,7 @@ function AvatarStackSmall({ avatars }: { avatars: string[] }) {
 export function GroupPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { bubbles, currentUser, isFounder, isJoined, isLoggedIn, addRecentBubble, updateBubble, deleteBubble, addBubble } = useApp();
+  const { bubbles, bubblesLoading, currentUser, isFounder, isJoined, isLoggedIn, addRecentBubble, updateBubble, deleteBubble, createBubble, loadBubbleDetail } = useApp();
 
   const [activeTab, setActiveTab]       = useState<Tab>('syllabus');
   const [guestPreview, setGuestPreview] = useState(false);
@@ -71,13 +71,28 @@ export function GroupPage() {
   }, [bubbleMenuOpen]);
 
   // Find bubble from context (includes newly created ones)
-  const bubble = bubbles.find(b => b.id === id) ?? getBubbleById(id ?? '');
+  const bubble = bubbles.find(b => b.id === id);
 
   // Track this bubble as "recently viewed" for smart search
   useEffect(() => {
     if (bubble) addRecentBubble(bubble.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bubble?.id]);
+
+  // Load syllabus + resources from the database (once per bubble, when signed in)
+  useEffect(() => {
+    if (bubble && isLoggedIn && !bubble.detailLoaded) loadBubbleDetail(bubble.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bubble?.id, bubble?.detailLoaded, isLoggedIn]);
+
+  // Still fetching the bubble list — show a quiet loading state, not "not found"
+  if (!bubble && bubblesLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="size-10 rounded-full border-4 border-[#E5F5F4] border-t-[#00a79d] animate-spin" />
+      </div>
+    );
+  }
 
   if (!bubble) {
     return (
@@ -103,8 +118,8 @@ export function GroupPage() {
   const founder = members.find(m => m.id === bubble.founderId);
   const isUserFounder = isFounder(bubble.id) && !guestPreview;
 
-  const userId = currentUser?.id ?? 'user-me';
-  const userJoined = (hasJoined || isJoined(bubble.id) || bubble.memberIds.includes(userId)) && !guestPreview;
+  const userId = currentUser?.id;
+  const userJoined = (hasJoined || isJoined(bubble.id) || (!!userId && bubble.memberIds.includes(userId))) && !guestPreview;
 
   const tabs: { id: Tab; label: string; icon: typeof BookOpen; founderOnly?: boolean }[] = [
     { id: 'syllabus',  label: 'Syllabus',  icon: BookOpen, founderOnly: false },
@@ -319,18 +334,19 @@ export function GroupPage() {
                         </button>
                         <button
                           onClick={() => {
-                            const newBubble: Bubble = {
-                              ...bubble,
-                              id: `bubble-${Date.now()}`,
-                              title: `${bubble.title} (copy)`,
-                              founderId: currentUser!.id,
-                              memberIds: [currentUser!.id],
-                              takenSeats: 1,
-                              status: 'open',
-                            };
-                            addBubble(newBubble);
                             setBubbleMenuOpen(false);
-                            toast.success('Bubble duplicated');
+                            createBubble({
+                              title: `${bubble.title} (copy)`,
+                              topic: bubble.topic,
+                              description: bubble.description,
+                              level: bubble.level,
+                              maxSeats: bubble.maxSeats,
+                              scheduleDay: bubble.scheduleDay,
+                              scheduleTime: bubble.scheduleTime,
+                              heroImage: bubble.heroImage ?? null,
+                            })
+                              .then(() => toast.success('Bubble duplicated'))
+                              .catch(() => toast.error('Could not duplicate this Bubble'));
                           }}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#212529] hover:bg-[#F8F9FA] transition-colors text-left"
                           style={{ fontFamily: 'var(--font-body)' }}

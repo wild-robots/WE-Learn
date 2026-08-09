@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Settings, Bell, Globe, User as UserIcon, LogOut, Plus, Check, Sparkles, Calendar, Users as UsersIcon, ArrowRight, ChevronLeft } from "lucide-react";
 import { useApp } from "../../context/AppContext";
-import { STATUS_LABELS, STATUS_COLORS, getBubbleMembers } from "../../data/mock";
+import { STATUS_LABELS, STATUS_COLORS, getBubbleMembers } from "../../data/display";
 import type { Bubble } from "../../types";
 import { BabelTransition } from "./BabelTransition";
 import { SmartSearchBar } from "./SmartSearchBar";

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { Bubble, Session, SessionStatus, BubbleLevel, VideoEntry } from "../../types";
 import { DatePicker } from "./DatePicker";
+import * as api from "../../data/api";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -799,6 +800,11 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
   const [editingWithAI, setEditingWithAI] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ session: Session; index: number } | null>(null);
 
+  // Keep in sync when the syllabus arrives/changes from the database
+  useEffect(() => {
+    setSessions(bubble.sessions);
+  }, [bubble.sessions]);
+
   const doneCount = sessions.filter(s => s.status === 'done').length;
   const totalXP = sessions.reduce((sum, s) => sum + s.xp, 0);
   const earnedXP = sessions.filter(s => s.status === 'done').reduce((sum, s) => sum + s.xp, 0);
@@ -808,29 +814,74 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
     return ss.map((s, i) => ({ ...s, number: i + 1 }));
   }
 
-  function addSessionAndEdit() {
-    const ts = Date.now();
-    const nowDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const newId = `session-${ts}`;
-    const newSession: Session = {
-      id: newId,
-      number: sessions.length + 1,
-      title: 'New Session',
-      status: 'in-progress',
-      date: nowDate,
-      duration: 90,
-      xp: 100,
-      level: 'Intermediate',
-      sections: [
-        { id: `s-lp-${ts}`, type: 'learning-path', title: 'Learning Path', content: '' },
-        { id: `s-br-${ts}`, type: 'brief', title: 'Conceptual Brief', content: '' },
-        { id: `s-vd-${ts}`, type: 'video', title: 'Video Resources', videos: [] },
-        { id: `s-sb-${ts}`, type: 'sandbox', title: 'Project Sandbox', content: '' },
-      ],
-    };
-    setSessions(ss => [...ss, newSession]);
-    setEditingId(newId);
-    setEditingWithAI(false);
+  /** Persist the current ordering (session numbers) after move/duplicate/undo. */
+  function persistOrder(ss: Session[]) {
+    api.renumberSessions(ss.map((s, i) => ({ id: s.id, number: i + 1 })))
+      .catch(() => toast.error('Could not save the new order'));
+  }
+
+  /** Persist field + section changes of one session. */
+  function persistSessionChanges(orig: Session | undefined, next: Session) {
+    api.updateSessionRow(next.id, {
+      title: next.title,
+      status: next.status,
+      level: next.level,
+      projectUrl: next.projectUrl ?? null,
+      reflectionNote: next.reflectionNote ?? null,
+      confidenceRating: next.confidenceRating ?? null,
+    }).catch(() => toast.error('Could not save your changes'));
+
+    for (const sec of next.sections) {
+      const before = orig?.sections.find(s => s.id === sec.id);
+      const changed = !before
+        || before.title !== sec.title
+        || before.content !== sec.content
+        || JSON.stringify(before.videos ?? []) !== JSON.stringify(sec.videos ?? []);
+      if (before && changed) {
+        api.updateSectionRow(sec.id, {
+          title: sec.title,
+          content: sec.content ?? null,
+          videos: sec.videos ?? [],
+        }).catch(() => toast.error('Could not save a section'));
+      }
+    }
+  }
+
+  async function addSessionAndEdit() {
+    try {
+      const number = sessions.length + 1;
+      const newId = await api.createSessionRow(bubble.id, {
+        number, title: 'New Session', status: 'in-progress', level: 'Intermediate', xp: 100,
+      });
+      const defaults: Array<{ type: Session['sections'][number]['type']; title: string }> = [
+        { type: 'learning-path', title: 'Learning Path' },
+        { type: 'brief',         title: 'Conceptual Brief' },
+        { type: 'video',         title: 'Video Resources' },
+        { type: 'sandbox',       title: 'Project Sandbox' },
+      ];
+      const sectionIds = await Promise.all(defaults.map((d, i) =>
+        api.createSectionRow(newId, { type: d.type, title: d.title, content: '', position: i }),
+      ));
+      const newSession: Session = {
+        id: newId,
+        number,
+        title: 'New Session',
+        status: 'in-progress',
+        date: 'TBD',
+        duration: 90,
+        xp: 100,
+        level: 'Intermediate',
+        sections: defaults.map((d, i) => ({
+          id: sectionIds[i], type: d.type, title: d.title,
+          content: '', videos: [],
+        })),
+      };
+      setSessions(ss => [...ss, newSession]);
+      setEditingId(newId);
+      setEditingWithAI(false);
+    } catch {
+      toast.error('Could not add a session — please try again.');
+    }
   }
 
   function startEdit(id: string, withAI: boolean) {
@@ -840,7 +891,9 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
   }
 
   function saveEdit(id: string, updates: Partial<Session>) {
+    const orig = sessions.find(s => s.id === id);
     setSessions(ss => ss.map(s => s.id === id ? { ...s, ...updates } : s));
+    if (orig) persistSessionChanges(orig, { ...orig, ...updates });
     setEditingId(null);
     setEditingWithAI(false);
   }
@@ -850,22 +903,43 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
     setEditingWithAI(false);
   }
 
-  function duplicate(id: string) {
+  async function duplicate(id: string) {
     const idx = sessions.findIndex(s => s.id === id);
     if (idx === -1) return;
     const orig = sessions[idx];
-    const copy: Session = {
-      ...orig,
-      id: `s-copy-${Date.now()}`,
-      title: `${orig.title} (Copy)`,
-      status: 'locked',
-    };
-    setSessions(ss => {
-      const next = [...ss];
-      next.splice(idx + 1, 0, copy);
-      return reflowNumbers(next);
-    });
-    toast('Section duplicated.');
+    try {
+      const newId = await api.createSessionRow(bubble.id, {
+        number: idx + 2, // will be reflowed below
+        title: `${orig.title} (Copy)`,
+        status: 'locked',
+        level: orig.level,
+        xp: orig.xp,
+        duration: orig.duration,
+      });
+      const sectionIds = await Promise.all(orig.sections.map((sec, i) =>
+        api.createSectionRow(newId, {
+          type: sec.type, title: sec.title, content: sec.content ?? '',
+          videos: sec.videos ?? [], position: i,
+        }),
+      ));
+      const copy: Session = {
+        ...orig,
+        id: newId,
+        title: `${orig.title} (Copy)`,
+        status: 'locked',
+        sections: orig.sections.map((sec, i) => ({ ...sec, id: sectionIds[i] })),
+      };
+      setSessions(ss => {
+        const next = [...ss];
+        next.splice(idx + 1, 0, copy);
+        const reflowed = reflowNumbers(next);
+        persistOrder(reflowed);
+        return reflowed;
+      });
+      toast('Section duplicated.');
+    } catch {
+      toast.error('Could not duplicate — please try again.');
+    }
   }
 
   function moveUp(id: string) {
@@ -874,7 +948,9 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
       if (idx <= 0) return ss;
       const next = [...ss];
       [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-      return reflowNumbers(next);
+      const reflowed = reflowNumbers(next);
+      persistOrder(reflowed);
+      return reflowed;
     });
     setOpenMenuId(null);
   }
@@ -885,7 +961,9 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
       if (idx >= ss.length - 1) return ss;
       const next = [...ss];
       [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
-      return reflowNumbers(next);
+      const reflowed = reflowNumbers(next);
+      persistOrder(reflowed);
+      return reflowed;
     });
     setOpenMenuId(null);
   }
@@ -903,9 +981,11 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
     setSessions(ss => ss.filter(s => s.id !== removed.id));
     setDeleteTarget(null);
 
-    let undone = false;
-    const timerId = setTimeout(() => { /* soft-deleted — stays removed */ }, 5000);
+    // Soft-delete on the server immediately; Undo restores it (PRD R-07/R-12).
+    api.softDeleteSession(removed.id)
+      .catch(() => toast.error('Could not delete this session'));
 
+    let undone = false;
     toast('Section deleted.', {
       duration: 5000,
       action: {
@@ -913,12 +993,17 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
         onClick: () => {
           if (undone) return;
           undone = true;
-          clearTimeout(timerId);
-          setSessions(ss => {
-            const next = [...ss];
-            next.splice(Math.min(origIdx, next.length), 0, removed);
-            return reflowNumbers(next);
-          });
+          api.restoreSession(removed.id)
+            .then(() => {
+              setSessions(ss => {
+                const next = [...ss];
+                next.splice(Math.min(origIdx, next.length), 0, removed);
+                const reflowed = reflowNumbers(next);
+                persistOrder(reflowed);
+                return reflowed;
+              });
+            })
+            .catch(() => toast.error('Could not restore the session'));
         },
       },
     });
@@ -1004,7 +1089,11 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
             onMoveUp={() => moveUp(session.id)}
             onMoveDown={() => moveDown(session.id)}
             onRequestDelete={() => requestDelete(session.id)}
-            onUpdate={updated => setSessions(ss => ss.map(s => s.id === updated.id ? updated : s))}
+            onUpdate={updated => {
+              const orig = sessions.find(s => s.id === updated.id);
+              setSessions(ss => ss.map(s => s.id === updated.id ? updated : s));
+              persistSessionChanges(orig, updated);
+            }}
           />
         ))}
         {sessions.length === 0 && (
