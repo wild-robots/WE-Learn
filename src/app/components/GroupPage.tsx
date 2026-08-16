@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { BookOpen, Users, FolderOpen, Share2, ArrowRight, Crown, Calendar, Clock, Info, X, ChevronLeft, Search, MoreVertical, Pencil, Trash2, Copy, Eye, EyeOff, Check } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { getBubbleMembers } from "../../data/display";
+import { leaveWaitlist } from "../../data/api";
 import { SyllabusTab } from "./SyllabusTab";
 import { MembersTab } from "./MembersTab";
 import { ResourcesTab } from "./ResourcesTab";
@@ -43,7 +44,7 @@ function AvatarStackSmall({ avatars }: { avatars: string[] }) {
 export function GroupPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { bubbles, bubblesLoading, currentUser, isFounder, isJoined, isLoggedIn, addRecentBubble, updateBubble, deleteBubble, createBubble, loadBubbleDetail } = useApp();
+  const { bubbles, bubblesLoading, currentUser, isFounder, isJoined, isLoggedIn, authReady, addRecentBubble, updateBubble, deleteBubble, createBubble, loadBubbleDetail, refreshUser } = useApp();
 
   const [activeTab, setActiveTab]       = useState<Tab>('syllabus');
   const [guestPreview, setGuestPreview] = useState(false);
@@ -120,6 +121,7 @@ export function GroupPage() {
 
   const userId = currentUser?.id;
   const userJoined = (hasJoined || isJoined(bubble.id) || (!!userId && bubble.memberIds.includes(userId))) && !guestPreview;
+  const isWaitlisted = (currentUser?.waitlistedBubbles ?? []).includes(bubble.id) && !guestPreview;
 
   const tabs: { id: Tab; label: string; icon: typeof BookOpen; founderOnly?: boolean }[] = [
     { id: 'syllabus',  label: 'Syllabus',  icon: BookOpen, founderOnly: false },
@@ -170,13 +172,27 @@ export function GroupPage() {
               </button>
             )}
 
-            {/* User avatar */}
-            {currentUser && (
-              <div className="size-8 rounded-full overflow-hidden border-2"
+            {/* User avatar / sign-in */}
+            {currentUser ? (
+              <div className="size-8 rounded-full overflow-hidden border-2 bg-[#E5F5F4] flex items-center justify-center"
                 style={{ borderColor: guestPreview ? '#E9ECEF' : '#00a79d' }}>
-                <img src={currentUser.avatar} alt={currentUser.name} className="size-full object-cover" />
+                {currentUser.avatar ? (
+                  <img src={currentUser.avatar} alt={currentUser.name} className="size-full object-cover" />
+                ) : (
+                  <span className="text-[12px] font-bold text-[#008f86]" style={{ fontFamily: 'var(--font-display)' }}>
+                    {currentUser.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
               </div>
-            )}
+            ) : authReady ? (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="text-[13px] font-semibold text-[#00a79d] hover:underline shrink-0"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                Sign in
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
@@ -386,18 +402,36 @@ export function GroupPage() {
               >Cancel</button>
               <button
                 onClick={() => {
+                  setEditingBubble(false);
                   updateBubble(bubble.id, {
                     title: editTitle.trim() || bubble.title,
                     description: editDescription.trim() || bubble.description,
                     scheduleDay: editScheduleDay || bubble.scheduleDay,
                     scheduleTime: editScheduleTime.trim() || bubble.scheduleTime,
-                  });
-                  setEditingBubble(false);
-                  toast.success('Bubble updated');
+                  })
+                    .then(() => toast.success('Bubble updated'))
+                    .catch(() => toast.error('Could not save — your changes were reverted.'));
                 }}
                 className="px-4 py-2 rounded-lg bg-[#00a79d] text-white text-[13px] font-semibold hover:bg-[#008f86] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}
               >Save</button>
+            </div>
+          ) : isWaitlisted && !userJoined ? (
+            <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-[13px] text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
+                You're on the waitlist — the founder can admit you when a seat opens.
+              </p>
+              <button
+                onClick={() => {
+                  leaveWaitlist(bubble.id)
+                    .then(() => { toast.success('Removed from waitlist'); refreshUser(); })
+                    .catch(() => toast.error('Could not update the waitlist'));
+                }}
+                className="shrink-0 min-h-[44px] px-5 py-2.5 rounded-xl border border-[#E9ECEF] text-[#6C757D] text-[14px] font-semibold hover:bg-[#F8F9FA] transition-colors"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                Leave waitlist
+              </button>
             </div>
           ) : !isUserFounder && !userJoined ? (
             <div className="mt-4 pt-4 border-t border-[#F1F3F5] flex items-center justify-between gap-3 flex-wrap">
@@ -463,14 +497,21 @@ export function GroupPage() {
 
       {/* ── Tab Content ── */}
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
-        {activeTab === 'syllabus'  && (
+        {/* Tabs stay mounted (hidden with CSS) so in-progress edits and local
+            state survive tab switches. */}
+        <div style={{ display: activeTab === 'syllabus' ? undefined : 'none' }}>
           <SyllabusTab
             bubble={bubble}
             isFounder={isUserFounder}
+            isAuthor={isUserFounder}
           />
-        )}
-        {activeTab === 'members'   && <MembersTab   bubble={bubble} isFounder={isUserFounder} onJoin={handleJoinClick} />}
-        {activeTab === 'resources' && <ResourcesTab bubble={bubble} isFounder={isUserFounder} />}
+        </div>
+        <div style={{ display: activeTab === 'members' ? undefined : 'none' }}>
+          <MembersTab bubble={bubble} isFounder={isUserFounder} onJoin={handleJoinClick} />
+        </div>
+        <div style={{ display: activeTab === 'resources' ? undefined : 'none' }}>
+          <ResourcesTab bubble={bubble} isFounder={isUserFounder} />
+        </div>
       </div>
 
       {/* ── Auth Modal ── */}
@@ -517,10 +558,10 @@ export function GroupPage() {
                 >Cancel</button>
                 <button
                   onClick={() => {
-                    deleteBubble(bubble.id);
                     setShowDeleteConfirm(false);
-                    toast.success('Bubble deleted');
-                    navigate('/');
+                    deleteBubble(bubble.id)
+                      .then(() => { toast.success('Bubble deleted'); navigate('/'); })
+                      .catch(() => toast.error('Could not delete this Bubble.'));
                   }}
                   className="flex-1 py-2.5 rounded-xl bg-[#FA5252] text-white text-[14px] font-semibold hover:bg-[#E03131] transition-colors"
                   style={{ fontFamily: 'var(--font-body)' }}

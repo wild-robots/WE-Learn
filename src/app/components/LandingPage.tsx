@@ -31,16 +31,27 @@ function StatusBadge({ status }: { status: Bubble['status'] }) {
 
 // ─── Avatar Stack ─────────────────────────────────────────────────────────────
 
-function AvatarStack({ avatars, count }: { avatars: string[]; count: string }) {
+function AvatarStack({ people, count }: { people: Array<{ avatar: string; name: string }>; count: string }) {
+  const shown = people.slice(0, 4);
   return (
     <div className="flex items-center gap-2">
-      <div className="relative flex" style={{ width: Math.min(avatars.length, 4) * 14 + 6, height: 22 }}>
-        {avatars.slice(0, 4).map((src, i) => (
-          <div key={i} className="absolute rounded-full size-[22px] border-2 border-white overflow-hidden" style={{ left: i * 14 }}>
-            <img src={src} alt="" className="size-full object-cover" />
-          </div>
-        ))}
-      </div>
+      {shown.length > 0 && (
+        <div className="relative flex" style={{ width: shown.length * 14 + 8, height: 22 }}>
+          {shown.map((p, i) => (
+            <div key={i}
+              className="absolute rounded-full size-[22px] border-2 border-white overflow-hidden bg-[#E5F5F4] flex items-center justify-center"
+              style={{ left: i * 14 }}>
+              {p.avatar ? (
+                <img src={p.avatar} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="text-[9px] font-bold text-[#008f86]" style={{ fontFamily: 'var(--font-display)' }}>
+                  {p.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       <span className="text-[#6B7280] text-[12px]" style={{ fontFamily: 'var(--font-body)' }}>{count}</span>
     </div>
   );
@@ -144,7 +155,7 @@ function BubbleCard({
         </div>
 
         <AvatarStack
-          avatars={members.map(m => m.avatar)}
+          people={members.map(m => ({ avatar: m.avatar, name: m.name }))}
           count={`Starts ${bubble.startDate}`}
         />
 
@@ -312,9 +323,15 @@ function AvatarMenu({ user }: { user: NonNullable<ReturnType<typeof useApp>['cur
   return (
     <div className="relative">
       <button onClick={() => setOpen(o => !o)}
-        className="size-8 rounded-full overflow-hidden border-2 transition-all"
+        className="size-8 rounded-full overflow-hidden border-2 transition-all bg-[#E5F5F4] flex items-center justify-center"
         style={{ borderColor: open ? '#00a79d' : '#E9ECEF' }}>
-        <img src={user.avatar} alt={user.name} className="size-full object-cover" />
+        {user.avatar ? (
+          <img src={user.avatar} alt={user.name} className="size-full object-cover" />
+        ) : (
+          <span className="text-[12px] font-bold text-[#008f86]" style={{ fontFamily: 'var(--font-display)' }}>
+            {user.name.charAt(0).toUpperCase()}
+          </span>
+        )}
       </button>
       {open && <SettingsDropdown onClose={() => setOpen(false)} />}
     </div>
@@ -325,7 +342,7 @@ function AvatarMenu({ user }: { user: NonNullable<ReturnType<typeof useApp>['cur
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { bubbles, currentUser, isLoggedIn, isJoined, recentBubbleIds } = useApp();
+  const { bubbles, bubblesLoading, currentUser, isLoggedIn, authReady, isJoined, recentBubbleIds } = useApp();
 
   const [activeTab, setActiveTab]     = useState<'all' | 'my'>('all');
   const [showAuth, setShowAuth]       = useState(false);
@@ -358,8 +375,8 @@ export function LandingPage() {
           </span>
         </div>
 
-        {/* Tabs — left side, next to logo */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* Tabs — left side, next to logo (visible on all screen sizes) */}
+        <nav className="flex items-center gap-1">
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-1.5 text-[14px] transition-colors"
@@ -389,7 +406,7 @@ export function LandingPage() {
 
           {isLoggedIn && currentUser ? (
             <AvatarMenu user={currentUser} />
-          ) : (
+          ) : authReady ? (
             <button
               onClick={() => setShowAuth(true)}
               className="text-[14px] font-semibold text-[#00a79d] hover:underline"
@@ -397,6 +414,9 @@ export function LandingPage() {
             >
               Sign in
             </button>
+          ) : (
+            // Auth state still resolving — hold the space, avoid the signed-out flash
+            <div className="w-16" />
           )}
         </div>
       </header>
@@ -435,7 +455,21 @@ export function LandingPage() {
           </div>
 
           {/* Cards */}
-          {filtered.length === 0 ? (
+          {bubblesLoading && filtered.length === 0 ? (
+            /* Loading skeleton — no false "no bubbles" flash */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[0, 1, 2].map(i => (
+                <div key={i} className="rounded-2xl border border-[#E9ECEF] overflow-hidden animate-pulse">
+                  <div className="h-36 bg-[#F1F3F5]" />
+                  <div className="p-4 flex flex-col gap-2.5">
+                    <div className="h-4 w-3/4 bg-[#F1F3F5] rounded" />
+                    <div className="h-3 w-full bg-[#F8F9FA] rounded" />
+                    <div className="h-3 w-1/2 bg-[#F8F9FA] rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 && activeTab === 'my' ? (
             <div className="flex flex-col items-center py-20 gap-4 text-center">
               <div className="size-14 rounded-2xl bg-[#E5F5F4] flex items-center justify-center">
                 <svg className="size-7 text-[#00a79d]" fill="none" viewBox="0 0 24 24">
@@ -444,18 +478,29 @@ export function LandingPage() {
                 </svg>
               </div>
               <p className="text-[#212529] text-[18px] font-semibold" style={{ fontFamily: 'var(--font-display)' }}>
-                {activeTab === 'my' ? 'No bubbles yet' : 'No bubbles found'}
+                No bubbles yet
               </p>
               <p className="text-[#6C757D] text-[14px]" style={{ fontFamily: 'var(--font-body)' }}>
-                {activeTab === 'my'
-                  ? "You haven't joined any Bubbles yet."
-                  : 'No bubbles available right now.'}
+                You haven't joined any Bubbles yet — browse All Bubbles or start your own.
               </p>
               <button onClick={() => navigate('/create')}
                 className="mt-2 px-5 py-2.5 bg-[#00a79d] text-white rounded-xl text-[14px] font-medium hover:bg-[#008f86] transition-colors"
                 style={{ fontFamily: 'var(--font-body)' }}>
                 Start a new Bubble →
               </button>
+            </div>
+          ) : filtered.length === 0 ? (
+            /* Cold start: a young community is an invitation, not an error */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <CreateBubbleCard onClick={() => navigate('/create')} />
+              <div className="rounded-2xl border-2 border-dashed border-[#E9ECEF] flex flex-col items-center justify-center text-center gap-2 p-8">
+                <p className="text-[#212529] text-[15px] font-semibold" style={{ fontFamily: 'var(--font-display)' }}>
+                  Be the first Bubble
+                </p>
+                <p className="text-[#6C757D] text-[13px]" style={{ fontFamily: 'var(--font-body)' }}>
+                  The community is just getting started — create the first learning group and invite the women you want to learn with.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

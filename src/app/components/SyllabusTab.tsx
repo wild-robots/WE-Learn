@@ -8,6 +8,7 @@ import {
 import type { Bubble, Session, SessionStatus, BubbleLevel, VideoEntry } from "../../types";
 import { DatePicker } from "./DatePicker";
 import * as api from "../../data/api";
+import { useApp } from "../../context/AppContext";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -333,6 +334,7 @@ function SessionCard({
   onMoveDown,
   onRequestDelete,
   onUpdate,
+  onSaveProgress,
 }: {
   session: Session;
   isFirst: boolean;
@@ -351,6 +353,9 @@ function SessionCard({
   onMoveDown: () => void;
   onRequestDelete: () => void;
   onUpdate: (updated: Session) => void;
+  onSaveProgress: (patch: {
+    projectUrl?: string; reflectionNote?: string; confidenceRating?: number;
+  }) => Promise<void>;
 }) {
   const [expanded, setExpanded] = useState(session.status === 'in-progress');
   const [projectUrl, setProjectUrl] = useState(session.projectUrl ?? '');
@@ -365,6 +370,7 @@ function SessionCard({
   const [editDuration, setEditDuration] = useState(String(session.duration));
   const [editXP,       setEditXP]       = useState(String(session.xp));
   const [editLevel,    setEditLevel]    = useState<BubbleLevel>(session.level);
+  const [editStatus,   setEditStatus]   = useState<SessionStatus>(session.status);
   const [editSections, setEditSections] = useState(session.sections);
 
   useEffect(() => {
@@ -374,6 +380,7 @@ function SessionCard({
       setEditDuration(String(session.duration));
       setEditXP(String(session.xp));
       setEditLevel(session.level);
+      setEditStatus(session.status);
       setEditSections(session.sections);
     }
   }, [isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -614,30 +621,51 @@ function SessionCard({
       {/* Inline edit footer */}
       {isEditing && (
         <div
-          className="px-4 py-3 border-t border-[#E9ECEF] flex items-center justify-end gap-2.5"
+          className="px-4 py-3 border-t border-[#E9ECEF] flex items-center justify-between gap-2.5 flex-wrap"
           onClick={e => e.stopPropagation()}
         >
-          <button
-            onClick={onCancelEdit}
-            className="px-4 py-2 rounded-xl border border-[#E9ECEF] text-[13px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
-            style={{ fontFamily: 'var(--font-body)' }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onSaveEdit({
-              title:    editTitle.trim()    || session.title,
-              date:     editDate.trim()     || session.date,
-              duration: parseInt(editDuration) || session.duration,
-              xp:       parseInt(editXP)       || session.xp,
-              level:    editLevel,
-              sections: editSections,
-            })}
-            className="px-4 py-2 rounded-xl bg-[#00a79d] text-white text-[13px] font-semibold hover:bg-[#008f86] transition-colors"
-            style={{ fontFamily: 'var(--font-body)' }}
-          >
-            Save
-          </button>
+          {/* Status control — lets the founder mark sessions Done / In Progress / Locked */}
+          <div className="flex items-center gap-1.5">
+            {(Object.keys(STATUS_CFG) as SessionStatus[]).map(st => (
+              <button
+                key={st}
+                onClick={() => setEditStatus(st)}
+                className="text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  background: editStatus === st ? STATUS_CFG[st].bg : 'white',
+                  color: editStatus === st ? STATUS_CFG[st].color : '#ADB5BD',
+                  borderColor: editStatus === st ? STATUS_CFG[st].color : '#E9ECEF',
+                }}
+              >
+                {STATUS_CFG[st].label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={onCancelEdit}
+              className="px-4 py-2 rounded-xl border border-[#E9ECEF] text-[13px] text-[#6C757D] hover:bg-[#F8F9FA] transition-colors"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onSaveEdit({
+                title:    editTitle.trim()    || session.title,
+                date:     editDate.trim()     || session.date,
+                duration: parseInt(editDuration) || session.duration,
+                xp:       parseInt(editXP)       || session.xp,
+                level:    editLevel,
+                status:   editStatus,
+                sections: editSections,
+              })}
+              className="px-4 py-2 rounded-xl bg-[#00a79d] text-white text-[13px] font-semibold hover:bg-[#008f86] transition-colors"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              Save
+            </button>
+          </div>
         </div>
       )}
 
@@ -716,7 +744,11 @@ function SessionCard({
                         style={{ fontFamily: 'var(--font-body)' }}
                       />
                       <button
-                        onClick={() => { setSavedProject(true); onUpdate({ ...session, projectUrl }); }}
+                        onClick={() => {
+                          onSaveProgress({ projectUrl })
+                            .then(() => setSavedProject(true))
+                            .catch(() => toast.error('Could not save — check the link starts with https://'));
+                        }}
                         className="px-4 py-2 rounded-lg bg-[#00a79d] text-white text-[13px] font-medium hover:bg-[#008f86] transition-colors"
                         style={{ fontFamily: 'var(--font-body)' }}>
                         {savedProject ? <><Check className="size-3.5 inline" strokeWidth={2.5} /> Saved</> : 'Submit'}
@@ -769,7 +801,11 @@ function SessionCard({
                       style={{ fontFamily: 'var(--font-body)' }}
                     />
                     <button
-                      onClick={() => { setSavedReflect(true); onUpdate({ ...session, reflectionNote, confidenceRating: confidence }); }}
+                      onClick={() => {
+                        onSaveProgress({ reflectionNote, confidenceRating: confidence || undefined })
+                          .then(() => setSavedReflect(true))
+                          .catch(() => toast.error('Could not save your reflection — please try again.'));
+                      }}
                       className="self-end px-4 py-2 rounded-lg bg-[#00a79d] text-white text-[13px] font-medium hover:bg-[#008f86] transition-colors"
                       style={{ fontFamily: 'var(--font-body)' }}>
                       {savedReflect ? <><Check className="size-3.5 inline" strokeWidth={2.5} /> Saved</> : 'Save reflection'}
@@ -793,7 +829,10 @@ interface Props {
   isAuthor?: boolean;
 }
 
-export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
+// isAuthor defaults to FALSE: editing menus render only when the parent
+// explicitly passes founder rights (PRD R-09 — learners never see ⋮ menus).
+export function SyllabusTab({ bubble, isFounder, isAuthor = false }: Props) {
+  const { isLoggedIn } = useApp();
   const [sessions, setSessions] = useState<Session[]>(bubble.sessions);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -820,15 +859,15 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
       .catch(() => toast.error('Could not save the new order'));
   }
 
-  /** Persist field + section changes of one session. */
+  /** Persist field + section changes of one session (founder only — RLS enforced). */
   function persistSessionChanges(orig: Session | undefined, next: Session) {
     api.updateSessionRow(next.id, {
       title: next.title,
       status: next.status,
       level: next.level,
-      projectUrl: next.projectUrl ?? null,
-      reflectionNote: next.reflectionNote ?? null,
-      confidenceRating: next.confidenceRating ?? null,
+      date: next.date,
+      duration: next.duration,
+      xp: next.xp,
     }).catch(() => toast.error('Could not save your changes'));
 
     for (const sec of next.sections) {
@@ -1092,13 +1131,23 @@ export function SyllabusTab({ bubble, isFounder, isAuthor = true }: Props) {
             onUpdate={updated => {
               const orig = sessions.find(s => s.id === updated.id);
               setSessions(ss => ss.map(s => s.id === updated.id ? updated : s));
-              persistSessionChanges(orig, updated);
+              if (isAuthor) persistSessionChanges(orig, updated);
+            }}
+            onSaveProgress={async patch => {
+              await api.saveMyProgress(session.id, patch);
+              setSessions(ss => ss.map(s => s.id === session.id ? { ...s, ...patch } : s));
             }}
           />
         ))}
         {sessions.length === 0 && (
           <div className="text-center py-12 text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-            {isFounder ? 'Click "Add Session" to build your syllabus.' : 'Sessions coming soon.'}
+            {!isLoggedIn
+              ? 'Sign in to preview the full syllabus.'
+              : !bubble.detailLoaded
+                ? 'Loading syllabus…'
+                : isFounder
+                  ? 'Click "Add Session" to build your syllabus.'
+                  : 'The founder hasn\'t added sessions yet.'}
           </div>
         )}
       </div>

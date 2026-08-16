@@ -6,7 +6,9 @@ export interface User {
   email: string;
   avatar: string;
   title: string; // professional title e.g. "UX Designer"
-  joinedBubbles: string[]; // bubble IDs
+  joinedBubbles: string[];     // bubble IDs
+  waitlistedBubbles: string[]; // bubble IDs where I'm on the waitlist
+  notifyConsent: boolean;
 }
 
 // ─── Bubble ───────────────────────────────────────────────────────────────────

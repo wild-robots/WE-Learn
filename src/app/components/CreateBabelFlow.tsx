@@ -5,9 +5,11 @@ import {
   Sprout, TrendingUp, Award,
   Check, CheckCircle2, Pencil, ChevronLeft,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useApp } from "../../context/AppContext";
 import type { Bubble, Session, BubbleLevel } from "../../types";
 import { BabelTransition } from "./BabelTransition";
+import { AuthModal } from "./AuthModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -213,10 +215,11 @@ function ScheduleWidget({ onSelect, locked }: { onSelect: (day: string, time: st
   );
 }
 
+// Bubbles are 4–8 women by design (and the database enforces it).
 const SEAT_OPTIONS = [
-  { key: 'small',    label: 'Small',    range: '3–5 members',  desc: 'Intimate and focused',   value: 5,  recommended: false },
-  { key: 'standard', label: 'Standard', range: '6–8 members',  desc: 'Recommended',            value: 8,  recommended: true  },
-  { key: 'large',    label: 'Large',    range: '9+ members',   desc: 'For wider communities',  value: 12, recommended: false },
+  { key: 'small',    label: 'Cozy',     range: '4–5 members',  desc: 'Intimate and focused',      value: 5, recommended: false },
+  { key: 'standard', label: 'Standard', range: '6 members',    desc: 'Balanced group energy',     value: 6, recommended: true  },
+  { key: 'large',    label: 'Full',     range: '7–8 members',  desc: 'The widest a Bubble goes',  value: 8, recommended: false },
 ] as const;
 
 type SeatKey = typeof SEAT_OPTIONS[number]['key'];
@@ -408,7 +411,7 @@ function SessionsWidget({
 
 export function CreateBabelFlow() {
   const navigate = useNavigate();
-  const { createBubble, currentUser } = useApp();
+  const { createBubble, currentUser, isLoggedIn, authReady } = useApp();
   const [data, setData] = useState<Partial<BubbleData>>({});
   const [currentStep, setCurrentStep] = useState<StepKey>('topic');
   const [feed, setFeed] = useState<FeedItem[]>([
@@ -485,11 +488,26 @@ export function CreateBabelFlow() {
       .catch(err => {
         console.error('Failed to create bubble', err);
         setShowTransition(false);
+        toast.error(
+          err?.message?.includes('signed in')
+            ? 'Please sign in to create a Bubble.'
+            : 'Something went wrong creating your Bubble — nothing was lost, try Launch again.',
+        );
+        // Unlock the last widget so she can retry.
+        setFeed(f => f.map(item =>
+          item.kind === 'widget' ? { ...item, locked: false } : item,
+        ));
       });
   }
 
   const stepIndex = STEP_ORDER.indexOf(currentStep);
   const progress  = Math.round(((stepIndex + 1) / STEP_ORDER.length) * 100);
+
+  // Creating a Bubble requires an account — gate the wizard up front,
+  // not after six answered steps. (Placed after all hooks per React rules.)
+  if (authReady && !isLoggedIn) {
+    return <AuthModal onClose={() => navigate('/')} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col">

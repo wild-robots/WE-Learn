@@ -14,6 +14,7 @@ interface AppContextValue {
   authReady: boolean;               // false until the initial session check completes
   login: () => void;                // starts the Google sign-in redirect
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>; // re-fetch profile/memberships/waitlist
 
   // Bubbles
   bubbles: Bubble[];
@@ -21,8 +22,8 @@ interface AppContextValue {
   refreshBubbles: () => Promise<void>;
   loadBubbleDetail: (bubbleId: string) => Promise<void>;
   createBubble: (input: api.CreateBubbleInput) => Promise<string>;
-  updateBubble: (id: string, patch: Partial<Bubble>) => void;
-  deleteBubble: (id: string) => void;
+  updateBubble: (id: string, patch: Partial<Bubble>) => Promise<void>;
+  deleteBubble: (id: string) => Promise<void>;
 
   // Join / Leave
   joinBubble: (bubbleId: string) => Promise<'joined' | 'waitlisted'>;
@@ -77,12 +78,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    // Surface a cancelled/failed Google sign-in (Supabase returns the error
+    // in the URL hash) instead of failing silently.
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    if (hash.get('error')) {
+      import('sonner').then(({ toast }) =>
+        toast.error('Sign-in was not completed. You can try again anytime.'));
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     async function syncUser(signedIn: boolean) {
-      const user = signedIn ? await api.fetchCurrentUser() : null;
-      if (cancelled) return;
-      setCurrentUser(user);
-      setAuthReady(true);
-      refreshBubbles(signedIn);
+      try {
+        const user = signedIn ? await api.fetchCurrentUser() : null;
+        if (cancelled) return;
+        setCurrentUser(user);
+      } catch (err) {
+        console.error('Failed to load your profile', err);
+        if (!cancelled) setCurrentUser(null);
+      } finally {
+        if (!cancelled) {
+          setAuthReady(true);
+          refreshBubbles(signedIn);
+        }
+      }
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => syncUser(!!session));
@@ -95,6 +113,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     return () => { cancelled = true; subscription.unsubscribe(); };
   }, [refreshBubbles]);
+
+  async function refreshUser() {
+    try {
+      setCurrentUser(await api.fetchCurrentUser());
+    } catch (err) {
+      console.error('Failed to refresh profile', err);
+    }
+  }
 
   // ─── Auth actions ──────────────────────────────────────────────────────────
 
@@ -133,41 +159,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return id;
   }
 
-  function updateBubble(id: string, patch: Partial<Bubble>) {
+  async function updateBubble(id: string, patch: Partial<Bubble>) {
     // Optimistic local update…
     setBubbles(bs => bs.map(b => (b.id === id ? { ...b, ...patch } : b)));
     // …then persist the editable fields. RLS guarantees only the founder succeeds.
-    api.updateBubbleRow(id, {
-      title: patch.title,
-      description: patch.description,
-      scheduleDay: patch.scheduleDay,
-      scheduleTime: patch.scheduleTime,
-      status: patch.status,
-      maxSeats: patch.maxSeats,
-      heroImage: patch.heroImage,
-    }).catch(err => {
-      console.error('Failed to save bubble', err);
+    try {
+      await api.updateBubbleRow(id, {
+        title: patch.title,
+        description: patch.description,
+        scheduleDay: patch.scheduleDay,
+        scheduleTime: patch.scheduleTime,
+        status: patch.status,
+        maxSeats: patch.maxSeats,
+        heroImage: patch.heroImage,
+      });
+    } catch (err) {
       refreshBubbles(); // roll back to server truth
-    });
+      throw err;
+    }
   }
 
-  function deleteBubble(id: string) {
+  async function deleteBubble(id: string) {
     setBubbles(bs => bs.filter(b => b.id !== id));
-    api.deleteBubbleRow(id).catch(err => {
-      console.error('Failed to delete bubble', err);
+    try {
+      await api.deleteBubbleRow(id);
+    } catch (err) {
       refreshBubbles();
-    });
+      throw err;
+    }
   }
 
   // ─── Membership ────────────────────────────────────────────────────────────
 
   async function joinBubble(bubbleId: string): Promise<'joined' | 'waitlisted'> {
     const outcome = await api.joinBubbleRpc(bubbleId);
-    if (outcome === 'joined') {
-      setCurrentUser(u => u
-        ? { ...u, joinedBubbles: [...new Set([...u.joinedBubbles, bubbleId])] }
-        : u);
-    }
+    refreshUser();          // picks up membership or waitlist state
     refreshBubbles(true);
     return outcome;
   }
@@ -197,7 +223,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       currentUser, isLoggedIn: !!currentUser, authReady,
-      login, logout,
+      login, logout, refreshUser,
       bubbles, bubblesLoading, refreshBubbles: () => refreshBubbles(),
       loadBubbleDetail, createBubble, updateBubble, deleteBubble,
       joinBubble, leaveBubble, isJoined, isFounder,

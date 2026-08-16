@@ -14,8 +14,34 @@ import type {
 
 function fmtDate(iso: string | null): string {
   if (!iso) return 'TBD';
-  const d = new Date(iso);
+  // DATE columns arrive as 'YYYY-MM-DD'; parse as LOCAL date to avoid
+  // the off-by-one-day bug in UTC-negative timezones.
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(iso);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/** Parse a display date ("Mar 14, 2026") back to 'YYYY-MM-DD', or null. */
+export function toIsoDate(display: string | null | undefined): string | null {
+  if (!display || display === 'TBD') return null;
+  const d = new Date(display);
+  if (isNaN(d.getTime())) return null;
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+/** Only allow real web links (blocks javascript: and friends). */
+export function safeUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  return /^https?:\/\//i.test(trimmed) ? trimmed : null;
+}
+
+/** Throw if an update/delete matched no rows (RLS-blocked or missing). */
+function assertTouched(rows: unknown[] | null, what: string): void {
+  if (!rows || rows.length === 0) {
+    throw new Error(`Not permitted: ${what}`);
+  }
 }
 
 function fmtMonthYear(iso: string | null): string {
@@ -163,38 +189,53 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
-/** Load the signed-in user's profile + the bubble ids she belongs to. */
+/** Load the signed-in user's profile + memberships + waitlist entries. */
 export async function fetchCurrentUser(): Promise<User | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [{ data: profile }, { data: memberships }] = await Promise.all([
-    supabase.from('profiles').select('id, name, avatar_url, title').eq('id', user.id).single(),
+  const [{ data: profile }, { data: memberships }, { data: waits }] = await Promise.all([
+    supabase.from('profiles')
+      .select('id, name, avatar_url, title, notify_consent')
+      .eq('id', user.id).single(),
     supabase.from('bubble_members').select('bubble_id').eq('user_id', user.id),
+    supabase.from('waitlist').select('bubble_id').eq('user_id', user.id),
   ]);
 
   return {
     id: user.id,
-    name: profile?.name ?? user.email ?? 'Member',
+    name: profile?.name ?? 'Member',
     email: user.email ?? '',
     avatar: profile?.avatar_url ?? '',
     title: profile?.title ?? '',
     joinedBubbles: (memberships ?? []).map(m => m.bubble_id),
+    waitlistedBubbles: (waits ?? []).map(w => w.bubble_id),
+    notifyConsent: profile?.notify_consent ?? false,
   };
 }
 
-export async function updateMyProfile(patch: { name?: string; title?: string }): Promise<void> {
+export async function updateMyProfile(patch: {
+  name?: string; title?: string; notifyConsent?: boolean;
+}): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not signed in');
-  const { error } = await supabase.from('profiles').update(patch).eq('id', user.id);
+  const row: Record<string, unknown> = {};
+  if (patch.name !== undefined) row.name = patch.name;
+  if (patch.title !== undefined) row.title = patch.title;
+  if (patch.notifyConsent !== undefined) row.notify_consent = patch.notifyConsent;
+  const { data, error } = await supabase
+    .from('profiles').update(row).eq('id', user.id).select('id');
   if (error) throw error;
+  assertTouched(data, 'profile update');
 }
 
 // ─── Bubbles ─────────────────────────────────────────────────────────────────
 
 /**
  * List all bubbles. Works signed-out (cards only, no member details —
- * that's the privacy model). When signed in, member lists are attached.
+ * that's the privacy model). Signed in, you get: full member lists for
+ * bubbles YOU belong to (privacy rules hide the rest), plus each bubble's
+ * founder name for the "Founded by" line.
  */
 export async function fetchBubbles(signedIn: boolean): Promise<Bubble[]> {
   const { data: rows, error } = await supabase
@@ -203,11 +244,22 @@ export async function fetchBubbles(signedIn: boolean): Promise<Bubble[]> {
     .order('created_at', { ascending: false });
   if (error) throw error;
 
-  let membersByBubble = new Map<string, Member[]>();
-  if (signedIn && rows && rows.length) {
-    const { data: memberRows } = await supabase
-      .from('bubble_members')
-      .select('bubble_id, user_id, role, joined_at, profiles(id, name, avatar_url, title)');
+  const bubbleRows = (rows ?? []) as BubbleRow[];
+  const membersByBubble = new Map<string, Member[]>();
+
+  if (signedIn && bubbleRows.length) {
+    const [{ data: memberRows }, { data: founderProfiles }] = await Promise.all([
+      // Only returns rows for bubbles the caller belongs to (RLS-scoped).
+      supabase
+        .from('bubble_members')
+        .select('bubble_id, user_id, role, joined_at, profiles(id, name, avatar_url, title)'),
+      // Founder profiles are readable so cards can say "Founded by …".
+      supabase
+        .from('profiles')
+        .select('id, name, avatar_url, title')
+        .in('id', [...new Set(bubbleRows.map(b => b.founder_id))]),
+    ]);
+
     if (memberRows) {
       for (const r of memberRows as unknown as (MemberRow & { bubble_id: string })[]) {
         const list = membersByBubble.get(r.bubble_id) ?? [];
@@ -215,11 +267,26 @@ export async function fetchBubbles(signedIn: boolean): Promise<Bubble[]> {
         membersByBubble.set(r.bubble_id, list);
       }
     }
+
+    // Ensure every bubble at least lists its founder (for non-member viewers).
+    const founderById = new Map((founderProfiles ?? []).map(p => [p.id, p as ProfileRow]));
+    for (const b of bubbleRows) {
+      const list = membersByBubble.get(b.id) ?? [];
+      if (!list.some(m => m.id === b.founder_id)) {
+        const fp = founderById.get(b.founder_id);
+        if (fp) {
+          list.unshift({
+            id: fp.id, name: fp.name, role: 'founder',
+            avatar: fp.avatar_url ?? '', title: fp.title ?? '',
+            joinDate: '', postCount: 0, online: false,
+          });
+        }
+      }
+      membersByBubble.set(b.id, list);
+    }
   }
 
-  return (rows as BubbleRow[]).map(row =>
-    mapBubble(row, membersByBubble.get(row.id) ?? []),
-  );
+  return bubbleRows.map(row => mapBubble(row, membersByBubble.get(row.id) ?? []));
 }
 
 /** Load one bubble's syllabus + resources (requires sign-in per security rules). */
@@ -253,10 +320,48 @@ export async function fetchBubbleDetail(bubbleId: string): Promise<{
     votes = (voteRows ?? []) as VoteRow[];
   }
 
+  const sessions = (sessionsRes.data as SessionRow[]).map(mapSession);
+
+  // Merge MY per-member progress into each session (project/reflection/rating).
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user && sessions.length) {
+    const { data: progress } = await supabase
+      .from('session_progress')
+      .select('session_id, project_url, reflection_note, confidence_rating')
+      .eq('user_id', user.id)
+      .in('session_id', sessions.map(s => s.id));
+    for (const p of progress ?? []) {
+      const s = sessions.find(x => x.id === p.session_id);
+      if (s) {
+        s.projectUrl = p.project_url ?? undefined;
+        s.reflectionNote = p.reflection_note ?? undefined;
+        s.confidenceRating = p.confidence_rating ?? undefined;
+      }
+    }
+  }
+
   return {
-    sessions: (sessionsRes.data as SessionRow[]).map(mapSession),
+    sessions,
     resources: resourceRows.map(r => mapResource(r, votes)),
   };
+}
+
+/** Save MY progress on a session (per-member; each woman's own). */
+export async function saveMyProgress(sessionId: string, p: {
+  projectUrl?: string | null; reflectionNote?: string | null;
+  confidenceRating?: number | null;
+}): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not signed in');
+  const { error } = await supabase.from('session_progress').upsert({
+    session_id: sessionId,
+    user_id: user.id,
+    project_url: safeUrl(p.projectUrl ?? null),
+    reflection_note: p.reflectionNote ?? null,
+    confidence_rating: p.confidenceRating ?? null,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
 }
 
 export interface CreateBubbleInput {
@@ -398,43 +503,52 @@ export async function createSessionRow(bubbleId: string, s: {
 
 export async function updateSessionRow(id: string, patch: Partial<{
   number: number; title: string; status: Session['status'];
-  level: Session['level']; projectUrl: string | null;
-  reflectionNote: string | null; confidenceRating: number | null;
+  level: Session['level']; date: string; duration: number; xp: number;
 }>): Promise<void> {
   const row: Record<string, unknown> = {};
   if (patch.number !== undefined) row.number = patch.number;
   if (patch.title !== undefined) row.title = patch.title;
   if (patch.status !== undefined) row.status = patch.status;
   if (patch.level !== undefined) row.level = patch.level;
-  if (patch.projectUrl !== undefined) row.project_url = patch.projectUrl;
-  if (patch.reflectionNote !== undefined) row.reflection_note = patch.reflectionNote;
-  if (patch.confidenceRating !== undefined) row.confidence_rating = patch.confidenceRating;
+  if (patch.date !== undefined) row.session_date = toIsoDate(patch.date);
+  if (patch.duration !== undefined) row.duration = patch.duration;
+  if (patch.xp !== undefined) row.xp = patch.xp;
   if (!Object.keys(row).length) return;
-  const { error } = await supabase.from('sessions').update(row).eq('id', id);
+  const { data, error } = await supabase
+    .from('sessions').update(row).eq('id', id).select('id');
   if (error) throw error;
+  assertTouched(data, 'session update');
 }
 
 /** Soft-delete (sets deleted_at) — supports the 5-second undo. */
 export async function softDeleteSession(id: string): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('sessions')
     .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
   if (error) throw error;
+  assertTouched(data, 'session delete');
 }
 
 export async function restoreSession(id: string): Promise<void> {
-  const { error } = await supabase.from('sessions').update({ deleted_at: null }).eq('id', id);
+  const { data, error } = await supabase
+    .from('sessions').update({ deleted_at: null }).eq('id', id).select('id');
   if (error) throw error;
+  assertTouched(data, 'session restore');
 }
 
 /** Persist new session numbering after move/duplicate/delete reflows. */
 export async function renumberSessions(ordered: Array<{ id: string; number: number }>): Promise<void> {
-  await Promise.all(
+  const results = await Promise.all(
     ordered.map(s =>
-      supabase.from('sessions').update({ number: s.number }).eq('id', s.id),
+      supabase.from('sessions').update({ number: s.number }).eq('id', s.id).select('id'),
     ),
   );
+  for (const r of results) {
+    if (r.error) throw r.error;
+    assertTouched(r.data, 'session reorder');
+  }
 }
 
 export async function createSectionRow(sessionId: string, sec: {
@@ -463,27 +577,36 @@ export async function updateSectionRow(id: string, patch: Partial<{
   const row: Record<string, unknown> = {};
   if (patch.title !== undefined) row.title = patch.title;
   if (patch.content !== undefined) row.content = patch.content;
-  if (patch.videos !== undefined) row.videos = patch.videos;
+  if (patch.videos !== undefined) {
+    // Strip any non-web links (defense in depth vs stored XSS).
+    row.videos = patch.videos.filter(v => safeUrl(v.url));
+  }
   if (patch.position !== undefined) row.position = patch.position;
   if (!Object.keys(row).length) return;
-  const { error } = await supabase.from('session_sections').update(row).eq('id', id);
+  const { data, error } = await supabase
+    .from('session_sections').update(row).eq('id', id).select('id');
   if (error) throw error;
+  assertTouched(data, 'section update');
 }
 
 export async function softDeleteSection(id: string): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('session_sections')
     .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
   if (error) throw error;
+  assertTouched(data, 'section delete');
 }
 
 export async function restoreSection(id: string): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('session_sections')
     .update({ deleted_at: null })
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
   if (error) throw error;
+  assertTouched(data, 'section restore');
 }
 
 // ─── Resources ───────────────────────────────────────────────────────────────
@@ -494,13 +617,15 @@ export async function addResourceRow(bubbleId: string, r: {
 }): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not signed in');
+  const url = safeUrl(r.url);
+  if (r.url && !url) throw new Error('Links must start with http:// or https://');
   const { data, error } = await supabase
     .from('resources')
     .insert({
       bubble_id: bubbleId,
       type: r.type,
       title: r.title,
-      url: r.url || null,
+      url,
       description: r.description,
       uploaded_by: user.id,
       watched: r.watched,
@@ -518,18 +643,69 @@ export async function updateResourceRow(id: string, patch: Partial<{
 }>): Promise<void> {
   const row: Record<string, unknown> = {};
   if (patch.title !== undefined) row.title = patch.title;
-  if (patch.url !== undefined) row.url = patch.url || null;
+  if (patch.url !== undefined) row.url = safeUrl(patch.url);
   if (patch.description !== undefined) row.description = patch.description;
   if (patch.type !== undefined) row.type = patch.type;
   if (patch.watched !== undefined) row.watched = patch.watched;
   if (patch.personalRating !== undefined) row.personal_rating = patch.personalRating;
   if (!Object.keys(row).length) return;
-  const { error } = await supabase.from('resources').update(row).eq('id', id);
+  const { data, error } = await supabase
+    .from('resources').update(row).eq('id', id).select('id');
   if (error) throw error;
+  assertTouched(data, 'resource update');
 }
 
 export async function deleteResourceRow(id: string): Promise<void> {
-  const { error } = await supabase.from('resources').delete().eq('id', id);
+  const { data, error } = await supabase
+    .from('resources').delete().eq('id', id).select('id');
+  if (error) throw error;
+  assertTouched(data, 'resource delete');
+}
+
+// ─── Waitlist & leadership (founder tools) ───────────────────────────────────
+
+export interface WaitlistEntry { userId: string; name: string; avatar: string; title: string; since: string }
+
+/** Founder: list who is waiting for a seat in her bubble. */
+export async function fetchWaitlist(bubbleId: string): Promise<WaitlistEntry[]> {
+  const { data, error } = await supabase
+    .from('waitlist')
+    .select('user_id, created_at, profiles(id, name, avatar_url, title)')
+    .eq('bubble_id', bubbleId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((w: any) => ({
+    userId: w.user_id,
+    name: w.profiles?.name ?? 'Member',
+    avatar: w.profiles?.avatar_url ?? '',
+    title: w.profiles?.title ?? '',
+    since: fmtDate(w.created_at),
+  }));
+}
+
+/** Founder: admit a waitlisted woman into a free seat (server-checked). */
+export async function admitFromWaitlist(bubbleId: string, userId: string): Promise<void> {
+  const { error } = await supabase.rpc('admit_from_waitlist', {
+    target_bubble: bubbleId, target_user: userId,
+  });
+  if (error) throw error;
+}
+
+/** Leave a waitlist (self). */
+export async function leaveWaitlist(bubbleId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not signed in');
+  const { error } = await supabase
+    .from('waitlist').delete()
+    .eq('bubble_id', bubbleId).eq('user_id', user.id);
+  if (error) throw error;
+}
+
+/** Founder: hand the founder role to another member. */
+export async function transferFounder(bubbleId: string, newFounderId: string): Promise<void> {
+  const { error } = await supabase.rpc('transfer_founder', {
+    target_bubble: bubbleId, new_founder: newFounderId,
+  });
   if (error) throw error;
 }
 

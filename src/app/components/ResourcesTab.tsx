@@ -437,7 +437,8 @@ function UploadForm({ onSubmit, open, onOpenChange }: {
 // ─── ResourcesTab ─────────────────────────────────────────────────────────────
 
 export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder: boolean }) {
-  const { currentUser } = useApp();
+  const { currentUser, isLoggedIn, isJoined } = useApp();
+  const isMember = isFounder || isJoined(bubble.id);
   const [resources, setResources] = useState<Resource[]>(bubble.resources);
   const [filter, setFilter] = useState<ResourceType | 'all'>('all');
   const [showAddResource, setShowAddResource] = useState(false);
@@ -521,14 +522,16 @@ export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder:
             {resources.length} shared by members
           </p>
         </div>
-        <button
-          onClick={() => setShowAddResource(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors shrink-0"
-          style={{ fontFamily: 'var(--font-body)' }}
-        >
-          <Plus className="size-4" strokeWidth={1.75} />
-          Add Resource
-        </button>
+        {isMember && (
+          <button
+            onClick={() => setShowAddResource(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors shrink-0"
+            style={{ fontFamily: 'var(--font-body)' }}
+          >
+            <Plus className="size-4" strokeWidth={1.75} />
+            Add Resource
+          </button>
+        )}
       </div>
 
       {/* Type filters */}
@@ -565,7 +568,11 @@ export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder:
       {/* List */}
       {filtered.length === 0 ? (
         <div className="text-center py-12 text-[#6C757D]" style={{ fontFamily: 'var(--font-body)' }}>
-          No resources yet. Be the first to share something!
+          {!isLoggedIn
+            ? 'Sign in to see this Bubble\'s shared resources.'
+            : !isMember
+              ? 'Resources are shared privately within the Bubble — join to see them.'
+              : 'No resources yet. Be the first to share something!'}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -584,12 +591,14 @@ export function ResourcesTab({ bubble, isFounder }: { bubble: Bubble; isFounder:
         </div>
       )}
 
-      {/* Add Resource form — shown when triggered from header button or dashed card */}
-      <UploadForm
-        onSubmit={r => { addResource(r); setShowAddResource(false); }}
-        open={showAddResource}
-        onOpenChange={setShowAddResource}
-      />
+      {/* Add Resource form — members only */}
+      {isMember && (
+        <UploadForm
+          onSubmit={r => { addResource(r); setShowAddResource(false); }}
+          open={showAddResource}
+          onOpenChange={setShowAddResource}
+        />
+      )}
     </div>
   );
 }
