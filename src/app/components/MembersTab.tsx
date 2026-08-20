@@ -177,6 +177,8 @@ export function MembersTab({ bubble, isFounder, onJoin }: Props) {
     }
   }, [isFounder, bubble.id, bubble.takenSeats]);
 
+  const isFull = bubble.takenSeats >= bubble.maxSeats;
+
   const filtered = members.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
     m.title.toLowerCase().includes(search.toLowerCase())
@@ -260,14 +262,15 @@ export function MembersTab({ bubble, isFounder, onJoin }: Props) {
               Add Member
             </button>
           ) : (
+            /* A full Bubble is still joinable — the server puts you on the
+               waitlist. Matches the main Join CTA on the bubble card. */
             <button
               onClick={onJoin}
-              disabled={bubble.takenSeats >= bubble.maxSeats}
-              title={bubble.takenSeats >= bubble.maxSeats ? 'This Bubble is full' : undefined}
-              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={isFull ? 'This Bubble is full — you can join the waitlist' : undefined}
+              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-[#00a79d] text-white text-[14px] font-semibold hover:bg-[#008f86] transition-colors shrink-0"
               style={{ fontFamily: 'var(--font-body)' }}
             >
-              Join <ArrowRight className="size-4" strokeWidth={2} />
+              {isFull ? 'Join waitlist' : 'Join'} <ArrowRight className="size-4" strokeWidth={2} />
             </button>
           )}
         </div>

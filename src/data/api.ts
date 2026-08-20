@@ -439,13 +439,17 @@ export async function updateBubbleRow(id: string, patch: Partial<{
   if (patch.maxSeats !== undefined) row.max_seats = patch.maxSeats;
   if (patch.heroImage !== undefined) row.hero_image = patch.heroImage;
   if (!Object.keys(row).length) return;
-  const { error } = await supabase.from('bubbles').update(row).eq('id', id);
+  const { data, error } = await supabase
+    .from('bubbles').update(row).eq('id', id).select('id');
   if (error) throw error;
+  assertTouched(data, 'bubble update');
 }
 
 export async function deleteBubbleRow(id: string): Promise<void> {
-  const { error } = await supabase.from('bubbles').delete().eq('id', id);
+  const { data, error } = await supabase
+    .from('bubbles').delete().eq('id', id).select('id');
   if (error) throw error;
+  assertTouched(data, 'bubble delete');
 }
 
 // ─── Membership ──────────────────────────────────────────────────────────────
@@ -457,24 +461,32 @@ export async function joinBubbleRpc(bubbleId: string): Promise<'joined' | 'waitl
   return data as 'joined' | 'waitlisted';
 }
 
+/**
+ * Leave a bubble. A founder cannot leave (RLS blocks it) — she must hand over
+ * leadership first; that case surfaces as a thrown error rather than a no-op.
+ */
 export async function leaveBubbleApi(bubbleId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not signed in');
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('bubble_members')
     .delete()
     .eq('bubble_id', bubbleId)
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .select('user_id');
   if (error) throw error;
+  assertTouched(data, 'leave bubble');
 }
 
 export async function removeMember(bubbleId: string, userId: string): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('bubble_members')
     .delete()
     .eq('bubble_id', bubbleId)
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .select('user_id');
   if (error) throw error;
+  assertTouched(data, 'remove member');
 }
 
 // ─── Syllabus persistence ────────────────────────────────────────────────────
@@ -695,6 +707,9 @@ export async function admitFromWaitlist(bubbleId: string, userId: string): Promi
 export async function leaveWaitlist(bubbleId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not signed in');
+  // Deliberately NOT assertTouched: you may always delete your own waitlist row,
+  // so "0 rows" means it was already gone (e.g. the founder just admitted you) —
+  // that is the desired end state, not a permission failure.
   const { error } = await supabase
     .from('waitlist').delete()
     .eq('bubble_id', bubbleId).eq('user_id', user.id);
@@ -714,6 +729,8 @@ export async function voteOnResource(resourceId: string, vote: 'up' | 'down' | n
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not signed in');
   if (vote === null) {
+    // Deliberately NOT assertTouched: removing a vote you never cast is a
+    // no-op, not a failure. RLS always permits deleting your own vote.
     const { error } = await supabase
       .from('resource_votes')
       .delete()
